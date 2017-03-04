@@ -9,7 +9,7 @@ build:
 
 .PHONY: setup
 setup:
-	pip install coconut-develop[tests]
+	pip install coconut-develop
 
 .PHONY: test
 test:
