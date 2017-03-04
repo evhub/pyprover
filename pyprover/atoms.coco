@@ -19,7 +19,7 @@ class Vars:
     def use(cls, globs=None):
         """Put variables into the global namespace."""
         if globs is None:
-            globs = globs
+            globs = globals()
         for name, var in cls.items():
             globs[name] = var
     @classmethod
@@ -27,7 +27,7 @@ class Vars:
     def using(cls, globs=None):
         """Temporarilty put variables into the global namespace."""
         if globs is None:
-            globs = globs
+            globs = globals()
         prevars = {}
         for name, var in cls.items():
             if name in globs:
