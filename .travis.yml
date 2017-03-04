@@ -1,0 +1,12 @@
+language: python
+notifications:
+  email: false
+sudo: false
+cache: pip
+python:
+  - "2.7"
+  - "3.5"
+install:
+  - make
+script:
+  - make test

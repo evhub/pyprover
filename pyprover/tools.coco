@@ -1,0 +1,62 @@
+# Imports:
+
+from pyprover.logic import (
+    Proposition,
+    Constant,
+    And,
+    wff,
+)
+
+# Functions:
+
+def propositions(names) =
+    """Constructs propositions from a space-seperated string of names."""
+    map(Proposition, names.split())
+
+def variables(names) =
+    """Constructs constants from a space-seperated string of names."""
+    map(Constant, names.split())
+
+def solve(expr, **kwargs) =
+    """Converts to CNF and performs all possible resolutions."""
+    expr.simplify(dnf=False, **kwargs).resolve(**kwargs)
+
+def proves(givens, conclusion, **kwargs) =
+    """Determines if the givens prove the conclusion."""
+    if wff(givens):
+        givens = (givens,)
+    else:
+        givens = tuple(givens)
+        assert all(wff(x) for x in givens)
+    ands = givens + (~conclusion,)
+    And(*ands) |> solve$(**kwargs) == bot
+
+def iff(a, b, **kwargs) =
+    """Determines if a is true if and only if b."""
+    a = a.simplify(dnf=False, **kwargs)
+    b = b.simplify(dnf=False, **kwargs)
+    a `proves$(**kwargs)` b and b `proves$(**kwargs)` a
+
+def simplify(expr, *exprs, **kwargs):
+    """Simplify the given expression[s]."""
+    if exprs:
+        return (expr,) + exprs |> map$(x -> x.simplify(**kwargs)) |> tuple
+    else:
+        return expr.simplify(**kwargs)
+
+def simplest_form(expr, **kwargs):
+    """Finds the shortest simplification for the given expression."""
+    cnf_expr = expr.simplify(dnf=False, **kwargs)
+    dnf_expr = cnf_expr.simplify(dnf=True, **kwargs)
+    if len(cnf_expr) <= len(dnf_expr):
+        return cnf_expr
+    else:
+        return dnf_expr
+
+def simplest_solution(expr, **kwargs) =
+    """Finds the shortest resolved simplification for the given expression."""
+    expr |> solve$(**kwargs) |> simplest_form$(**kwargs)
+
+def expr `sub_in` subs =
+    """Substitutes expressions or booleans into the given expression."""
+    expr.substitute(subs)

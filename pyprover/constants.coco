@@ -1,0 +1,19 @@
+version = "0.0.1"
+requirements = ["coconut[tests]"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Operating System :: OS Independent",
+]
+
+
+top_sym = "\u252c"
+bot_sym = "\u2534"
+not_sym = "\xac"
+imp_sym = "->"
+and_sym = "/\\"
+or_sym = "\\/"
+forall_sym = "A:"
+exists_sym = "E:"

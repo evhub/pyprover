@@ -1,0 +1,31 @@
+# Imports:
+
+from pyprover.constants import (
+    imp_sym,
+    and_sym,
+    or_sym,
+    forall_sym,
+    exists_sym,
+)
+
+# Functions:
+
+def unorderd_eq(list1, list2):
+    if len(list1) != len(list2):
+        return False
+    for x in list1:
+        if x not in list2:
+            return False
+    return True
+
+def quote(expr):
+    """Adds parentheses in the presence of Imp, And, Or, ForAll, and Exists."""
+    expr_str = str(expr)
+    if (imp_sym in expr_str
+        or and_sym in expr_str
+        or or_sym in expr_str
+        or forall_sym in expr_str
+        or exists_sym in expr_str):
+        return "(" + expr_str + ")"
+    else:
+        return expr_str

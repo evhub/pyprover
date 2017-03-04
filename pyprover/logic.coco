@@ -1,0 +1,559 @@
+# Imports:
+
+from pyprover.constants import (
+    top_sym,
+    bot_sym,
+    not_sym,
+    imp_sym,
+    and_sym,
+    or_sym,
+    forall_sym,
+    exists_sym,
+)
+from pyprover.util import (
+    unorderd_eq,
+    quote,
+)
+
+# Functions:
+
+def wff(expr) =
+    """Determines whether expr is a well-formed formula."""
+    isinstance(expr, Expr) and not isinstance(expr, Term)
+
+def isvar(var) =
+    """Whether a term is a variable."""
+    isinstance(var, (Constant, Variable))
+
+# Classes:
+
+class Expr:
+    __slots__ = ()
+    def __and__(self, other):
+        if isinstance(other, And):
+            return other & self
+        else:
+            return And(self, other)
+    def __or__(self, other):
+        if isinstance(other, Or):
+            return other | self
+        else:
+            return Or(self, other)
+    def __rshift__(self, other):
+        if isinstance(other, Imp):
+            return other << self
+        else:
+            return Imp(self, other)
+    def __lshift__(self, other) =
+        assert wff(other), other
+        other >> self
+    def __invert__(self) =
+        Not(self)
+    def __xor__(self, other) =
+        Or(And(self, Not(other)), And(Not(self), other))
+    def __len__(self) = 1
+    def simplify(self, **kwargs) =
+        """Simplify the given expression."""
+        self
+    def substitute(self, subs) =
+        """Substitutes a dictionary into the expression."""
+        self
+    def contradicts(self, other, **kwargs):
+        """Assuming self is simplified, determines if it contradicts other."""
+        if isinstance(other, Not):
+            return self |> other.contradicts
+        else:
+            return self == Not(other).simplify(**kwargs)
+    def resolve_against(self, other, **kwargs):
+        """Attempt to perform a resolution against other else None."""
+        if isinstance(other, (Or, Not)):
+            return other.resolve_against(self, **kwargs)
+        if self.find_unification(Not(other).simplify(**kwargs)) is not None:
+            return bot
+        return None
+    def resolve(self, **kwargs) =
+        """Performs resolution on the clauses in a CNF expression."""
+        self
+    def find_unification(self, other):
+        """Find a substitution in self that would make self into other."""
+        if self == other:
+            return {}
+        else:
+            return None
+
+class Top(Expr):
+    __slots__ = ()
+    def __eq__(self, other) = isinstance(other, Top)
+    def __repr__(self) = "top"
+    def __str__(self) = top_sym
+    def __bool__(self) = True
+top = true = Top()
+
+class Bot(Expr):
+    __slots__ = ()
+    def __eq__(self, other) = isinstance(other, Bot)
+    def __repr__(self) = "bot"
+    def __str__(self) = bot_sym
+    def __bool__(self) = False
+bot = false = Bot()
+
+class Atom(Expr):
+    __slots__ = ("name",)
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self) =
+        self.name
+    def __eq__(self, other) =
+        isinstance(other, self.__class__) and self.name == other.name
+    def __hash__(self) =
+        (self.__class__.__name__, self.name) |> hash
+    def substitute_elements(self, subs) =
+        """Substitute for the elements of the Atom, not the Atom itself."""
+        self
+    def substitute(self, subs):
+        try:
+            sub = subs[self]
+        except KeyError:
+            return self.substitute_elements(subs)
+        else:
+            if wff(sub):
+                return sub
+            elif sub is True:
+                return top
+            elif sub is False:
+                return bot
+            else:
+                raise TypeError("cannot perform substitution " + repr(self) + " => " + repr(sub))
+
+class Proposition(Atom):
+    __slots__ = ()
+    def __call__(self, *args) =
+        Predicate(self.name, *args)
+
+class FuncAtom(Atom):
+    __slots__ = ("args",)
+    def __init__(self, name, *args):
+        for arg in args:
+            assert isinstance(arg, Term), arg
+        self.name, self.args = name, args
+    def __repr__(self) =
+        self.name + "(" + ", ".join(repr(x) for x in self.args) + ")"
+    def __eq__(self, other) =
+        isinstance(other, self.__class__) and self.name == other.name and self.args == other.args
+    def __hash__(self) =
+        (self.__class__.__name__, self.name, self.args) |> hash
+    def find_unification(self, other):
+        if isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
+            subs = {}
+            for i, x in enumerate(self.args):
+                y = other.args[i]
+                unif = x.find_unification(y)
+                if unif is None:
+                    return None
+                for name, var in unif.items():
+                    if name not in subs:
+                        subs[name] = var
+                    elif subs[name] != var:
+                        return None
+            return subs
+        else:
+            return None
+
+class Predicate(FuncAtom):
+    __slots__ = ()
+    def proposition(self) =
+        Proposition(self.name)
+    def substitute_elements(self, subs):
+        try:
+            sub = subs[self.proposition()]
+        except KeyError:
+            return self.args |> map$(.substitute(subs)) |*> Predicate$(self.name)
+        else:
+            return Predicate(sub.name, *self.args)
+
+class Term(Atom):
+    __slots__ = ()
+    def variable(self) =
+        """Convert to a variable."""
+        assert isvar(self), self
+        Variable(self.name)
+    def constant(self) =
+        """Convert to a constant."""
+        assert isvar(self), self
+        Constant(self.name)
+    def rename(self, name) =
+        """Create a new term with a different name."""
+        self.__class__(name)
+    def prime(self) =
+        """Rename by adding a prime."""
+        self.rename(self.name + "'")
+    def substitute(self, subs):
+        for var, sub in subs.items():
+            if isinstance(var, Term) and self.name == var.name:
+                if isvar(self) or self == var:
+                    return sub
+                else:
+                    return self.rename(sub.name)
+        return self.substitute_elements(subs)
+
+class Variable(Term):
+    __slots__ = ()
+    def variable(self) = self
+    def __call__(self, *args) =
+        Function(self.name, *args)
+    def find_unification(self, other):
+        if isinstance(other, Term):
+            return {self: other}
+        else:
+            return None
+
+class Constant(Term):
+    __slots__ = ()
+    def constant(self) = self
+    def __call__(self, *args) =
+        Function(self.name, *args)
+    def find_unification(self, other):
+        if isinstance(other, Variable):
+            return {other: self}
+        else:
+            return super(Constant, self).find_unification(other)
+
+class Function(Term, FuncAtom):
+    __slots__ = ()
+    def substitute_elements(self, subs) =
+        self.args |> map$(.substitute(subs)) |*> Function$(self.name)
+    def rename(self, name) =
+        self.__class__(name, *self.args)
+    def find_unification(self, other):
+        if isinstance(other, Variable):
+            return {other: self}
+        else:
+            return super(Function, self).find_unification(other)
+
+class UnaryOp(Expr):
+    __slots__ = ("elem",)
+    def __init__(self, elem):
+        assert wff(elem), elem
+        self.elem = elem
+    def __repr__(self) =
+        self.__class__.__name__ + "(" + repr(self.elem) + ")"
+    def __eq__(self, other) =
+        isinstance(other, self.__class__) and self.elem == other.elem
+    def __str__(self) =
+        self.opstr + quote(self.elem)
+    def __len__(self) =
+        len(self.elem) + 1
+    def substitute(self, subs) =
+        self.__class__(self.elem.substitute(subs))
+    def find_unification(self, other):
+        if isinstance(other, self.__class__):
+            return self.elem.find_unification(other.elem)
+        else:
+            return None
+
+class Not(UnaryOp):
+    __slots__ = ()
+    opstr = not_sym
+    @property
+    def neg(self) = self.elem
+    def simplify(self, **kwargs):
+        if top == self.neg:
+            return bot
+        elif bot == self.neg:
+            return top
+        elif isinstance(self.neg, Not):
+            return self.neg.neg.simplify(**kwargs)
+        elif isinstance(self.neg, And):
+            return Or(*map(Not, self.neg.ands)).simplify(**kwargs)
+        elif isinstance(self.neg, Or):
+            return And(*map(Not, self.neg.ors)).simplify(**kwargs)
+        elif isinstance(self.neg, Imp):
+            ands = self.neg.conds + (Not(self.neg.concl),)
+            return And(*ands).simplify(**kwargs)
+        elif isinstance(self.neg, Exists):
+            return ForAll(self.neg.var, Not(self.neg.elem).simplify(**kwargs))
+        elif isinstance(self.neg, ForAll):
+            return Exists(self.neg.var, Not(self.neg.elem).simplify(**kwargs))
+        else:
+            return Not(self.neg.simplify(**kwargs))
+    def contradicts(self, other, **kwargs) =
+        self.neg == other
+    def resolve_against(self, other, **kwargs):
+        if isinstance(other, Or):
+            return other.resolve_against(self, **kwargs)
+        if self.neg.find_unification(other) is not None:
+            return bot
+        return None
+
+class Quantifier(Expr):
+    __slots__ = ("var", "elem")
+    def __repr__(self) =
+        self.__class__.__name__ + "(" + repr(self.var) + ", " + repr(self.elem) + ")"
+    def __str__(self) =
+        self.opstr + str(self.var) + ". " + quote(self.elem)
+    def __len__(self) =
+        len(self.elem) + len(self.var)
+    def change_var(self, var):
+        """Create an equivalent expression with a new quantified variable."""
+        return self.__class__(var, self.elem.substitute({self.var: var}))
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.elem == other.change_var(self.var).elem
+        else:
+            return False
+    def substitute(self, subs):
+        try:
+            var = subs[self.var]
+        except KeyError:
+            var = self.var
+        return self.__class__(var, self.elem.substitute(subs))
+    def make_free_in(self, other):
+        """Makes self free in other."""
+        var = self.var
+        newvar = var.prime()
+        while other != other.substitute({var: newvar}):
+            var, newvar = newvar, newvar.prime()
+        return self.change_var(var)
+    def simplify(self, **kwargs):
+        simp_elem = self.elem.simplify(**kwargs)
+        if simp_elem == simp_elem.substitute({self.var: self.var.prime()}):
+            return simp_elem
+        else:
+            return self.__class__(self.var, simp_elem)
+
+class ForAll(Quantifier):
+    __slots__ = ()
+    opstr = forall_sym
+    def __init__(self, var, elem):
+        assert wff(elem), elem
+        assert isvar(var), var
+        self.var = var.variable()
+        self.elem = elem.substitute({var: self.var.variable()})
+    def resolve(self, **kwargs) =
+        kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
+        ForAll(self.var, self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+A = ForAll
+
+class Exists(Quantifier):
+    __slots__ = ()
+    opstr = exists_sym
+    def __init__(self, var, elem):
+        assert wff(elem), elem
+        assert isvar(var), var
+        self.var = var.constant()
+        self.elem = elem.substitute({var: self.var.constant()})
+    def resolve(self, **kwargs):
+        variables = kwargs.get("variables")
+        if variables is None:
+            skolem_elem = self.elem
+        else:
+            skolem_var = Function(self.var.name, *variables)
+            skolem_elem = self.elem.substitute({self.var: skolem_var})
+        return Exists(self.var, skolem_elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+E = Exists
+
+class BinaryOp(Expr):
+    __slots__ = ("elems",)
+    def __init__(self, *elems):
+        assert len(elems) >= 2, elems
+        for x in elems:
+            assert wff(x), x
+        self.elems = elems
+    def __repr__(self) =
+        self.__class__.__name__ + "(" + ", ".join(repr(x) for x in self.elems) + ")"
+    def __str__(self) =
+        (" " + self.opstr + " ").join(quote(x) for x in self.elems)
+    def __len__(self) =
+        sum(map(len, self.elems)) + 1
+    def substitute(self, subs):
+        return self.elems |> map$(.substitute(subs)) |*> self.__class__
+
+class Imp(BinaryOp):
+    __slots__ = ()
+    opstr = imp_sym
+    def __rshift__(self, other):
+        if isinstance(other, Imp):
+            return Imp(self, *other.elems)
+        else:
+            return Imp(self, other)
+    def __lshift__(self, other) =
+        (other,) + self.elems |*> Imp
+    @property
+    def conds(self) = self.elems[:-1]
+    @property
+    def concl(self) = self.elems[-1]
+    def __eq__(self, other) =
+        isinstance(other, self.__class__) and self.concl == other.concl and self.conds `unorderd_eq` other.conds
+    def simplify(self, **kwargs) =
+        ors = tuple(map(Not, self.conds)) + (self.concl,)
+        Or(*ors).simplify(**kwargs)
+
+class BoolOp(BinaryOp):
+    __slots__ = ()
+    def __new__(cls, *elems):
+        if not elems:
+            return cls.identity
+        elif len(elems) == 1:
+            assert wff(elems[0]), elems[0]
+            return elems[0]  # sometimes returns an instance of cls
+        else:
+            return super(BoolOp, cls).__new__(cls)
+    def __init__(self, *elems):
+        if len(elems) > 1:  # __new__ should handle all other cases
+            super(BoolOp, self).__init__(*elems)
+    def __eq__(self, other) =
+        isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
+    def merge(self):
+        """Merges nested copies of a boolean operator."""
+        elems = []
+        for x in self.elems:
+            if isinstance(x, self.__class__):
+                elems.extend(x.merge().elems)
+            else:
+                elems.append(x)
+        return self.__class__(*elems)
+    def dedupe(self):
+        """Removes duplicate elements from a boolean operator."""
+        elems = []
+        for x in self.elems:
+            if x not in elems:
+                elems.append(x)
+        return self.__class__(*elems)
+    def clean(self) =
+        """Removes copies of the identity."""
+        self.elems |> filter$((!=)$(self.identity)) |*> self.__class__
+    def prenex(self, **kwargs):
+        """Pulls quantifiers out."""
+        for i, x in enumerate(self.elems):
+            if isinstance(x, Quantifier):
+                elems = self.elems[:i] + self.elems[i+1:]
+                free_x = x.make_free_in(self.__class__(*elems))
+                elems += (free_x.elem,)
+                return self.__class__(*elems).simplify(**kwargs) |> free_x.__class__$(free_x.var)
+        return self
+
+class Or(BoolOp):
+    __slots__ = ()
+    opstr = or_sym
+    identity = bot
+    def __or__(self, other) =
+        self.elems + (other,) |*> Or
+    @property
+    def ors(self) = self.elems
+    def distribute(self, **kwargs):
+        """If this Or contains an And, distribute into it."""
+        for i, x in enumerate(self.ors):
+            if isinstance(x, And):
+                ands = ((y,) + self.ors[:i] + self.ors[i+1:] |*> Or for y in x.ands)
+                return And(*ands).simplify(**kwargs)
+        return self
+    def simplify(self, dnf=False, debug=False, **kwargs):
+        kwargs["dnf"] = dnf
+        kwargs["debug"] = debug
+        ors = self.merge().ors |> map$(x -> x.simplify(**kwargs))
+        out = Or(*ors).clean()
+        if isinstance(out, Or) and not dnf:
+            out = out.distribute(**kwargs)
+        if isinstance(out, Or):
+            out = out.merge().dedupe()
+        if isinstance(out, Or) and out.tautology(**kwargs):
+            out = top
+        if isinstance(out, Or):
+            out = out.prenex(**kwargs)
+        if debug:
+            print(repr(self), "=>", repr(out))
+        return out
+    def tautology(self, **kwargs):
+        """Determines if the Or is a blatant tautology."""
+        for i, x in enumerate(self.ors):
+            if top == x:
+                return True
+            for y in self.ors[i+1:]:
+                if x.contradicts(y, **kwargs):
+                    return True
+        return False
+    def resolve_against(self, other, **kwargs):
+        if isinstance(other, Or):
+            not_other_ors = other.ors |> map$(Not) |> map$(x -> x.simplify(**kwargs))
+            for i, x in enumerate(self.ors):
+                for j, y in enumerate(not_other_ors):
+                    subs = x.find_unification(y)
+                    if subs is not None:
+                        return self.ors[:i] + self.ors[i+1:] + other.ors[:j] + other.ors[j+1:] |> map$(.substitute(subs)) |*> Or
+
+        else:
+            not_other = Not(other).simplify(**kwargs)
+            for i, x in enumerate(self.ors):
+                subs = x.find_unification(not_other)
+                if subs is not None:
+                    return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs)) |*> Or
+        return None
+
+class And(BoolOp):
+    __slots__ = ()
+    opstr = and_sym
+    identity = top
+    def __and__(self, other) =
+        self.elems + (other,) |*> And
+    @property
+    def ands(self) = self.elems
+    def distribute(self, **kwargs):
+        """If this And contains an Or, distribute into it."""
+        for i, x in enumerate(self.ands):
+            if isinstance(x, Or):
+                ors = ((y,) + self.ands[:i] + self.ands[i+1:] |*> And for y in x.ors)
+                return Or(*ors).simplify(**kwargs)
+        return self
+    def simplify(self, dnf=False, debug=False, **kwargs):
+        kwargs["dnf"] = dnf
+        kwargs["debug"] = debug
+        ands = self.merge().ands |> map$(x -> x.simplify(**kwargs))
+        out = And(*ands).clean()
+        if isinstance(out, And) and dnf:
+            out = out.distribute(**kwargs)
+        if isinstance(out, And):
+            out = out.merge().dedupe()
+        if isinstance(out, And) and out.contradiction(**kwargs):
+            out = bot
+        if isinstance(out, And):
+            out = out.prenex(**kwargs)
+        if debug:
+            print(repr(self), "=>", repr(out))
+        return out
+    def contradiction(self, **kwargs):
+        """Determines if the And is a blatant contradiction."""
+        for i, x in enumerate(self.ands):
+            if bot == x:
+                return True
+            for y in self.ands[i+1:]:
+                if x.contradicts(y, **kwargs):
+                    return True
+        return False
+    def resolve(self, debug=False, **kwargs):
+        """Performs all possible resolutions within the And."""
+        kwargs["debug"] = debug
+        if debug:
+            print(repr(self))
+        clauses = self.ands |> list
+        prev_clause_len = 1
+        while prev_clause_len < len(clauses):
+            prev_clause_len = len(clauses)
+            # reversed ensures conclusions get tested first
+            for i in range(1, len(clauses)) |> reversed:
+                x = clauses[i]
+                for y in clauses[:i+1]:  # allow resolution of a clause against itself
+                    resolution = x.resolve_against(y)
+                    if resolution is not None:
+                        resolution = resolution.simplify(dnf=False, **kwargs)
+                        if debug:
+                            print(repr(x), "+", repr(y), "=>", repr(resolution))
+                        if isinstance(resolution, And):
+                            new_clauses = resolution.ands
+                        else:
+                            new_clauses = (resolution,)
+                        for y in new_clauses:
+                            if y == bot:
+                                return bot
+                            elif y not in clauses:
+                                clauses.append(y)
+        return And(*clauses).simplify(dnf=False, **kwargs)

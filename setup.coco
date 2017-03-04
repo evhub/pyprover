@@ -1,0 +1,23 @@
+import setuptools
+
+import sys
+import os.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from pyprover.constants import (
+    version,
+    requirements,
+    classifiers,
+)
+
+setuptools.setup(
+    name="pyprover",
+    version=version,
+    description="A resolutional theorem prover for predicate logic in pure Python.",
+    url="https://github.com/evhub/pyprover",
+    author="Evan Hubinger",
+    author_email="evanjhub@gmail.com",
+    install_requires=requirements,
+    packages=setuptools.find_packages(),
+    classifiers=classifiers,
+)
