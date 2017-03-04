@@ -1,5 +1,5 @@
 version = "0.0.1"
-requirements = ["coconut[tests]"]
+requirements = ["coconut"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",

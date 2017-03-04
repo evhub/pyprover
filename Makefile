@@ -14,4 +14,4 @@ clean:
 
 .PHONY: test
 test:
-	pytest --strict -s pyprover/tests.py
+	python pyprover/tests.py
