@@ -7,6 +7,7 @@ python:
   - "2.7"
   - "3.5"
 install:
+  - pip install coconut-develop[tests]
   - make
 script:
   - make test
