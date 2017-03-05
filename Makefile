@@ -5,7 +5,7 @@ install: build
 .PHONY: build
 build:
 	coconut setup.coco -s
-	coconut pyprover -s -j sys
+	coconut pyprover-source pyprover -s -j sys
 
 .PHONY: upload
 upload: clean install
