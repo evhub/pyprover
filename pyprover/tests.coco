@@ -217,3 +217,4 @@ def test_predicate_logic():
 if __name__ == "__main__":
     test_propositional_logic
     test_predicate_logic
+    print("<success>")
