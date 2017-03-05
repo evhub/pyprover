@@ -1,6 +1,13 @@
 # Imports:
 
-from pyprover.logic import A, E
+from pyprover.logic import (
+    A,
+    E,
+    top,
+    bot,
+    And,
+    Or,
+)
 from pyprover.tools import (
     proves,
     iff,
@@ -187,7 +194,7 @@ def test_predicate_logic():
         assert E(x, R(x) >> B(x)) `proves` A(x, R(x)) >> E(x, B(x))
         assert ~A(x, bot) `proves` E(x, top)
         assert A(x, E(y, F(y) | G(x))) `proves` A(x, G(x) | E(x, F(x)))
-        assert (A(x, A(y, A(z, S(x, y) & S(y, z) >> S(x, z)))), ~E(x, S(x, x))) `proves` A(x, A(y, S(x, y) >> ~S(y, x)))
+        assert (A(x, A(y, A(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~E(x, S(x, x))) `proves` A(x, A(y, S(x, y) >> ~S(y, x)))
         assert A(x, G(x)) | A(x, B(x)) `proves` A(x, G(x) | B(x))
         assert E(z, A(k, P(z, k))) `proves` A(y, E(x, P(x, y)))
         assert E(x, C(x) & B(x)) `proves` E(x, B(x) & C(x))
@@ -215,6 +222,6 @@ def test_predicate_logic():
         assert top `proves` E(x, R(x) >> (R(j) & R(k)))
 
 if __name__ == "__main__":
-    test_propositional_logic
-    test_predicate_logic
+    test_propositional_logic()
+    test_predicate_logic()
     print("<success>")

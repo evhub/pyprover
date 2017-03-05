@@ -9,5 +9,4 @@ python:
 install:
   - make setup
 script:
-  - make install
   - make test

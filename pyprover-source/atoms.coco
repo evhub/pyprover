@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 from pyprover.tools import (
     propositions,
-    variables,
+    terms,
 )
 
 # Base Class:
@@ -67,26 +67,26 @@ class UppercasePropositions(Vars):
     Y, Z = propositions("Y Z")
 
 class LowercaseVariables(Vars):
-    a, b, c = variables("a b c")
-    d, e, f = variables("d e f")
-    g, h, i = variables("g h i")
-    j, k, l = variables("j k l")
-    m, n, o = variables("m n o")
-    p, q, r = variables("p q r")
-    s, t, u = variables("s t u")
-    v, w, x = variables("v w x")
-    y, z = variables("y z")
+    a, b, c = terms("a b c")
+    d, e, f = terms("d e f")
+    g, h, i = terms("g h i")
+    j, k, l = terms("j k l")
+    m, n, o = terms("m n o")
+    p, q, r = terms("p q r")
+    s, t, u = terms("s t u")
+    v, w, x = terms("v w x")
+    y, z = terms("y z")
 
 class UppercaseVariables(Vars):
-    B, C = variables("B C")
-    D, F = variables("D F")
-    G, H, I = variables("G H I")
-    J, K, L = variables("J K L")
-    M, N, O = variables("M N O")
-    P, Q, R = variables("P Q R")
-    S, T, U = variables("S T U")
-    V, W, X = variables("V W X")
-    Y, Z = variables("Y Z")
+    B, C = terms("B C")
+    D, F = terms("D F")
+    G, H, I = terms("G H I")
+    J, K, L = terms("J K L")
+    M, N, O = terms("M N O")
+    P, Q, R = terms("P Q R")
+    S, T, U = terms("S T U")
+    V, W, X = terms("V W X")
+    Y, Z = terms("Y Z")
 
 class StandardMath(Vars)
 for name, var in LowercaseVariables.items() :: UppercasePropositions.items():

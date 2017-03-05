@@ -5,6 +5,7 @@ from pyprover.logic import (
     Constant,
     And,
     wff,
+    bot,
 )
 
 # Functions:
@@ -13,7 +14,7 @@ def propositions(names) =
     """Constructs propositions from a space-seperated string of names."""
     map(Proposition, names.split())
 
-def variables(names) =
+def terms(names) =
     """Constructs constants from a space-seperated string of names."""
     map(Constant, names.split())
 

@@ -1,7 +1,18 @@
-from pyprover.logic import A, E
+# Imports:
+
+from pyprover.logic import (
+    ForAll,
+    Exists,
+    A,
+    E,
+    top,
+    bot,
+    true,
+    false,
+)
 from pyprover.tools import (
     propositions,
-    variables,
+    terms,
     solve,
     proves,
     iff,
@@ -17,3 +28,7 @@ from pyprover.atoms import (
     UppercaseVariables,
     StandardMath,
 )
+
+# Main:
+
+StandardMath.use(globals())

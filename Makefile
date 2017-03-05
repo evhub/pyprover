@@ -18,7 +18,7 @@ setup:
 	pip install coconut-develop
 
 .PHONY: test
-test:
+test: install
 	python pyprover/tests.py
 
 clean:

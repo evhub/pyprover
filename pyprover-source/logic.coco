@@ -58,19 +58,6 @@ class Expr:
     def substitute(self, subs) =
         """Substitutes a dictionary into the expression."""
         self
-    def contradicts(self, other, **kwargs):
-        """Assuming self is simplified, determines if it contradicts other."""
-        if isinstance(other, Not):
-            return self |> other.contradicts
-        else:
-            return self == Not(other).simplify(**kwargs)
-    def resolve_against(self, other, **kwargs):
-        """Attempt to perform a resolution against other else None."""
-        if isinstance(other, (Or, Not)):
-            return other.resolve_against(self, **kwargs)
-        if self.find_unification(Not(other).simplify(**kwargs)) is not None:
-            return bot
-        return None
     def resolve(self, **kwargs) =
         """Performs resolution on the clauses in a CNF expression."""
         self
@@ -78,6 +65,20 @@ class Expr:
         """Find a substitution in self that would make self into other."""
         if self == other:
             return {}
+        else:
+            return None
+    def contradicts(self, other, **kwargs):
+        """Assuming self is simplified, determines if it contradicts other."""
+        if isinstance(other, Not):
+            return other.contradicts(self, **kwargs)
+        else:
+            return self == Not(other).simplify(**kwargs)
+    def resolve_against(self, other, **kwargs):
+        """Attempt to perform a resolution against other else None."""
+        if isinstance(other, (Not, Or)):
+            return other.resolve_against(self, **kwargs)
+        elif Not(other).simplify(**kwargs) |> self.find_unification is not None:
+            return bot
         else:
             return None
 
@@ -102,6 +103,8 @@ class Atom(Expr):
     def __init__(self, name):
         self.name = name
     def __repr__(self) =
+        self.name
+    def __str__(self) =
         self.name
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name
@@ -199,6 +202,8 @@ class Term(Atom):
 class Variable(Term):
     __slots__ = ()
     def variable(self) = self
+    def __repr__(self) =
+        self.name + "*"
     def __call__(self, *args) =
         Function(self.name, *args)
     def find_unification(self, other):
@@ -281,9 +286,10 @@ class Not(UnaryOp):
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Or):
             return other.resolve_against(self, **kwargs)
-        if self.neg.find_unification(other) is not None:
+        elif self.neg.find_unification(other) is not None:
             return bot
-        return None
+        else:
+            return None
 
 class Quantifier(Expr):
     __slots__ = ("var", "elem")
