@@ -7,6 +7,12 @@ build:
 	coconut setup.coco -s
 	coconut pyprover -s -j sys
 
+.PHONY: upload
+upload: clean install
+	python3 setup.py sdist bdist_wheel
+	pip3 install --upgrade twine
+	twine upload dist/*
+
 .PHONY: setup
 setup:
 	pip install coconut-develop
@@ -16,6 +22,7 @@ test:
 	python pyprover/tests.py
 
 clean:
-	find . -name "*.py" -delete
+	rm -rf ./dist ./build
+	find . -name '*.py' -delete
 	find . -name '*.pyc' -delete
 	find . -name '__pycache__' -delete
