@@ -260,6 +260,8 @@ class UnaryOp(Expr):
             return self.elem.find_unification(other.elem)
         else:
             return None
+    def resolve(self, **kwargs) =
+        self.__class__(self.elem.resolve(**kwargs)).simplify(**kwargs)
 
 class Not(UnaryOp):
     __slots__ = ()
@@ -313,11 +315,7 @@ class Quantifier(Expr):
         else:
             return False
     def substitute(self, subs):
-        try:
-            var = subs[self.var]
-        except KeyError:
-            var = self.var
-        return self.__class__(var, self.elem.substitute(subs))
+        return self.__class__(self.var.substitute(subs), self.elem.substitute(subs))
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
@@ -325,12 +323,13 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         return self.change_var(var)
-    def simplify(self, **kwargs):
-        simp_elem = self.elem.simplify(**kwargs)
-        if simp_elem == simp_elem.substitute({self.var: self.var.prime()}):
-            return simp_elem
+    def simplify(self, **kwargs) =
+        self.__class__(self.var, self.elem.simplify(**kwargs)).drop_quantifier()
+    def find_unification(self, other):
+        if isinstance(other, self.__class__):
+            return self.elem.find_unification(other.elem)
         else:
-            return self.__class__(self.var, simp_elem)
+            return None
 
 class ForAll(Quantifier):
     __slots__ = ()
@@ -343,6 +342,14 @@ class ForAll(Quantifier):
     def resolve(self, **kwargs) =
         kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         ForAll(self.var, self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+    def drop_quantifier(self, nonempty_universe=True, **kwargs):
+        kwargs["nonempty_universe"] = nonempty_universe
+        if (self.elem == top or
+            nonempty_universe and
+            self.elem == self.elem.substitute({self.var: self.var.prime()})):
+            return self.elem
+        else:
+            return self
 FA = ForAll
 
 class Exists(Quantifier):
@@ -361,6 +368,17 @@ class Exists(Quantifier):
             skolem_var = Function(self.var.name, *variables)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
         return Exists(self.var, skolem_elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+    def drop_quantifier(self, nonempty_universe=True, **kwargs):
+        kwargs["nonempty_universe"] = nonempty_universe
+        if (self.elem == bot or
+            nonempty_universe and
+            self.elem == self.elem.substitute({self.var: self.var.prime()})):
+            return self.elem
+        else:
+            return self
+    def contradicts(self, other, **kwargs) =
+        subs = Not(other).simplify(**kwargs) |> self.find_unification
+        subs is not None and self == self.substitute(subs)
 TE = Exists
 
 class BinaryOp(Expr):
@@ -378,6 +396,9 @@ class BinaryOp(Expr):
         sum(map(len, self.elems)) + 1
     def substitute(self, subs):
         return self.elems |> map$(.substitute(subs)) |*> self.__class__
+    def resolve(self, **kwargs) =
+        elems = self.elems |> map$(x -> x.resolve(**kwargs))
+        self.__class__(*elems).simplify(**kwargs)
 
 class Imp(BinaryOp):
     __slots__ = ()
@@ -433,10 +454,13 @@ class BoolOp(BinaryOp):
     def clean(self) =
         """Removes copies of the identity."""
         self.elems |> filter$((!=)$(self.identity)) |*> self.__class__
+    def can_prenex(self, other, **kwargs) =
+        """Determines if other can be pulled out."""
+        True
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
-            if isinstance(x, Quantifier):
+            if isinstance(x, Quantifier) and self.can_prenex(x, **kwargs):
                 elems = self.elems[:i] + self.elems[i+1:]
                 free_x = x.make_free_in(self.__class__(*elems))
                 elems += (free_x.elem,)
@@ -499,6 +523,9 @@ class Or(BoolOp):
                 if subs is not None:
                     return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs)) |*> Or
         return None
+    def can_prenex(self, other, nonempty_universe=True, **kwargs) =
+        kwargs["nonempty_universe"] = nonempty_universe
+        nonempty_universe or not isinstance(other, Exists)
 
 class And(BoolOp):
     __slots__ = ()
@@ -545,7 +572,12 @@ class And(BoolOp):
         kwargs["debug"] = debug
         if debug:
             print(self)
-        clauses = self.ands |> list
+        resolved = super(And, self).resolve(**kwargs)
+        if not isinstance(resolved, And):
+            if debug:
+                print(resolved)
+            return resolved
+        clauses = resolved.ands |> list
         prev_clause_len = 1
         while prev_clause_len < len(clauses):
             prev_clause_len = len(clauses)
