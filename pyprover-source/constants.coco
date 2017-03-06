@@ -7,7 +7,10 @@ import sys
 def first_encodeable(*symbols):
     for sym in symbols:
         try:
-            sym.encode(sys.stdout.encoding)
+            if hasattr(sys.stdout, "encoding") and sys.stdout.encoding is not None:
+                sym.encode(sys.stdout.encoding)
+            else:
+                sym.encode()
         except UnicodeEncodeError:
             pass
         else:
@@ -16,13 +19,12 @@ def first_encodeable(*symbols):
 
 # Installation:
 
-version = "0.1.1"
+version = "0.1.2"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Utilities",
     "Operating System :: OS Independent",
 ]
 

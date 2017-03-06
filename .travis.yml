@@ -4,9 +4,17 @@ notifications:
 sudo: false
 cache: pip
 python:
-  - "2.7"
-  - "3.6"
+- '2.7'
+- '3.6'
 install:
-  - make setup
+- make setup
 script:
-  - make test
+- make test
+deploy:
+  provider: pypi
+  user: evhub-develop
+  password:
+    secure: f5zfnO9cuMJyszSVG7h6ZZ0NtrQpI33NuCvyOEYeoLCL5815ANElRuBlGcP6KbydHM1rSp2/i62DXANy73U2mcPiQyiWUkhffOLxYnSGIMQ2hyRz2ZAopCusf5ZQFWH40NhT2q/gOnN/Cwyjd6KyU1oXSpolfROaE5aimu5dQcg=
+  on:
+    distributions: sdist bdist_wheel
+    repo: evhub/pyprover
