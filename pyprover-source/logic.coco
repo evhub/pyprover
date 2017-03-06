@@ -52,6 +52,7 @@ class Expr:
     def __xor__(self, other) =
         Or(And(self, Not(other)), And(Not(self), other))
     def __len__(self) = 1
+    def __ne__(self, other) = not self == other
     def simplify(self, **kwargs) =
         """Simplify the given expression."""
         self
@@ -101,9 +102,12 @@ bot = false = Bot()
 class Atom(Expr):
     __slots__ = ("name",)
     def __init__(self, name):
+        if isinstance(name, Atom):
+            name = name.name
+        assert isinstance(name, str)
         self.name = name
     def __repr__(self) =
-        self.name
+        self.__class__.__name__ + "(" + self.name + ")"
     def __str__(self) =
         self.name
     def __eq__(self, other) =
@@ -136,11 +140,14 @@ class Proposition(Atom):
 class FuncAtom(Atom):
     __slots__ = ("args",)
     def __init__(self, name, *args):
+        super(FuncAtom, self).__init__(name)
         for arg in args:
             assert isinstance(arg, Term), arg
-        self.name, self.args = name, args
+        self.args = args
     def __repr__(self) =
         self.name + "(" + ", ".join(repr(x) for x in self.args) + ")"
+    def __str__(self) =
+        self.name + "(" + ", ".join(str(x) for x in self.args) + ")"
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name and self.args == other.args
     def __hash__(self) =
@@ -202,8 +209,6 @@ class Term(Atom):
 class Variable(Term):
     __slots__ = ()
     def variable(self) = self
-    def __repr__(self) =
-        self.name + "*"
     def __call__(self, *args) =
         Function(self.name, *args)
     def find_unification(self, other):
@@ -454,8 +459,8 @@ class Or(BoolOp):
                 return And(*ands).simplify(**kwargs)
         return self
     def simplify(self, dnf=False, debug=False, **kwargs):
-        kwargs["dnf"] = dnf
         kwargs["debug"] = debug
+        kwargs["dnf"] = dnf
         ors = self.merge().ors |> map$(x -> x.simplify(**kwargs))
         out = Or(*ors).clean()
         if isinstance(out, Or) and not dnf:
@@ -511,8 +516,8 @@ class And(BoolOp):
                 return Or(*ors).simplify(**kwargs)
         return self
     def simplify(self, dnf=False, debug=False, **kwargs):
-        kwargs["dnf"] = dnf
         kwargs["debug"] = debug
+        kwargs["dnf"] = dnf
         ands = self.merge().ands |> map$(x -> x.simplify(**kwargs))
         out = And(*ands).clean()
         if isinstance(out, And) and dnf:
