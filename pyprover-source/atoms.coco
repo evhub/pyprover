@@ -56,8 +56,8 @@ class LowercasePropositions(Vars):
     y, z = propositions("y z")
 
 class UppercasePropositions(Vars):
-    B, C = propositions("B C")
-    D, F = propositions("D F")
+    A, B, C = propositions("A B C")
+    D, E, F = propositions("D E F")
     G, H, I = propositions("G H I")
     J, K, L = propositions("J K L")
     M, N, O = propositions("M N O")
@@ -78,8 +78,8 @@ class LowercaseVariables(Vars):
     y, z = terms("y z")
 
 class UppercaseVariables(Vars):
-    B, C = terms("B C")
-    D, F = terms("D F")
+    A, B, C = terms("A B C")
+    D, E, F = terms("D E F")
     G, H, I = terms("G H I")
     J, K, L = terms("J K L")
     M, N, O = terms("M N O")

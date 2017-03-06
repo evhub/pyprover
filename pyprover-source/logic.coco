@@ -107,7 +107,7 @@ class Atom(Expr):
         assert isinstance(name, str)
         self.name = name
     def __repr__(self) =
-        self.__class__.__name__ + "(" + self.name + ")"
+        self.__class__.__name__ + '("' + self.name + '")'
     def __str__(self) =
         self.name
     def __eq__(self, other) =
@@ -130,7 +130,7 @@ class Atom(Expr):
             elif sub is False:
                 return bot
             else:
-                raise TypeError("cannot perform substitution " + repr(self) + " => " + repr(sub))
+                raise TypeError("cannot perform substitution " + self + " => " + sub)
 
 class Proposition(Atom):
     __slots__ = ()
@@ -299,7 +299,7 @@ class Not(UnaryOp):
 class Quantifier(Expr):
     __slots__ = ("var", "elem")
     def __repr__(self) =
-        self.__class__.__name__ + "(" + repr(self.var) + ", " + repr(self.elem) + ")"
+        self.__class__.__name__ + "(" + str(self.var) + ", " + repr(self.elem) + ")"
     def __str__(self) =
         self.opstr + str(self.var) + ". " + quote(self.elem)
     def __len__(self) =
@@ -343,7 +343,7 @@ class ForAll(Quantifier):
     def resolve(self, **kwargs) =
         kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         ForAll(self.var, self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
-A = ForAll
+FA = ForAll
 
 class Exists(Quantifier):
     __slots__ = ()
@@ -361,7 +361,7 @@ class Exists(Quantifier):
             skolem_var = Function(self.var.name, *variables)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
         return Exists(self.var, skolem_elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
-E = Exists
+TE = Exists
 
 class BinaryOp(Expr):
     __slots__ = ("elems",)
@@ -472,7 +472,7 @@ class Or(BoolOp):
         if isinstance(out, Or):
             out = out.prenex(**kwargs)
         if debug:
-            print(repr(self), "=>", repr(out))
+            print(self, "=>", out)
         return out
     def tautology(self, **kwargs):
         """Determines if the Or is a blatant tautology."""
@@ -529,7 +529,7 @@ class And(BoolOp):
         if isinstance(out, And):
             out = out.prenex(**kwargs)
         if debug:
-            print(repr(self), "=>", repr(out))
+            print(self, "=>", out)
         return out
     def contradiction(self, **kwargs):
         """Determines if the And is a blatant contradiction."""
@@ -544,7 +544,7 @@ class And(BoolOp):
         """Performs all possible resolutions within the And."""
         kwargs["debug"] = debug
         if debug:
-            print(repr(self))
+            print(self)
         clauses = self.ands |> list
         prev_clause_len = 1
         while prev_clause_len < len(clauses):
@@ -557,7 +557,7 @@ class And(BoolOp):
                     if resolution is not None:
                         resolution = resolution.simplify(dnf=False, **kwargs)
                         if debug:
-                            print(repr(x), "+", repr(y), "=>", repr(resolution))
+                            print(x, "+", y, "=>", resolution)
                         if isinstance(resolution, And):
                             new_clauses = resolution.ands
                         else:

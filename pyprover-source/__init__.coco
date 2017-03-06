@@ -3,8 +3,8 @@
 from pyprover.logic import (
     ForAll,
     Exists,
-    A,
-    E,
+    FA,
+    TE,
     top,
     bot,
     true,

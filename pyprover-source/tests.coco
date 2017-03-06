@@ -1,8 +1,8 @@
 # Imports:
 
 from pyprover.logic import (
-    A,
-    E,
+    FA,
+    TE,
     top,
     bot,
     And,
@@ -152,74 +152,74 @@ def test_predicate_logic():
     with StandardMath.using(globals()):
 
         # basic tests
-        assert A(x, F) |> simplify == F
-        assert E(x, F) |> simplify == F
-        assert A(x, F(x)) & G(x) |> simplify == A(y, F(y) & G(x))
-        assert A(x, F(x)) | G(x) |> simplify == A(y, F(y) | G(x))
-        assert E(x, F(x)) & G(x) |> simplify == E(y, F(y) & G(x))
-        assert E(x, F(x)) | G(x) |> simplify == E(y, F(y) | G(x))
-        assert A(x, F(f(x))) == A(y, F(f(y)))
-        assert E(x, F(f(x))) == E(y, F(f(y)))
-        assert E(f, F(f(x))) == E(g, F(g(x)))
+        assert FA(x, F) |> simplify == F
+        assert TE(x, F) |> simplify == F
+        assert FA(x, F(x)) & G(x) |> simplify == FA(y, F(y) & G(x))
+        assert FA(x, F(x)) | G(x) |> simplify == FA(y, F(y) | G(x))
+        assert TE(x, F(x)) & G(x) |> simplify == TE(y, F(y) & G(x))
+        assert TE(x, F(x)) | G(x) |> simplify == TE(y, F(y) | G(x))
+        assert FA(x, F(f(x))) == FA(y, F(f(y)))
+        assert TE(x, F(f(x))) == TE(y, F(f(y)))
+        assert TE(f, F(f(x))) == TE(g, F(g(x)))
 
         # constructive theorems
-        assert E(x, bot) `proves` bot
-        assert top `proves` A(x, top)
-        assert A(x, R(x) >> S(x)) `proves` A(y, R(y)) >> A(z, S(z))
-        assert A(x, R(x) & S(x)) `proves` A(y, R(y)) & A(z, S(z))
-        assert (A(x, R(x) >> S(x)), E(y, R(y))) `proves` E(z, S(z))
-        assert E(x, R(x) & S(x)) `proves` E(y, R(y)) & E(z, S(z))
-        assert E(x, R(x)) | E(y, S(y)) `proves` E(z, R(z) | S(z))
-        assert E(x, R(x) | S(x)) `proves` E(y, R(y)) | E(z, S(z))
-        assert A(x, R(x)) `proves` ~E(y, ~R(y))
-        assert E(x, ~R(x)) `proves` ~A(y, R(y))
-        assert A(x, ~R(x)) `proves` ~E(y, R(y))
-        assert ~E(x, R(x)) `proves` A(y, ~R(y))
-        assert R(j) `proves` E(x, R(x))
+        assert TE(x, bot) `proves` bot
+        assert top `proves` FA(x, top)
+        assert FA(x, R(x) >> S(x)) `proves` FA(y, R(y)) >> FA(z, S(z))
+        assert FA(x, R(x) & S(x)) `proves` FA(y, R(y)) & FA(z, S(z))
+        assert (FA(x, R(x) >> S(x)), TE(y, R(y))) `proves` TE(z, S(z))
+        assert TE(x, R(x) & S(x)) `proves` TE(y, R(y)) & TE(z, S(z))
+        assert TE(x, R(x)) | TE(y, S(y)) `proves` TE(z, R(z) | S(z))
+        assert TE(x, R(x) | S(x)) `proves` TE(y, R(y)) | TE(z, S(z))
+        assert FA(x, R(x)) `proves` ~TE(y, ~R(y))
+        assert TE(x, ~R(x)) `proves` ~FA(y, R(y))
+        assert FA(x, ~R(x)) `proves` ~TE(y, R(y))
+        assert ~TE(x, R(x)) `proves` FA(y, ~R(y))
+        assert R(j) `proves` TE(x, R(x))
 
         # classical theorems
-        assert ~E(x, ~R(x)) `proves` A(y, R(y))
-        assert ~A(x, ~R(x)) `proves` E(y, R(y))
-        assert ~A(x, R(x)) `proves` E(y, ~R(y))
-        assert A(x, ~~D(x)) `proves` A(x, D(x))
-        assert ~E(x, R(x)) `proves` A(y, ~R(y))
-        assert top `proves` E(x, D(x)) | A(x, ~D(x))
-        assert top `proves` E(x, ~D(x)) | A(x, D(x))
-        assert E(x, top) `proves` E(x, D(x) >> A(y, D(y)))
-        assert E(x, ~~D(x)) `proves` E(x, D(x))
-        assert A(x, C(x) | D(x)) `proves` A(x, C(x)) | E(x, D(x))
+        assert ~TE(x, ~R(x)) `proves` FA(y, R(y))
+        assert ~FA(x, ~R(x)) `proves` TE(y, R(y))
+        assert ~FA(x, R(x)) `proves` TE(y, ~R(y))
+        assert FA(x, ~~D(x)) `proves` FA(x, D(x))
+        assert ~TE(x, R(x)) `proves` FA(y, ~R(y))
+        assert top `proves` TE(x, D(x)) | FA(x, ~D(x))
+        assert top `proves` TE(x, ~D(x)) | FA(x, D(x))
+        assert TE(x, top) `proves` TE(x, D(x) >> FA(y, D(y)))
+        assert TE(x, ~~D(x)) `proves` TE(x, D(x))
+        assert FA(x, C(x) | D(x)) `proves` FA(x, C(x)) | TE(x, D(x))
 
         # other theorems
-        assert A(x, H(j) >> T(x)) `proves` H(j) >> A(x, T(x))
-        assert E(x, R(x) >> B(x)) `proves` A(x, R(x)) >> E(x, B(x))
-        assert ~A(x, bot) `proves` E(x, top)
-        assert A(x, E(y, F(y) | G(x))) `proves` A(x, G(x) | E(x, F(x)))
-        assert (A(x, A(y, A(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~E(x, S(x, x))) `proves` A(x, A(y, S(x, y) >> ~S(y, x)))
-        assert A(x, G(x)) | A(x, B(x)) `proves` A(x, G(x) | B(x))
-        assert E(z, A(k, P(z, k))) `proves` A(y, E(x, P(x, y)))
-        assert E(x, C(x) & B(x)) `proves` E(x, B(x) & C(x))
-        assert E(x, C(x, i) & B(x, j)) `proves` E(x, C(x, i) >> B(x, j))
-        assert A(x, C(x) & B(x)) `proves` A(x, B(x) & C(x))
-        assert A(x, C(x) & B(x)) `proves` A(x, C(x)) & A(x, B(x))
-        assert A(x, bot) `proves` ~E(x, top)
-        assert (~E(x, G(x)) | A(x, F(x)), C(j) >> A(x, D(x))) `proves` A(y, A(z, ~G(z) | F(y) & C(j) >> D(y)))
-        assert A(x, G(x)) | E(x, F(x)) `proves` A(x, E(y, F(y) | G(x)))
-        assert (P | E(x, W)) >> A(z, R) `proves` A(z, A(x, (P | W) >> R))
+        assert FA(x, H(j) >> T(x)) `proves` H(j) >> FA(x, T(x))
+        assert TE(x, R(x) >> B(x)) `proves` FA(x, R(x)) >> TE(x, B(x))
+        assert ~FA(x, bot) `proves` TE(x, top)
+        assert FA(x, TE(y, F(y) | G(x))) `proves` FA(x, G(x) | TE(x, F(x)))
+        assert (FA(x, FA(y, FA(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~TE(x, S(x, x))) `proves` FA(x, FA(y, S(x, y) >> ~S(y, x)))
+        assert FA(x, G(x)) | FA(x, B(x)) `proves` FA(x, G(x) | B(x))
+        assert TE(z, FA(k, P(z, k))) `proves` FA(y, TE(x, P(x, y)))
+        assert TE(x, C(x) & B(x)) `proves` TE(x, B(x) & C(x))
+        assert TE(x, C(x, i) & B(x, j)) `proves` TE(x, C(x, i) >> B(x, j))
+        assert FA(x, C(x) & B(x)) `proves` FA(x, B(x) & C(x))
+        assert FA(x, C(x) & B(x)) `proves` FA(x, C(x)) & FA(x, B(x))
+        assert FA(x, bot) `proves` ~TE(x, top)
+        assert (~TE(x, G(x)) | FA(x, F(x)), C(j) >> FA(x, D(x))) `proves` FA(y, FA(z, ~G(z) | F(y) & C(j) >> D(y)))
+        assert FA(x, G(x)) | TE(x, F(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+        assert (P | TE(x, W)) >> FA(z, R) `proves` FA(z, FA(x, (P | W) >> R))
 
         # invalid theorems
-        assert not A(x, R(x)) >> A(y, S(y)) `proves` A(z, R(z) >> S(z))
-        assert not E(x, R(x)) & E(y, S(y)) `proves` E(z, R(z) & S(z))
-        assert not E(x, R(x)) `proves` A(y, R(y))
+        assert not FA(x, R(x)) >> FA(y, S(y)) `proves` FA(z, R(z) >> S(z))
+        assert not TE(x, R(x)) & TE(y, S(y)) `proves` TE(z, R(z) & S(z))
+        assert not TE(x, R(x)) `proves` FA(y, R(y))
 
         # non-empty universe theorems
-        assert top `proves` E(x, top)
-        assert top `proves` E(x, D(x) >> A(y, D(y)))
-        assert (R(j), A(x, R(x) >> S(x))) `proves` S(j)
-        assert A(x, R(x)) >> A(y, S(y)) `proves` E(x, A(y, ~R(x) | S(y)))
-        assert A(x, R(x)) `proves` E(y, R(y))
-        assert E(x, ~R(x)) `proves` E(y, R(y) >> (R(j) & R(k)))
-        assert (T(i), A(x, T(x) >> T(s(x)))) `proves` T(s(i))
-        assert top `proves` E(x, R(x) >> (R(j) & R(k)))
+        assert top `proves` TE(x, top)
+        assert top `proves` TE(x, D(x) >> FA(y, D(y)))
+        assert (R(j), FA(x, R(x) >> S(x))) `proves` S(j)
+        assert FA(x, R(x)) >> FA(y, S(y)) `proves` TE(x, FA(y, ~R(x) | S(y)))
+        assert FA(x, R(x)) `proves` TE(y, R(y))
+        assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
+        assert (T(i), FA(x, T(x) >> T(s(x)))) `proves` T(s(i))
+        assert top `proves` TE(x, R(x) >> (R(j) & R(k)))
 
 if __name__ == "__main__":
     test_propositional_logic()

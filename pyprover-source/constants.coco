@@ -1,4 +1,22 @@
-version = "0.1.0"
+# Imports:
+
+import sys
+
+# Utilities:
+
+def first_encodeable(*symbols):
+    for sym in symbols:
+        try:
+            sym.encode(sys.stdout.encoding)
+        except UnicodeEncodeError:
+            pass
+        else:
+            return sym
+    raise ValueError("No encodeable symbol in " + repr(symbols))
+
+# Installation:
+
+version = "0.1.1"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -8,12 +26,13 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+# Symbols:
 
-top_sym = "\u252c"
-bot_sym = "\u2534"
-not_sym = "\xac"
-imp_sym = "->"
-and_sym = "/\\"
-or_sym = "\\/"
-forall_sym = "A:"
-exists_sym = "E:"
+top_sym = first_encodeable("\u22a4", "\u252c", "-T-")
+bot_sym = first_encodeable("\u22a5", "\u2534", "_|_")
+not_sym = first_encodeable("\xac", "~")
+imp_sym = first_encodeable("\u2192", "->")
+and_sym = first_encodeable("\u2227", "/\\")
+or_sym = first_encodeable("\u2228", "\\/")
+forall_sym = first_encodeable("\u2200", "A:")
+exists_sym = first_encodeable("\u2203", "E:")
