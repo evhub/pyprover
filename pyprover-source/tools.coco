@@ -3,7 +3,7 @@
 from pyprover.logic import (
     Proposition,
     Constant,
-    And,
+    Imp,
     wff,
     bot,
 )
@@ -21,22 +21,27 @@ def terms(names) =
 def solve(expr, **kwargs) =
     """Converts to CNF and performs all possible resolutions."""
     expr.simplify(dnf=False, **kwargs).resolve(**kwargs)
+strict_solve = solve$(nonempty_universe=False)
 
-def proves(givens, conclusion, **kwargs) =
-    """Determines if the givens prove the conclusion."""
+def no_proof_of(givens, conclusion) =
+    """Finds a formula that represents the givens not implying the conclusion."""
     if wff(givens):
         givens = (givens,)
     else:
         givens = tuple(givens)
-        assert all(wff(x) for x in givens)
-    ands = givens + (~conclusion,)
-    And(*ands) |> solve$(**kwargs) == bot
+    ~Imp(*(givens + (conclusion,)))
+
+def proves(givens, conclusion, **kwargs) =
+    """Determines if the givens prove the conclusion."""
+    no_proof_of(givens, conclusion) |> solve$(**kwargs) == bot
+strict_proves = proves$(nonempty_universe=False)
 
 def iff(a, b, **kwargs) =
     """Determines if a is true if and only if b."""
     a = a.simplify(dnf=False, **kwargs)
     b = b.simplify(dnf=False, **kwargs)
     a `proves$(**kwargs)` b and b `proves$(**kwargs)` a
+strict_iff = iff$(nonempty_universe=False)
 
 def simplify(expr, *exprs, **kwargs):
     """Simplify the given expression[s]."""
@@ -44,6 +49,7 @@ def simplify(expr, *exprs, **kwargs):
         return (expr,) + exprs |> map$(x -> x.simplify(**kwargs)) |> tuple
     else:
         return expr.simplify(**kwargs)
+strict_simplify = simplify$(nonempty_universe=False)
 
 def simplest_form(expr, **kwargs):
     """Finds the shortest simplification for the given expression."""
@@ -53,10 +59,12 @@ def simplest_form(expr, **kwargs):
         return cnf_expr
     else:
         return dnf_expr
+strict_simplest_form = simplest_form$(nonempty_universe=False)
 
 def simplest_solution(expr, **kwargs) =
     """Finds the shortest resolved simplification for the given expression."""
     expr |> solve$(**kwargs) |> simplest_form$(**kwargs)
+strict_simplest_solution = simplest_solution$(nonempty_universe=False)
 
 def expr `sub_in` subs =
     """Substitutes expressions or booleans into the given expression."""

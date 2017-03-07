@@ -9,16 +9,27 @@ from pyprover.logic import (
     bot,
     true,
     false,
+    Not,
+    Imp,
+    Or,
+    And,
 )
 from pyprover.tools import (
     propositions,
     terms,
     solve,
+    strict_solve,
+    no_proof_of,
     proves,
+    strict_proves,
     iff,
+    strict_iff,
     simplify,
+    strict_simplify,
     simplest_form,
+    strict_simplest_form,
     simplest_solution,
+    strict_simplest_solution,
     sub_in,
 )
 from pyprover.atoms import (

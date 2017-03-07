@@ -14,6 +14,8 @@ from pyprover.tools import (
     simplify,
     simplest_form,
     sub_in,
+    strict_simplify,
+    strict_proves,
 )
 from pyprover.atoms import (
     LowercasePropositions,
@@ -136,6 +138,7 @@ def test_propositional_logic():
         # other tests
         assert And() == top
         assert Or() == bot
+        assert () `proves` top
         assert (a^b, a) `proves` ~b
         assert f>>(g>>h) `iff` (f&g)>>h
         assert bot `iff` a&~a
@@ -205,6 +208,15 @@ def test_predicate_logic():
         assert (~TE(x, G(x)) | FA(x, F(x)), C(j) >> FA(x, D(x))) `proves` FA(y, FA(z, ~G(z) | F(y) & C(j) >> D(y)))
         assert FA(x, G(x)) | TE(x, F(x)) `proves` FA(x, TE(y, F(y) | G(x)))
         assert (P | TE(x, W)) >> FA(z, R) `proves` FA(z, FA(x, (P | W) >> R))
+        assert (TE(x, ~F(x)), FA(x, F(x))) `proves` bot
+        assert (FA(x, ~F(x)), FA(x, F(x))) `proves` FA(x, bot)
+        assert TE(x, F(x)) | TE(x, G(x)) `proves` TE(x, TE(y, F(x) | G(y)))
+        assert TE(x, FA(y, P(x, y))) `proves` FA(y, TE(x, P(x, y)))
+        assert TE(x, FA(y, bot)) `proves` bot
+        assert top `proves` FA(x, TE(y, top))
+        assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+        assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
+        assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
 
         # invalid theorems
         assert not FA(x, R(x)) >> FA(y, S(y)) `proves` FA(z, R(z) >> S(z))
@@ -217,11 +229,90 @@ def test_predicate_logic():
         assert (R(j), FA(x, R(x) >> S(x))) `proves` S(j)
         assert FA(x, R(x)) >> FA(y, S(y)) `proves` TE(x, FA(y, ~R(x) | S(y)))
         assert FA(x, R(x)) `proves` TE(y, R(y))
-        assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
         assert (T(i), FA(x, T(x) >> T(s(x)))) `proves` T(s(i))
         assert top `proves` TE(x, R(x) >> (R(j) & R(k)))
+        assert (FA(x, ~F(x)), FA(x, F(x))) `proves` bot
+
+def test_empty_universe():
+    """Runs predicate logic tests in a potentially empty universe."""
+    with StandardMath.using(globals()):
+
+        # basic tests
+        assert FA(x, F) |> strict_simplify != F
+        assert TE(x, F) |> strict_simplify != F
+        assert FA(x, F(x)) & G(x) |> strict_simplify != FA(y, F(y) & G(x))
+        assert FA(x, F(x)) | G(x) |> strict_simplify == FA(y, F(y) | G(x))
+        assert TE(x, F(x)) & G(x) |> strict_simplify == TE(y, F(y) & G(x))
+        assert TE(x, F(x)) | G(x) |> strict_simplify != TE(y, F(y) | G(x))
+
+        # constructive theorems
+        assert TE(x, bot) `strict_proves` bot
+        assert top `strict_proves` FA(x, top)
+        assert FA(x, R(x) >> S(x)) `strict_proves` FA(y, R(y)) >> FA(z, S(z))
+        assert FA(x, R(x) & S(x)) `strict_proves` FA(y, R(y)) & FA(z, S(z))
+        assert (FA(x, R(x) >> S(x)), TE(y, R(y))) `strict_proves` TE(z, S(z))
+        assert TE(x, R(x) & S(x)) `strict_proves` TE(y, R(y)) & TE(z, S(z))
+        assert TE(x, R(x)) | TE(y, S(y)) `strict_proves` TE(z, R(z) | S(z))
+        assert TE(x, R(x) | S(x)) `strict_proves` TE(y, R(y)) | TE(z, S(z))
+        assert FA(x, R(x)) `strict_proves` ~TE(y, ~R(y))
+        assert TE(x, ~R(x)) `strict_proves` ~FA(y, R(y))
+        assert FA(x, ~R(x)) `strict_proves` ~TE(y, R(y))
+        assert ~TE(x, R(x)) `strict_proves` FA(y, ~R(y))
+        assert R(j) `strict_proves` TE(x, R(x))
+
+        # classical theorems
+        assert ~TE(x, ~R(x)) `strict_proves` FA(y, R(y))
+        assert ~FA(x, ~R(x)) `strict_proves` TE(y, R(y))
+        assert ~FA(x, R(x)) `strict_proves` TE(y, ~R(y))
+        assert FA(x, ~~D(x)) `strict_proves` FA(x, D(x))
+        assert ~TE(x, R(x)) `strict_proves` FA(y, ~R(y))
+        assert top `strict_proves` TE(x, D(x)) | FA(x, ~D(x))
+        assert top `strict_proves` TE(x, ~D(x)) | FA(x, D(x))
+        assert TE(x, top) `strict_proves` TE(x, D(x) >> FA(y, D(y)))
+        assert TE(x, ~~D(x)) `strict_proves` TE(x, D(x))
+        assert FA(x, C(x) | D(x)) `strict_proves` FA(x, C(x)) | TE(x, D(x))
+
+        # other theorems
+        assert FA(x, H(j) >> T(x)) `strict_proves` H(j) >> FA(x, T(x))
+        assert TE(x, R(x) >> B(x)) `strict_proves` FA(x, R(x)) >> TE(x, B(x))
+        assert ~FA(x, bot) `strict_proves` TE(x, top)
+        assert FA(x, TE(y, F(y) | G(x))) `strict_proves` FA(x, G(x) | TE(x, F(x)))
+        assert (FA(x, FA(y, FA(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~TE(x, S(x, x))) `strict_proves` FA(x, FA(y, S(x, y) >> ~S(y, x)))
+        assert FA(x, G(x)) | FA(x, B(x)) `strict_proves` FA(x, G(x) | B(x))
+        assert TE(z, FA(k, P(z, k))) `strict_proves` FA(y, TE(x, P(x, y)))
+        assert TE(x, C(x) & B(x)) `strict_proves` TE(x, B(x) & C(x))
+        assert TE(x, C(x, i) & B(x, j)) `strict_proves` TE(x, C(x, i) >> B(x, j))
+        assert FA(x, C(x) & B(x)) `strict_proves` FA(x, B(x) & C(x))
+        assert FA(x, C(x) & B(x)) `strict_proves` FA(x, C(x)) & FA(x, B(x))
+        assert FA(x, bot) `strict_proves` ~TE(x, top)
+        assert (~TE(x, G(x)) | FA(x, F(x)), C(j) >> FA(x, D(x))) `strict_proves` FA(y, FA(z, ~G(z) | F(y) & C(j) >> D(y)))
+        assert FA(x, G(x)) | TE(x, F(x)) `strict_proves` FA(x, TE(y, F(y) | G(x)))
+        assert (P | TE(x, W)) >> FA(z, R) `strict_proves` FA(z, FA(x, (P | W) >> R))
+        assert TE(x, F(x)) | TE(x, G(x)) `proves` TE(x, TE(y, F(x) | G(y)))
+        assert TE(x, FA(y, P(x, y))) `proves` FA(y, TE(x, P(x, y)))
+        assert TE(x, FA(y, bot)) `proves` bot
+        assert top `proves` FA(x, TE(y, top))
+        assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+        assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
+        assert TE(x, ~R(x)) `strict_proves` TE(y, R(y) >> (R(j) & R(k)))
+
+        # invalid theorems
+        assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` FA(z, R(z) >> S(z))
+        assert not TE(x, R(x)) & TE(y, S(y)) `strict_proves` TE(z, R(z) & S(z))
+        assert not TE(x, R(x)) `strict_proves` FA(y, R(y))
+
+        # non-empty universe theorems
+        assert not top `strict_proves` TE(x, top)
+        assert not top `strict_proves` TE(x, D(x) >> FA(y, D(y)))
+        assert not (R(j), FA(x, R(x) >> S(x))) `strict_proves` S(j)
+        assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` TE(x, FA(y, ~R(x) | S(y)))
+        assert not FA(x, R(x)) `strict_proves` TE(y, R(y))
+        assert not (T(i), FA(x, T(x) >> T(s(x)))) `strict_proves` T(s(i))
+        assert not top `strict_proves` TE(x, R(x) >> (R(j) & R(k)))
+        assert not (FA(x, ~F(x)), FA(x, F(x))) `strict_proves` bot
 
 if __name__ == "__main__":
     test_propositional_logic()
     test_predicate_logic()
+    test_empty_universe()
     print("<success>")

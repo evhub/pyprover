@@ -29,3 +29,11 @@ def quote(expr):
         return "(" + expr_str + ")"
     else:
         return expr_str
+
+def log_simplification(old, new, debug=False, **kwargs):
+    """If there was simplification done, displays a message."""
+    if debug:
+        old_str = str(old)
+        new_str = str(new)
+        if old_str != new_str:
+            print(old_str, "=>", new_str)

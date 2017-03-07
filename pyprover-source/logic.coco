@@ -13,6 +13,7 @@ from pyprover.constants import (
 from pyprover.util import (
     unorderd_eq,
     quote,
+    log_simplification,
 )
 
 # Functions:
@@ -185,11 +186,9 @@ class Term(Atom):
     __slots__ = ()
     def variable(self) =
         """Convert to a variable."""
-        assert isvar(self), self
         Variable(self.name)
     def constant(self) =
         """Convert to a constant."""
-        assert isvar(self), self
         Constant(self.name)
     def rename(self, name) =
         """Create a new term with a different name."""
@@ -206,7 +205,7 @@ class Term(Atom):
                     return self.rename(sub.name)
         return self.substitute_elements(subs)
 
-class Variable(Term):
+class Var(Term):
     __slots__ = ()
     def variable(self) = self
     def __call__(self, *args) =
@@ -216,8 +215,9 @@ class Variable(Term):
             return {self: other}
         else:
             return None
+Variable = Var
 
-class Constant(Term):
+class Const(Term):
     __slots__ = ()
     def constant(self) = self
     def __call__(self, *args) =
@@ -227,6 +227,7 @@ class Constant(Term):
             return {other: self}
         else:
             return super(Constant, self).find_unification(other)
+Constant = Const
 
 class Function(Term, FuncAtom):
     __slots__ = ()
@@ -309,13 +310,16 @@ class Quantifier(Expr):
     def change_var(self, var):
         """Create an equivalent expression with a new quantified variable."""
         return self.__class__(var, self.elem.substitute({self.var: var}))
+    def change_elem(self, elem):
+        """Create an equivalent quantifier with a new expression."""
+        return self.__class__(self.var, elem)
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.elem == other.change_var(self.var).elem
         else:
             return False
     def substitute(self, subs):
-        return self.__class__(self.var.substitute(subs), self.elem.substitute(subs))
+        return self.__class__(self.var.substitute(subs).constant(), self.elem.substitute(subs))
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
@@ -323,13 +327,19 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         return self.change_var(var)
-    def simplify(self, **kwargs) =
-        self.__class__(self.var, self.elem.simplify(**kwargs)).drop_quantifier()
-    def find_unification(self, other):
-        if isinstance(other, self.__class__):
-            return self.elem.find_unification(other.elem)
+    def find_unification(self, other) =
+        self.make_free_in(other).elem.find_unification(other)
+    def resolve_against(self, other, **kwargs):
+        if isinstance(other, Quantifier):
+            resolution = Not(other.elem).simplify(**kwargs) |> self.elem.resolve_against$(**kwargs)
+            if resolution is None:
+                return None
+            elif isinstance(other, ForAll):  # don't pull an Exists out of a ForAll
+                return resolution |> self.change_elem |> other.change_elem
+            else:
+                return resolution |> other.change_elem |> self.change_elem
         else:
-            return None
+            return super(Quantifier, self).resolve_against(other, **kwargs)
 
 class ForAll(Quantifier):
     __slots__ = ()
@@ -339,17 +349,24 @@ class ForAll(Quantifier):
         assert isvar(var), var
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
+    def simplify(self, **kwargs) =
+        kwargs["in_forall"] = True
+        self.__class__(self.var, self.elem.simplify(**kwargs)).drop_quantifier(**kwargs)
     def resolve(self, **kwargs) =
+        kwargs["in_forall"] = True
         kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         ForAll(self.var, self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
     def drop_quantifier(self, nonempty_universe=True, **kwargs):
         kwargs["nonempty_universe"] = nonempty_universe
-        if (self.elem == top or
-            nonempty_universe and
-            self.elem == self.elem.substitute({self.var: self.var.prime()})):
+        if not nonempty_universe:
+            elem = self.elem
+            while isinstance(elem, Exists):
+                elem = elem.elem
+            if top == elem:
+                return elem
+        elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
-        else:
-            return self
+        return self
 FA = ForAll
 
 class Exists(Quantifier):
@@ -360,7 +377,11 @@ class Exists(Quantifier):
         assert isvar(var), var
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
+    def simplify(self, **kwargs) =
+        kwargs["in_exists"] = True
+        self.__class__(self.var, self.elem.simplify(**kwargs)).drop_quantifier(**kwargs)
     def resolve(self, **kwargs):
+        kwargs["in_exists"] = True
         variables = kwargs.get("variables")
         if variables is None:
             skolem_elem = self.elem
@@ -370,24 +391,37 @@ class Exists(Quantifier):
         return Exists(self.var, skolem_elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
     def drop_quantifier(self, nonempty_universe=True, **kwargs):
         kwargs["nonempty_universe"] = nonempty_universe
-        if (self.elem == bot or
-            nonempty_universe and
-            self.elem == self.elem.substitute({self.var: self.var.prime()})):
+        if not nonempty_universe:
+            elem = self.elem
+            while isinstance(elem, ForAll):
+                elem = elem.elem
+            if bot == elem:
+                return elem
+        elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
-        else:
-            return self
-    def contradicts(self, other, **kwargs) =
-        subs = Not(other).simplify(**kwargs) |> self.find_unification
-        subs is not None and self == self.substitute(subs)
+        return self
 TE = Exists
 
 class BinaryOp(Expr):
     __slots__ = ("elems",)
+    identity = None
+    def __new__(cls, *elems):
+        if not elems:
+            if cls.identity is None:
+                raise TypeError(cls.__name__ + " requires at least one argument")
+            else:
+                return cls.identity
+        elif len(elems) == 1:
+            assert wff(elems[0]), elems[0]
+            return elems[0]  # sometimes returns an instance of cls
+        else:
+            return super(BinaryOp, cls).__new__(cls)
     def __init__(self, *elems):
-        assert len(elems) >= 2, elems
-        for x in elems:
-            assert wff(x), x
-        self.elems = elems
+        if len(elems) > 1:  # __new__ should handle all other cases
+            assert len(elems) >= 2, elems
+            for x in elems:
+                assert wff(x), x
+            self.elems = elems
     def __repr__(self) =
         self.__class__.__name__ + "(" + ", ".join(repr(x) for x in self.elems) + ")"
     def __str__(self) =
@@ -422,17 +456,6 @@ class Imp(BinaryOp):
 
 class BoolOp(BinaryOp):
     __slots__ = ()
-    def __new__(cls, *elems):
-        if not elems:
-            return cls.identity
-        elif len(elems) == 1:
-            assert wff(elems[0]), elems[0]
-            return elems[0]  # sometimes returns an instance of cls
-        else:
-            return super(BoolOp, cls).__new__(cls)
-    def __init__(self, *elems):
-        if len(elems) > 1:  # __new__ should handle all other cases
-            super(BoolOp, self).__init__(*elems)
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
     def merge(self):
@@ -454,9 +477,6 @@ class BoolOp(BinaryOp):
     def clean(self) =
         """Removes copies of the identity."""
         self.elems |> filter$((!=)$(self.identity)) |*> self.__class__
-    def can_prenex(self, other, **kwargs) =
-        """Determines if other can be pulled out."""
-        True
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -464,7 +484,7 @@ class BoolOp(BinaryOp):
                 elems = self.elems[:i] + self.elems[i+1:]
                 free_x = x.make_free_in(self.__class__(*elems))
                 elems += (free_x.elem,)
-                return self.__class__(*elems).simplify(**kwargs) |> free_x.__class__$(free_x.var)
+                return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
 
 class Or(BoolOp):
@@ -482,8 +502,7 @@ class Or(BoolOp):
                 ands = ((y,) + self.ors[:i] + self.ors[i+1:] |*> Or for y in x.ands)
                 return And(*ands).simplify(**kwargs)
         return self
-    def simplify(self, dnf=False, debug=False, **kwargs):
-        kwargs["debug"] = debug
+    def simplify(self, dnf=False, **kwargs):
         kwargs["dnf"] = dnf
         ors = self.merge().ors |> map$(x -> x.simplify(**kwargs))
         out = Or(*ors).clean()
@@ -495,8 +514,7 @@ class Or(BoolOp):
             out = top
         if isinstance(out, Or):
             out = out.prenex(**kwargs)
-        if debug:
-            print(self, "=>", out)
+        log_simplification(self, out, **kwargs)
         return out
     def tautology(self, **kwargs):
         """Determines if the Or is a blatant tautology."""
@@ -507,6 +525,12 @@ class Or(BoolOp):
                 if x.contradicts(y, **kwargs):
                     return True
         return False
+    def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs) =
+        kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
+        (nonempty_universe
+            or in_forall
+            or not isinstance(other, Exists)
+            or all(isinstance(x, Exists) for x in self.elems))
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Or):
             not_other_ors = other.ors |> map$(Not) |> map$(x -> x.simplify(**kwargs))
@@ -515,7 +539,6 @@ class Or(BoolOp):
                     subs = x.find_unification(y)
                     if subs is not None:
                         return self.ors[:i] + self.ors[i+1:] + other.ors[:j] + other.ors[j+1:] |> map$(.substitute(subs)) |*> Or
-
         else:
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
@@ -523,9 +546,6 @@ class Or(BoolOp):
                 if subs is not None:
                     return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs)) |*> Or
         return None
-    def can_prenex(self, other, nonempty_universe=True, **kwargs) =
-        kwargs["nonempty_universe"] = nonempty_universe
-        nonempty_universe or not isinstance(other, Exists)
 
 class And(BoolOp):
     __slots__ = ()
@@ -542,8 +562,7 @@ class And(BoolOp):
                 ors = ((y,) + self.ands[:i] + self.ands[i+1:] |*> And for y in x.ors)
                 return Or(*ors).simplify(**kwargs)
         return self
-    def simplify(self, dnf=False, debug=False, **kwargs):
-        kwargs["debug"] = debug
+    def simplify(self, dnf=False, **kwargs):
         kwargs["dnf"] = dnf
         ands = self.merge().ands |> map$(x -> x.simplify(**kwargs))
         out = And(*ands).clean()
@@ -555,8 +574,7 @@ class And(BoolOp):
             out = bot
         if isinstance(out, And):
             out = out.prenex(**kwargs)
-        if debug:
-            print(self, "=>", out)
+        log_simplification(self, out, **kwargs)
         return out
     def contradiction(self, **kwargs):
         """Determines if the And is a blatant contradiction."""
@@ -567,17 +585,21 @@ class And(BoolOp):
                 if x.contradicts(y, **kwargs):
                     return True
         return False
+    def can_prenex(self, other, nonempty_universe=True, in_exists=False, **kwargs) =
+        kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
+        (nonempty_universe
+            or in_exists
+            or not isinstance(other, ForAll)
+            or all(isinstance(x, ForAll) for x in self.elems))
     def resolve(self, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
         kwargs["debug"] = debug
-        if debug:
-            print(self)
         resolved = super(And, self).resolve(**kwargs)
         if not isinstance(resolved, And):
-            if debug:
-                print(resolved)
+            log_simplification(self, resolved, **kwargs)
             return resolved
         clauses = resolved.ands |> list
+        quantifiers = []
         prev_clause_len = 1
         while prev_clause_len < len(clauses):
             prev_clause_len = len(clauses)
@@ -590,13 +612,27 @@ class And(BoolOp):
                         resolution = resolution.simplify(dnf=False, **kwargs)
                         if debug:
                             print(x, "+", y, "=>", resolution)
+                        new_quantifiers = []
+                        while isinstance(resolution, Quantifier) and self.can_prenex(resolution, **kwargs):
+                            resolution.change_elem |> new_quantifiers.append
+                            resolution = resolution.elem
                         if isinstance(resolution, And):
                             new_clauses = resolution.ands
                         else:
                             new_clauses = (resolution,)
-                        for y in new_clauses:
-                            if y == bot:
-                                return bot
-                            elif y not in clauses:
-                                clauses.append(y)
-        return And(*clauses).simplify(dnf=False, **kwargs)
+                        if bot in new_clauses:
+                            quantifiers.extend(new_quantifiers)
+                            clauses = [bot]
+                            break
+                        novel = False
+                        for new_clause in new_clauses:
+                            if new_clause != top and new_clause not in clauses:
+                                clauses.append(new_clause)
+                                novel = True
+                        if novel:
+                            quantifiers.extend(new_quantifiers)
+                if clauses == [bot]:
+                    break
+        resolved = [And(*clauses)] + quantifiers |> reduce$(|>)
+        log_simplification(self, resolved, **kwargs)
+        return resolved.simplify(dnf=False, **kwargs)
