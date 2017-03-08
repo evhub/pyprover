@@ -15,7 +15,7 @@ from pyprover.logic import (
     And,
 )
 from pyprover.tools import (
-    propositions,
+    props,
     terms,
     solve,
     strict_solve,
