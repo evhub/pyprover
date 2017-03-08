@@ -29,6 +29,7 @@ def isvar(var) =
 # Classes:
 
 class Expr:
+    """Base class for all formulae."""
     __slots__ = ()
     def __and__(self, other):
         if isinstance(other, And):
@@ -41,10 +42,10 @@ class Expr:
         else:
             return Or(self, other)
     def __rshift__(self, other):
-        if isinstance(other, Imp):
+        if isinstance(other, Implies):
             return other << self
         else:
-            return Imp(self, other)
+            return Implies(self, other)
     def __lshift__(self, other) =
         assert wff(other), other
         other >> self
@@ -85,6 +86,7 @@ class Expr:
             return None
 
 class Top(Expr):
+    """True"""
     __slots__ = ()
     def __eq__(self, other) = isinstance(other, Top)
     def __repr__(self) = "top"
@@ -93,6 +95,7 @@ class Top(Expr):
 top = true = Top()
 
 class Bot(Expr):
+    """False"""
     __slots__ = ()
     def __eq__(self, other) = isinstance(other, Bot)
     def __repr__(self) = "bot"
@@ -101,11 +104,12 @@ class Bot(Expr):
 bot = false = Bot()
 
 class Atom(Expr):
+    """Base class for all variables."""
     __slots__ = ("name",)
     def __init__(self, name):
         if isinstance(name, Atom):
             name = name.name
-        assert isinstance(name, str)
+        assert isinstance(name, str), name
         self.name = name
     def __repr__(self) =
         self.__class__.__name__ + '("' + self.name + '")'
@@ -134,12 +138,14 @@ class Atom(Expr):
                 raise TypeError("cannot perform substitution " + self + " => " + sub)
 
 class Prop(Atom):
+    """Logical proposition that is either true or false."""
     __slots__ = ()
     def __call__(self, *args) =
         Predicate(self.name, *args)
 Proposition = Prop
 
 class FuncAtom(Atom):
+    """Base class for predicates and functions."""
     __slots__ = ("args",)
     def __init__(self, name, *args):
         super(FuncAtom, self).__init__(name)
@@ -147,7 +153,7 @@ class FuncAtom(Atom):
             assert isinstance(arg, Term), arg
         self.args = args
     def __repr__(self) =
-        self.name + "(" + ", ".join(repr(x) for x in self.args) + ")"
+        self.__class__.__name__ + '("' + self.name + '"' + ", ".join(repr(x) for x in self.args) + ")"
     def __str__(self) =
         self.name + "(" + ", ".join(str(x) for x in self.args) + ")"
     def __eq__(self, other) =
@@ -171,7 +177,8 @@ class FuncAtom(Atom):
         else:
             return None
 
-class Predicate(FuncAtom):
+class Pred(FuncAtom):
+    """Boolean function of terms."""
     __slots__ = ()
     def proposition(self) =
         Proposition(self.name)
@@ -182,8 +189,10 @@ class Predicate(FuncAtom):
             return self.args |> map$(.substitute(subs)) |*> Predicate$(self.name)
         else:
             return Predicate(sub.name, *self.args)
+Predicate = Pred
 
 class Term(Atom):
+    """Base class for all terms."""
     __slots__ = ()
     def variable(self) =
         """Convert to a variable."""
@@ -207,6 +216,7 @@ class Term(Atom):
         return self.substitute_elements(subs)
 
 class Var(Term):
+    """A variable quantified by a ForAll."""
     __slots__ = ()
     def variable(self) = self
     def __call__(self, *args) =
@@ -219,6 +229,7 @@ class Var(Term):
 Variable = Var
 
 class Const(Term):
+    """A variable quantified by an Exists."""
     __slots__ = ()
     def constant(self) = self
     def __call__(self, *args) =
@@ -230,7 +241,8 @@ class Const(Term):
             return super(Constant, self).find_unification(other)
 Constant = Const
 
-class Function(Term, FuncAtom):
+class Func(Term, FuncAtom):
+    """A function on terms."""
     __slots__ = ()
     def substitute_elements(self, subs) =
         self.args |> map$(.substitute(subs)) |*> Function$(self.name)
@@ -241,8 +253,10 @@ class Function(Term, FuncAtom):
             return {other: self}
         else:
             return super(Function, self).find_unification(other)
+Function = Func
 
 class UnaryOp(Expr):
+    """Base class for unary operators."""
     __slots__ = ("elem",)
     def __init__(self, elem):
         assert wff(elem), elem
@@ -266,6 +280,7 @@ class UnaryOp(Expr):
         self.__class__(self.elem.resolve(**kwargs)).simplify(**kwargs)
 
 class Not(UnaryOp):
+    """Logical not."""
     __slots__ = ()
     opstr = not_sym
     @property
@@ -281,7 +296,7 @@ class Not(UnaryOp):
             return Or(*map(Not, self.neg.ands)).simplify(**kwargs)
         elif isinstance(self.neg, Or):
             return And(*map(Not, self.neg.ors)).simplify(**kwargs)
-        elif isinstance(self.neg, Imp):
+        elif isinstance(self.neg, Implies):
             ands = self.neg.conds + (Not(self.neg.concl),)
             return And(*ands).simplify(**kwargs)
         elif isinstance(self.neg, Exists):
@@ -301,11 +316,12 @@ class Not(UnaryOp):
             return None
 
 class Quantifier(Expr):
+    """Base class for logical quantifiers."""
     __slots__ = ("var", "elem")
     def __repr__(self) =
-        self.__class__.__name__ + "(" + str(self.var) + ", " + repr(self.elem) + ")"
+        self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
     def __str__(self) =
-        self.opstr + str(self.var) + ". " + quote(self.elem)
+        self.opstr + str(self.var) + ". " + quote(self.elem, in_quantifier=True)
     def __len__(self) =
         len(self.elem) + len(self.var)
     def change_var(self, var):
@@ -343,10 +359,13 @@ class Quantifier(Expr):
             return super(Quantifier, self).resolve_against(other, **kwargs)
 
 class ForAll(Quantifier):
+    """Universal quantifier."""
     __slots__ = ()
     opstr = forall_sym
     def __init__(self, var, elem):
         assert wff(elem), elem
+        if isinstance(var, str):
+            var = Constant(var)
         assert isvar(var), var
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
@@ -371,10 +390,13 @@ class ForAll(Quantifier):
 FA = ForAll
 
 class Exists(Quantifier):
+    """Existential quantifier."""
     __slots__ = ()
     opstr = exists_sym
     def __init__(self, var, elem):
         assert wff(elem), elem
+        if isinstance(var, str):
+            var = Constant(var)
         assert isvar(var), var
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
@@ -404,6 +426,7 @@ class Exists(Quantifier):
 TE = Exists
 
 class BinaryOp(Expr):
+    """Base class for binary operators."""
     __slots__ = ("elems",)
     identity = None
     def __new__(cls, *elems):
@@ -436,15 +459,16 @@ class BinaryOp(Expr):
         self.__class__(*elems).simplify(**kwargs)
 
 class Imp(BinaryOp):
+    """Logical implication."""
     __slots__ = ()
     opstr = imp_sym
     def __rshift__(self, other):
-        if isinstance(other, Imp):
-            return Imp(self, *other.elems)
+        if isinstance(other, Implies):
+            return Implies(self, *other.elems)
         else:
-            return Imp(self, other)
+            return Implies(self, other)
     def __lshift__(self, other) =
-        (other,) + self.elems |*> Imp
+        (other,) + self.elems |*> Implies
     @property
     def conds(self) = self.elems[:-1]
     @property
@@ -454,8 +478,10 @@ class Imp(BinaryOp):
     def simplify(self, **kwargs) =
         ors = tuple(map(Not, self.conds)) + (self.concl,)
         Or(*ors).simplify(**kwargs)
+Implies = Imp
 
 class BoolOp(BinaryOp):
+    """Base class for Or and And."""
     __slots__ = ()
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
@@ -489,6 +515,7 @@ class BoolOp(BinaryOp):
         return self
 
 class Or(BoolOp):
+    """Logical disjunction."""
     __slots__ = ()
     opstr = or_sym
     identity = bot
@@ -549,6 +576,7 @@ class Or(BoolOp):
         return None
 
 class And(BoolOp):
+    """Logical conjunction."""
     __slots__ = ()
     opstr = and_sym
     identity = top
@@ -632,7 +660,7 @@ class And(BoolOp):
                                 novel = True
                         if novel:
                             quantifiers.extend(new_quantifiers)
-                if clauses == [bot]:
+                if bot in clauses:
                     break
         resolved = [And(*clauses)] + quantifiers |> reduce$(|>)
         log_simplification(self, resolved, **kwargs)

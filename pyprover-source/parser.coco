@@ -1,0 +1,126 @@
+# Imports:
+
+import string
+
+from pyparsing import (
+    Literal,
+    ZeroOrMore,
+    OneOrMore,
+    Optional,
+    oneOf,
+    replaceWith,
+    Regex,
+    Forward,
+    ParserElement,
+    stringStart,
+    stringEnd,
+)
+
+from pyprover.constants import (
+    all_top_syms,
+    all_bot_syms,
+    all_not_syms,
+    all_imp_syms,
+    all_and_syms,
+    all_or_syms,
+    all_forall_syms,
+    all_exists_syms,
+)
+from pyprover.logic import (
+    top,
+    bot,
+    Proposition,
+    Predicate,
+    Constant,
+    Function,
+    Not,
+    Implies,
+    And,
+    Or,
+    Exists,
+    ForAll,
+)
+
+ParserElement.enablePackrat()
+
+# Utilities:
+
+def attach(action, item):
+    """Attaches a parse action to an item."""
+    return item.copy().addParseAction(action)
+
+def call(action, item):
+    """Call an action on the tokens in item."""
+    def parse_action(o, l, tokens) =
+        action(*tokens)
+    return item |> attach$(parse_action)
+
+def fixto(output, item):
+    """Forces an item to result in a specific output."""
+    return item |> attach$(replaceWith(output))
+
+def tokenlist(sep, item):
+    """Creates a list of tokens matching the item."""
+    return item + ZeroOrMore(sep + item) + Optional(sep)
+
+def parse(grammar, text):
+    """Parses text using grammar."""
+    return grammar.parseWithTabs().parseString(text)
+
+# Grammar:
+
+class Grammar:
+
+    lparen = Literal("(").suppress()
+    rparen = Literal(")").suppress()
+    comma = Literal(",").suppress()
+    dot = Literal(".").suppress()
+
+    commalist = tokenlist$(comma)
+
+    not_op = oneOf(all_not_syms).suppress()
+    imp_op = oneOf(all_imp_syms).suppress()
+    and_op = oneOf(all_and_syms).suppress()
+    or_op = oneOf(all_or_syms).suppress()
+    forall_op = oneOf(all_forall_syms).suppress()
+    exists_op = oneOf(all_exists_syms).suppress()
+
+    top_lit = oneOf(all_top_syms) |> fixto$(top)
+    bot_lit = oneOf(all_bot_syms) |> fixto$(bot)
+
+    lowercase_name = Regex("[a-z0-9_]\w*")
+    uppercase_name = Regex("[A-Z]\w*")
+
+    var = lowercase_name |> call$(Constant)
+    func = Forward()
+    term = func | var
+    terms = lparen - commalist(term) - rparen
+    func <<= lowercase_name + terms |> call$(Function)
+
+    prop = uppercase_name |> call$(Proposition)
+    pred = Forward()
+    atom = pred | prop
+    pred <<= uppercase_name + terms |> call$(Predicate)
+
+    expr = Forward()
+    quant = (exists_op + var - dot - expr |> call$(Exists)) | (forall_op + var - dot - expr |> call$(ForAll))
+
+    base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen
+    not_expr = quant | (not_op + base_expr |> call$(Not)) | base_expr | quant
+    and_expr = quant | (not_expr + OneOrMore(and_op - not_expr) |> call$(And)) | not_expr
+    or_expr = quant | (and_expr + OneOrMore(or_op - and_expr) |> call$(Or)) | and_expr
+    expr <<= quant | (or_expr + OneOrMore(imp_op - or_expr) |> call$(Implies)) | or_expr
+
+    formula = stringStart + expr + stringEnd
+
+for varname, val in vars(Grammar).items():
+    if isinstance(val, ParserElement):
+        setattr(Grammar, varname, val.setName(varname))
+
+# Endpoint:
+
+def expr(formula) =
+    """Parses the given formula into an expression."""
+    result = Grammar.formula.parseWithTabs().parseString(formula)
+    assert len(result) == 1, results
+    result[0]

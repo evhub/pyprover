@@ -39,6 +39,7 @@ from pyprover.atoms import (
     UppercaseVariables,
     StandardMath,
 )
+from pyprover.parser import expr
 
 # Main:
 

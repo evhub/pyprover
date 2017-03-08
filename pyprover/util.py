@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xffed8cc9
+# __coconut_hash__ = 0x5caee901
 
 # Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
 
@@ -35,18 +35,20 @@ def unorderd_eq(list1, list2):  # line 13
             return False  # line 18
     return True  # line 19
 
-def quote(expr):  # line 21
+def quote(expr, in_quantifier=False):  # line 21
     """Adds parentheses in the presence of Imp, And, Or, ForAll, and Exists."""  # line 22
     expr_str = str(expr)  # line 23
-    if (imp_sym in expr_str or and_sym in expr_str or or_sym in expr_str or forall_sym in expr_str or exists_sym in expr_str):  # line 24
-        return "(" + expr_str + ")"  # line 29
-    else:  # line 30
-        return expr_str  # line 31
+    if in_quantifier and (expr_str.startswith(forall_sym) or expr_str.startswith(exists_sym)):  # line 24
+        return expr_str  # line 27
+    elif (imp_sym in expr_str or and_sym in expr_str or or_sym in expr_str or forall_sym in expr_str or exists_sym in expr_str):  # line 28
+        return "(" + expr_str + ")"  # line 33
+    else:  # line 34
+        return expr_str  # line 35
 
-def log_simplification(old, new, debug=False, **kwargs):  # line 33
-    """If there was simplification done, displays a message."""  # line 34
-    if debug:  # line 35
-        old_str = str(old)  # line 36
-        new_str = str(new)  # line 37
-        if old_str != new_str:  # line 38
-            print(old_str, "=>", new_str)  # line 39
+def log_simplification(old, new, debug=False, **kwargs):  # line 37
+    """If there was simplification done, displays a message."""  # line 38
+    if debug:  # line 39
+        old_str = str(old)  # line 40
+        new_str = str(new)  # line 41
+        if old_str != new_str:  # line 42
+            print(old_str, "=>", new_str)  # line 43

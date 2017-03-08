@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x47bfef54
+# __coconut_hash__ = 0xf60bcc84
 
 # Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
 
@@ -21,7 +21,7 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 from pyprover.logic import Proposition  # line 2
 from pyprover.logic import Constant  # line 2
-from pyprover.logic import Imp  # line 2
+from pyprover.logic import Implies  # line 2
 from pyprover.logic import wff  # line 2
 from pyprover.logic import bot  # line 3
 
@@ -48,7 +48,7 @@ def no_proof_of(givens, conclusion):  # line 25
         givens = (givens,)  # line 29
     else:  # line 30
         givens = tuple(givens)  # line 31
-    return ~Imp(*(givens + (conclusion,)))  # line 32
+    return ~Implies(*(givens + (conclusion,)))  # line 32
 
 def proves(givens, conclusion, **kwargs):  # line 33
     """Determines if the givens prove the conclusion."""  # line 35

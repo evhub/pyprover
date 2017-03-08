@@ -18,10 +18,14 @@ def unorderd_eq(list1, list2):
             return False
     return True
 
-def quote(expr):
+def quote(expr, in_quantifier=False):
     """Adds parentheses in the presence of Imp, And, Or, ForAll, and Exists."""
     expr_str = str(expr)
-    if (imp_sym in expr_str
+    if in_quantifier and (
+        expr_str.startswith(forall_sym)
+        or expr_str.startswith(exists_sym)):
+        return expr_str
+    elif (imp_sym in expr_str
         or and_sym in expr_str
         or or_sym in expr_str
         or forall_sym in expr_str

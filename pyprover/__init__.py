@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x96bd14c4
+# __coconut_hash__ = 0x7689f764
 
 # Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
 
@@ -52,7 +52,8 @@ from pyprover.atoms import UppercasePropositions  # line 18
 from pyprover.atoms import LowercaseVariables  # line 18
 from pyprover.atoms import UppercaseVariables  # line 18
 from pyprover.atoms import StandardMath  # line 35
+from pyprover.parser import expr  # line 42
 
 # Main:
 
-StandardMath.use(globals())  # line 45
+StandardMath.use(globals())  # line 46

@@ -3,7 +3,7 @@
 from pyprover.logic import (
     Proposition,
     Constant,
-    Imp,
+    Implies,
     wff,
     bot,
 )
@@ -29,7 +29,7 @@ def no_proof_of(givens, conclusion) =
         givens = (givens,)
     else:
         givens = tuple(givens)
-    ~Imp(*(givens + (conclusion,)))
+    ~Implies(*(givens + (conclusion,)))
 
 def proves(givens, conclusion, **kwargs) =
     """Determines if the givens prove the conclusion."""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x389f4628
+# __coconut_hash__ = 0xbc169ce2
 
 # Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
 
@@ -23,7 +23,7 @@ import sys  # line 3
 
 # Utilities:
 
-def first_encodeable(*symbols):  # line 7
+def first_encodeable(symbols):  # line 7
     for sym in symbols:  # line 8
         try:  # line 9
             if hasattr(sys.stdout, "encoding") and sys.stdout.encoding is not None:  # line 10
@@ -38,17 +38,32 @@ def first_encodeable(*symbols):  # line 7
 
 # Installation:
 
-version = "0.2.1"  # line 22
+version = "0.3.0"  # line 22
 requirements = []  # line 23
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent",]  # line 24
 
 # Symbols:
 
-top_sym = first_encodeable("\u22a4", "\u252c", "-T-")  # line 33
-bot_sym = first_encodeable("\u22a5", "\u2534", "_|_")  # line 34
-not_sym = first_encodeable("\xac", "~")  # line 35
-imp_sym = first_encodeable("\u2192", "->")  # line 36
-and_sym = first_encodeable("\u2227", "/\\")  # line 37
-or_sym = first_encodeable("\u2228", "\\/")  # line 38
-forall_sym = first_encodeable("\u2200", "A:")  # line 39
-exists_sym = first_encodeable("\u2203", "E:")  # line 40
+all_top_syms = "\u22a4", "\u252c", "-T-", "top", "true"  # line 33
+top_sym = (first_encodeable)(all_top_syms)  # line 34
+
+all_bot_syms = "\u22a5", "\u2534", "_|_", "bot", "false"  # line 36
+bot_sym = (first_encodeable)(all_bot_syms)  # line 37
+
+all_not_syms = "\xac", "~", "-"  # line 39
+not_sym = (first_encodeable)(all_not_syms)  # line 40
+
+all_imp_syms = "\u2192", "->"  # line 42
+imp_sym = (first_encodeable)(all_imp_syms)  # line 43
+
+all_and_syms = "\u2227", "/\\", "&"  # line 45
+and_sym = (first_encodeable)(all_and_syms)  # line 46
+
+all_or_syms = "\u2228", "\\/", "|"  # line 48
+or_sym = (first_encodeable)(all_or_syms)  # line 49
+
+all_forall_syms = "\u2200", "A:", "FA ", "A ", "FA:"  # line 51
+forall_sym = (first_encodeable)(all_forall_syms)  # line 52
+
+all_exists_syms = "\u2203", "E:", "TE ", "E ", "TE:"  # line 54
+exists_sym = (first_encodeable)(all_exists_syms)  # line 55

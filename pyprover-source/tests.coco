@@ -21,6 +21,7 @@ from pyprover.atoms import (
     LowercasePropositions,
     StandardMath,
 )
+from pyprover.parser import expr
 
 # Tests:
 
@@ -149,6 +150,7 @@ def test_propositional_logic():
         assert (s&h|~s&~h)&~(s&h)|(s&~h|~s&h)&(s&h) |> simplest_form == ~s&~h
         assert a^b `sub_in` {a:True, b:False} |> simplify == top
         assert a^b `sub_in` {a:top, b:top} |> simplify == bot
+        assert e << f == f >> e
 
 def test_predicate_logic():
     """Runs predicate logic tests."""
@@ -311,8 +313,23 @@ def test_empty_universe():
         assert not top `strict_proves` TE(x, R(x) >> (R(j) & R(k)))
         assert not (FA(x, ~F(x)), FA(x, F(x))) `strict_proves` bot
 
+def test_parser():
+    """Tests math notation parsing."""
+    with StandardMath.using(globals()):
+        assert expr("A") == A
+        assert expr("F(x)") == F(x)
+        assert expr("F(f(x))") == F(f(x))
+        assert expr("A x. F(x)") == FA(x, F(x))
+        assert expr(r"A x. E y. F(x) \/ G(y)") == FA(x, TE(y, F(x) | G(y)))
+        assert expr(r"F(i) /\ A x. G(x)") == F(i) & FA(x, G(x))
+        assert expr("F -> G -> H") == F >> (G >> H)
+        assert expr("~F(x)") == ~F(x)
+        assert expr(r"-G(x) /\ F(x)") == ~G(x) & F(x)
+        assert expr(r"A /\ (B \/ C)") == A & (B | C)
+
 if __name__ == "__main__":
     test_propositional_logic()
     test_predicate_logic()
     test_empty_universe()
+    test_parser()
     print("<success>")

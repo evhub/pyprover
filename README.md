@@ -9,11 +9,11 @@ pip install pyprover
 
 ## PyProver Basics
 
-To use PyProver from an interpreter, it is recommended to
+To use PyProver from a Python interpreter, it is recommended to
 ```python
 from pyprover import *
 ```
-which will populate the global namespace with capital letters as propositions/predicates, and lowercase letters as constants/variables/functions.
+which will populate the global namespace with capital letters as propositions/predicates, and lowercase letters as constants/variables/functions. When using PyProver from a Python file, however, it is recommended to only import what you need.
 
 Formulas can be constructed using the built-in Python operators on propositions and terms combined with `Exists` (or `TE`), `ForAll` (or `FA`), `top`, and `bot`. For example:
 ```python
@@ -28,6 +28,21 @@ bot >> E
 FA(x, F(x))
 TE(x, F(x) | G(x))
 FA(x, F(f(x)) >> F(x))
+```
+
+Alternatively, the `expr(formula)` function can be used, which parses a formula in standard mathematical notation. For example:
+```
+(A ∧ B) ∨ (C → ¬D)
+F /\ G \/ (C -> ~D)
+F & G | (C -> -D)
+⊤ ∧ ⊥
+top & bot
+F -> G -> H
+A x. F(x) /\ G(x)
+∀x. F(x) /\ G(x)
+E x. C(x) \/ D(x)
+∃x. C(x) \/ D(x)
+∀x. ∃y. G(f(x, y))
 ```
 
 Once a formula has been constructed, various functions are provided to work with them. Some of the most important of these are:
