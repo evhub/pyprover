@@ -19,7 +19,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.3.0"
+version = "0.3.1"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -30,10 +30,10 @@ classifiers = [
 
 # Symbols:
 
-all_top_syms = "\u22a4", "\u252c", "-T-", "top", "true"
+all_top_syms = "\u22a4", "\u252c", "top", "true"
 top_sym = all_top_syms |> first_encodeable
 
-all_bot_syms = "\u22a5", "\u2534", "_|_", "bot", "false"
+all_bot_syms = "\u22a5", "\u2534", "bot", "_|_", "false"
 bot_sym = all_bot_syms |> first_encodeable
 
 all_not_syms = "\xac", "~", "-"
@@ -48,8 +48,8 @@ and_sym = all_and_syms |> first_encodeable
 all_or_syms = "\u2228", "\\/", "|"
 or_sym = all_or_syms |> first_encodeable
 
-all_forall_syms = "\u2200", "A:", "FA ", "A ", "FA:"
+all_forall_syms = "\u2200", "A ", "A:", "FA ", "FA:"
 forall_sym = all_forall_syms |> first_encodeable
 
-all_exists_syms = "\u2203", "E:", "TE ", "E ", "TE:"
+all_exists_syms = "\u2203", "E ", "E:", "TE ", "TE:"
 exists_sym = all_exists_syms |> first_encodeable

@@ -13,7 +13,7 @@ from pyprover.constants import (
 setuptools.setup(
     name="pyprover",
     version=version,
-    description="A resolutional theorem prover for predicate logic in pure Python.",
+    description="Resolution theorem proving for predicate logic in pure Python.",
     url="https://github.com/evhub/pyprover",
     author="Evan Hubinger",
     author_email="evanjhub@gmail.com",

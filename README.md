@@ -32,11 +32,11 @@ FA(x, F(f(x)) >> F(x))
 
 Alternatively, the `expr(formula)` function can be used, which parses a formula in standard mathematical notation. For example:
 ```
-(A ∧ B) ∨ (C → ¬D)
+F ∧ G ∨ (C → ¬D)
 F /\ G \/ (C -> ~D)
 F & G | (C -> -D)
 ⊤ ∧ ⊥
-top & bot
+top /\ bot
 F -> G -> H
 A x. F(x) /\ G(x)
 ∀x. F(x) /\ G(x)

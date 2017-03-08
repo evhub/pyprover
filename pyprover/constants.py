@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbc169ce2
+# __coconut_hash__ = 0xa101e163
 
 # Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
 
@@ -44,10 +44,10 @@ classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Ap
 
 # Symbols:
 
-all_top_syms = "\u22a4", "\u252c", "-T-", "top", "true"  # line 33
+all_top_syms = "\u22a4", "\u252c", "top", "true"  # line 33
 top_sym = (first_encodeable)(all_top_syms)  # line 34
 
-all_bot_syms = "\u22a5", "\u2534", "_|_", "bot", "false"  # line 36
+all_bot_syms = "\u22a5", "\u2534", "bot", "_|_", "false"  # line 36
 bot_sym = (first_encodeable)(all_bot_syms)  # line 37
 
 all_not_syms = "\xac", "~", "-"  # line 39
@@ -62,8 +62,8 @@ and_sym = (first_encodeable)(all_and_syms)  # line 46
 all_or_syms = "\u2228", "\\/", "|"  # line 48
 or_sym = (first_encodeable)(all_or_syms)  # line 49
 
-all_forall_syms = "\u2200", "A:", "FA ", "A ", "FA:"  # line 51
+all_forall_syms = "\u2200", "A ", "A:", "FA ", "FA:"  # line 51
 forall_sym = (first_encodeable)(all_forall_syms)  # line 52
 
-all_exists_syms = "\u2203", "E:", "TE ", "E ", "TE:"  # line 54
+all_exists_syms = "\u2203", "E ", "E:", "TE ", "TE:"  # line 54
 exists_sym = (first_encodeable)(all_exists_syms)  # line 55
