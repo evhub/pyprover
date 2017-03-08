@@ -10,7 +10,7 @@ from pyprover.logic import (
 
 # Functions:
 
-def propositions(names) =
+def props(names) =
     """Constructs propositions from a space-seperated string of names."""
     map(Proposition, names.split())
 

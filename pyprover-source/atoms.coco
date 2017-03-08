@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 
 from pyprover.tools import (
-    propositions,
+    props,
     terms,
 )
 
@@ -45,26 +45,26 @@ class Vars:
 # Derived Classes:
 
 class LowercasePropositions(Vars):
-    a, b, c = propositions("a b c")
-    d, e, f = propositions("d e f")
-    g, h, i = propositions("g h i")
-    j, k, l = propositions("j k l")
-    m, n, o = propositions("m n o")
-    p, q, r = propositions("p q r")
-    s, t, u = propositions("s t u")
-    v, w, x = propositions("v w x")
-    y, z = propositions("y z")
+    a, b, c = props("a b c")
+    d, e, f = props("d e f")
+    g, h, i = props("g h i")
+    j, k, l = props("j k l")
+    m, n, o = props("m n o")
+    p, q, r = props("p q r")
+    s, t, u = props("s t u")
+    v, w, x = props("v w x")
+    y, z = props("y z")
 
 class UppercasePropositions(Vars):
-    A, B, C = propositions("A B C")
-    D, E, F = propositions("D E F")
-    G, H, I = propositions("G H I")
-    J, K, L = propositions("J K L")
-    M, N, O = propositions("M N O")
-    P, Q, R = propositions("P Q R")
-    S, T, U = propositions("S T U")
-    V, W, X = propositions("V W X")
-    Y, Z = propositions("Y Z")
+    A, B, C = props("A B C")
+    D, E, F = props("D E F")
+    G, H, I = props("G H I")
+    J, K, L = props("J K L")
+    M, N, O = props("M N O")
+    P, Q, R = props("P Q R")
+    S, T, U = props("S T U")
+    V, W, X = props("V W X")
+    Y, Z = props("Y Z")
 
 class LowercaseVariables(Vars):
     a, b, c = terms("a b c")

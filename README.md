@@ -37,4 +37,4 @@ Once a formula has been constructed, various functions are provided to work with
 - `strict_proves(givens, concl)` determines if `concl` can be derived from `givens`, and
 - `proves(givens, concl)` is the same as `strict_proves`, but it implicitly assumes `TE(x, top)`.
 
-To construct additional propositions/predicates, the function `propositions("name1 name2 name3 ...")` will return propositions/predicates for the given names, and to construct additional constants/variables/functions, the function `terms("name1 name2 name3 ...")` can be used similarly.
+To construct additional propositions/predicates, the function `props("name1 name2 name3 ...")` will return propositions/predicates for the given names, and to construct additional constants/variables/functions, the function `terms("name1 name2 name3 ...")` can be used similarly.

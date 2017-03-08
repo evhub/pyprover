@@ -19,7 +19,7 @@ def first_encodeable(*symbols):
 
 # Installation:
 
-version = "0.2.0"
+version = "0.2.1"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",

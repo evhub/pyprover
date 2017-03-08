@@ -133,10 +133,11 @@ class Atom(Expr):
             else:
                 raise TypeError("cannot perform substitution " + self + " => " + sub)
 
-class Proposition(Atom):
+class Prop(Atom):
     __slots__ = ()
     def __call__(self, *args) =
         Predicate(self.name, *args)
+Proposition = Prop
 
 class FuncAtom(Atom):
     __slots__ = ("args",)
