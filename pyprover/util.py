@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8b8fdc17
+# __coconut_hash__ = 0xaedb66fb
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -53,16 +53,15 @@ def log_simplification(old, new, debug=False, **kwargs):
         if old_str != new_str:
             print(old_str, "=>", new_str)
 
-def add_sub(subs, oldvar, newvar):
-    """Adds a substitution from newvar to oldvar."""
+def rem_sub(subs, var):
+    """Deletes any substitutions of var."""
     newsubs = subs.copy()
     try:
-        del newsubs[oldvar.constant()]
+        del newsubs[var.constant()]
     except KeyError:
         pass
     try:
-        del newsubs[oldvar.variable()]
+        del newsubs[var.variable()]
     except KeyError:
         pass
-    newsubs[oldvar] = newvar
     return newsubs

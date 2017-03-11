@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xcd50336a
+# __coconut_hash__ = 0x4d8f47da
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -30,7 +30,7 @@ from pyprover.constants import exists_sym
 from pyprover.util import unorderd_eq
 from pyprover.util import quote
 from pyprover.util import log_simplification
-from pyprover.util import add_sub
+from pyprover.util import rem_sub
 
 # Functions:
 
@@ -397,11 +397,7 @@ class Quantifier(Expr):
             return False
     @_coconut_tco
     def substitute(self, subs, **kwargs):
-        var = self.var
-        newvar = var.prime()
-        while var != var.substitute(subs):  # don't pass kwargs here, since this isn't a real sub
-            var, newvar = newvar, newvar.prime()
-        raise _coconut_tail_call((_coconut.functools.partial(self.__class__, var)), (_coconut.functools.partial(self.elem.substitute, **kwargs))(add_sub(subs, self.var, var)))
+        raise _coconut_tail_call((self.change_elem), (_coconut.functools.partial(self.elem.substitute, **kwargs))(rem_sub(subs, self.var)))
     @_coconut_tco
     def make_free_in(self, other):
         """Makes self free in other."""

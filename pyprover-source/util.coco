@@ -42,16 +42,15 @@ def log_simplification(old, new, debug=False, **kwargs):
         if old_str != new_str:
             print(old_str, "=>", new_str)
 
-def add_sub(subs, oldvar, newvar):
-    """Adds a substitution from newvar to oldvar."""
+def rem_sub(subs, var) =
+    """Deletes any substitutions of var."""
     newsubs = subs.copy()
     try:
-        del newsubs[oldvar.constant()]
+        del newsubs[var.constant()]
     except KeyError:
         pass
     try:
-        del newsubs[oldvar.variable()]
+        del newsubs[var.variable()]
     except KeyError:
         pass
-    newsubs[oldvar] = newvar
-    return newsubs
+    newsubs

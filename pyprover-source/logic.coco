@@ -14,7 +14,7 @@ from pyprover.util import (
     unorderd_eq,
     quote,
     log_simplification,
-    add_sub,
+    rem_sub,
 )
 
 # Functions:
@@ -337,11 +337,7 @@ class Quantifier(Expr):
         else:
             return False
     def substitute(self, subs, **kwargs):
-        var = self.var
-        newvar = var.prime()
-        while var != var.substitute(subs):  # don't pass kwargs here, since this isn't a real sub
-            var, newvar = newvar, newvar.prime()
-        return add_sub(subs, self.var, var) |> self.elem.substitute$(**kwargs) |> self.__class__$(var)
+        return rem_sub(subs, self.var) |> self.elem.substitute$(**kwargs) |> self.change_elem
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
