@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x14015555
+# __coconut_hash__ = 0x4bc08568
 
-# Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -455,14 +455,14 @@ _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_reversed, _coc
 
 # Compiled Coconut: ------------------------------------------------------
 
-import setuptools  # line 1
+import setuptools
 
-import sys  # line 3
-import os.path  # line 4
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # line 5
+import sys
+import os.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from pyprover.constants import version  # line 6
-from pyprover.constants import requirements  # line 6
-from pyprover.constants import classifiers  # line 7
+from pyprover.constants import version
+from pyprover.constants import requirements
+from pyprover.constants import classifiers
 
-setuptools.setup(name="pyprover", version=version, description="Resolution theorem proving for predicate logic in pure Python.", url="https://github.com/evhub/pyprover", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)  # line 13
+setuptools.setup(name="pyprover", version=version, description="Resolution theorem proving for predicate logic in pure Python.", url="https://github.com/evhub/pyprover", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)

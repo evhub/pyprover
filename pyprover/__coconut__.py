@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
 """Built-in Coconut utilities."""
 

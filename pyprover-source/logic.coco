@@ -14,6 +14,7 @@ from pyprover.util import (
     unorderd_eq,
     quote,
     log_simplification,
+    add_sub,
 )
 
 # Functions:
@@ -58,7 +59,7 @@ class Expr:
     def simplify(self, **kwargs) =
         """Simplify the given expression."""
         self
-    def substitute(self, subs) =
+    def substitute(self, subs, **kwargs) =
         """Substitutes a dictionary into the expression."""
         self
     def resolve(self, **kwargs) =
@@ -119,14 +120,14 @@ class Atom(Expr):
         isinstance(other, self.__class__) and self.name == other.name
     def __hash__(self) =
         (self.__class__.__name__, self.name) |> hash
-    def substitute_elements(self, subs) =
+    def substitute_elements(self, subs, **kwargs) =
         """Substitute for the elements of the Atom, not the Atom itself."""
         self
-    def substitute(self, subs):
+    def substitute(self, subs, **kwargs):
         try:
             sub = subs[self]
         except KeyError:
-            return self.substitute_elements(subs)
+            return self.substitute_elements(subs, **kwargs)
         else:
             if wff(sub):
                 return sub
@@ -182,11 +183,11 @@ class Pred(FuncAtom):
     __slots__ = ()
     def proposition(self) =
         Proposition(self.name)
-    def substitute_elements(self, subs):
+    def substitute_elements(self, subs, **kwargs):
         try:
             sub = subs[self.proposition()]
         except KeyError:
-            return self.args |> map$(.substitute(subs)) |*> Predicate$(self.name)
+            return self.args |> map$(x -> x.substitute(subs, **kwargs)) |*> Predicate$(self.name)
         else:
             return Predicate(sub.name, *self.args)
 Predicate = Pred
@@ -206,14 +207,14 @@ class Term(Atom):
     def prime(self) =
         """Rename by adding a prime."""
         self.rename(self.name + "'")
-    def substitute(self, subs):
+    def substitute(self, subs, **kwargs):
         for var, sub in subs.items():
             if isinstance(var, Term) and self.name == var.name:
                 if isvar(self) or self == var:
                     return sub
                 else:
                     return self.rename(sub.name)
-        return self.substitute_elements(subs)
+        return self.substitute_elements(subs, **kwargs)
 
 class Var(Term):
     """A variable quantified by a ForAll."""
@@ -244,8 +245,8 @@ Constant = Const
 class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
-    def substitute_elements(self, subs) =
-        self.args |> map$(.substitute(subs)) |*> Function$(self.name)
+    def substitute_elements(self, subs, **kwargs) =
+        self.args |> map$(x -> x.substitute(subs, **kwargs)) |*> Function$(self.name)
     def rename(self, name) =
         self.__class__(name, *self.args)
     def find_unification(self, other):
@@ -269,8 +270,8 @@ class UnaryOp(Expr):
         self.opstr + quote(self.elem)
     def __len__(self) =
         len(self.elem) + 1
-    def substitute(self, subs) =
-        self.__class__(self.elem.substitute(subs))
+    def substitute(self, subs, **kwargs) =
+        self.__class__(self.elem.substitute(subs, **kwargs))
     def find_unification(self, other):
         if isinstance(other, self.__class__):
             return self.elem.find_unification(other.elem)
@@ -335,8 +336,12 @@ class Quantifier(Expr):
             return self.elem == other.change_var(self.var).elem
         else:
             return False
-    def substitute(self, subs):
-        return self.__class__(self.var.substitute(subs).constant(), self.elem.substitute(subs))
+    def substitute(self, subs, **kwargs):
+        var = self.var
+        newvar = var.prime()
+        while var != var.substitute(subs):  # don't pass kwargs here, since this isn't a real sub
+            var, newvar = newvar, newvar.prime()
+        return add_sub(subs, self.var, var) |> self.elem.substitute$(**kwargs) |> self.__class__$(var)
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
@@ -452,8 +457,8 @@ class BinaryOp(Expr):
         (" " + self.opstr + " ").join(quote(x) for x in self.elems)
     def __len__(self) =
         sum(map(len, self.elems)) + 1
-    def substitute(self, subs):
-        return self.elems |> map$(.substitute(subs)) |*> self.__class__
+    def substitute(self, subs, **kwargs):
+        return self.elems |> map$(x -> x.substitute(subs, **kwargs)) |*> self.__class__
     def resolve(self, **kwargs) =
         elems = self.elems |> map$(x -> x.resolve(**kwargs))
         self.__class__(*elems).simplify(**kwargs)

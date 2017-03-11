@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7689f764
+# __coconut_hash__ = 0x3de4ffb2
 
-# Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -19,41 +19,41 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Imports:
 
-from pyprover.logic import ForAll  # line 2
-from pyprover.logic import Exists  # line 2
-from pyprover.logic import FA  # line 2
-from pyprover.logic import TE  # line 2
-from pyprover.logic import top  # line 2
-from pyprover.logic import bot  # line 2
-from pyprover.logic import true  # line 2
-from pyprover.logic import false  # line 2
-from pyprover.logic import Not  # line 2
-from pyprover.logic import Imp  # line 2
-from pyprover.logic import Or  # line 2
-from pyprover.logic import And  # line 3
-from pyprover.tools import props  # line 4
-from pyprover.tools import terms  # line 4
-from pyprover.tools import solve  # line 4
-from pyprover.tools import strict_solve  # line 4
-from pyprover.tools import no_proof_of  # line 4
-from pyprover.tools import proves  # line 4
-from pyprover.tools import strict_proves  # line 4
-from pyprover.tools import iff  # line 4
-from pyprover.tools import strict_iff  # line 4
-from pyprover.tools import simplify  # line 4
-from pyprover.tools import strict_simplify  # line 4
-from pyprover.tools import simplest_form  # line 4
-from pyprover.tools import strict_simplest_form  # line 4
-from pyprover.tools import simplest_solution  # line 4
-from pyprover.tools import strict_simplest_solution  # line 4
-from pyprover.tools import sub_in  # line 17
-from pyprover.atoms import LowercasePropositions  # line 18
-from pyprover.atoms import UppercasePropositions  # line 18
-from pyprover.atoms import LowercaseVariables  # line 18
-from pyprover.atoms import UppercaseVariables  # line 18
-from pyprover.atoms import StandardMath  # line 35
-from pyprover.parser import expr  # line 42
+from pyprover.logic import ForAll
+from pyprover.logic import Exists
+from pyprover.logic import FA
+from pyprover.logic import TE
+from pyprover.logic import top
+from pyprover.logic import bot
+from pyprover.logic import true
+from pyprover.logic import false
+from pyprover.logic import Not
+from pyprover.logic import Imp
+from pyprover.logic import Or
+from pyprover.logic import And
+from pyprover.tools import props
+from pyprover.tools import terms
+from pyprover.tools import solve
+from pyprover.tools import strict_solve
+from pyprover.tools import no_proof_of
+from pyprover.tools import proves
+from pyprover.tools import strict_proves
+from pyprover.tools import iff
+from pyprover.tools import strict_iff
+from pyprover.tools import simplify
+from pyprover.tools import strict_simplify
+from pyprover.tools import simplest_form
+from pyprover.tools import strict_simplest_form
+from pyprover.tools import simplest_solution
+from pyprover.tools import strict_simplest_solution
+from pyprover.tools import sub_in
+from pyprover.atoms import LowercasePropositions
+from pyprover.atoms import UppercasePropositions
+from pyprover.atoms import LowercaseVariables
+from pyprover.atoms import UppercaseVariables
+from pyprover.atoms import StandardMath
+from pyprover.parser import expr
 
 # Main:
 
-StandardMath.use(globals())  # line 46
+StandardMath.use(globals())

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xfde97e98
+# __coconut_hash__ = 0x7c1e2f52
 
-# Compiled with Coconut version 1.2.2-post_dev4 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -19,124 +19,124 @@ _coconut_sys.path.remove(_coconut_file_path)
 
 # Imports:
 
-import string  # line 3
+import string
 
-from pyparsing import Literal  # line 4
-from pyparsing import ZeroOrMore  # line 4
-from pyparsing import OneOrMore  # line 4
-from pyparsing import Optional  # line 4
-from pyparsing import oneOf  # line 4
-from pyparsing import replaceWith  # line 4
-from pyparsing import Regex  # line 4
-from pyparsing import Forward  # line 4
-from pyparsing import ParserElement  # line 4
-from pyparsing import stringStart  # line 4
-from pyparsing import stringEnd  # line 5
+from pyparsing import Literal
+from pyparsing import ZeroOrMore
+from pyparsing import OneOrMore
+from pyparsing import Optional
+from pyparsing import oneOf
+from pyparsing import replaceWith
+from pyparsing import Regex
+from pyparsing import Forward
+from pyparsing import ParserElement
+from pyparsing import stringStart
+from pyparsing import stringEnd
 
-from pyprover.constants import all_top_syms  # line 6
-from pyprover.constants import all_bot_syms  # line 6
-from pyprover.constants import all_not_syms  # line 6
-from pyprover.constants import all_imp_syms  # line 6
-from pyprover.constants import all_and_syms  # line 6
-from pyprover.constants import all_or_syms  # line 6
-from pyprover.constants import all_forall_syms  # line 6
-from pyprover.constants import all_exists_syms  # line 19
-from pyprover.logic import top  # line 20
-from pyprover.logic import bot  # line 20
-from pyprover.logic import Proposition  # line 20
-from pyprover.logic import Predicate  # line 20
-from pyprover.logic import Constant  # line 20
-from pyprover.logic import Function  # line 20
-from pyprover.logic import Not  # line 20
-from pyprover.logic import Implies  # line 20
-from pyprover.logic import And  # line 20
-from pyprover.logic import Or  # line 20
-from pyprover.logic import Exists  # line 20
-from pyprover.logic import ForAll  # line 29
+from pyprover.constants import all_top_syms
+from pyprover.constants import all_bot_syms
+from pyprover.constants import all_not_syms
+from pyprover.constants import all_imp_syms
+from pyprover.constants import all_and_syms
+from pyprover.constants import all_or_syms
+from pyprover.constants import all_forall_syms
+from pyprover.constants import all_exists_syms
+from pyprover.logic import top
+from pyprover.logic import bot
+from pyprover.logic import Proposition
+from pyprover.logic import Predicate
+from pyprover.logic import Constant
+from pyprover.logic import Function
+from pyprover.logic import Not
+from pyprover.logic import Implies
+from pyprover.logic import And
+from pyprover.logic import Or
+from pyprover.logic import Exists
+from pyprover.logic import ForAll
 
-ParserElement.enablePackrat()  # line 44
+ParserElement.enablePackrat()
 
 # Utilities:
 
-def attach(action, item):  # line 48
-    """Attaches a parse action to an item."""  # line 49
-    return item.copy().addParseAction(action)  # line 50
+def attach(action, item):
+    """Attaches a parse action to an item."""
+    return item.copy().addParseAction(action)
 
-@_coconut_tco  # line 51
-def call(action, item):  # line 52
-    """Call an action on the tokens in item."""  # line 53
-    @_coconut_tco  # line 54
-    def parse_action(o, l, tokens):  # line 54
-        raise _coconut_tail_call(action, *tokens)  # line 55
-    raise _coconut_tail_call((_coconut.functools.partial(attach, parse_action)), item)  # line 56
+@_coconut_tco
+def call(action, item):
+    """Call an action on the tokens in item."""
+    @_coconut_tco
+    def parse_action(o, l, tokens):
+        raise _coconut_tail_call(action, *tokens)
+    raise _coconut_tail_call((_coconut.functools.partial(attach, parse_action)), item)
 
-@_coconut_tco  # line 57
-def fixto(output, item):  # line 58
-    """Forces an item to result in a specific output."""  # line 59
-    raise _coconut_tail_call((_coconut.functools.partial(attach, replaceWith(output))), item)  # line 60
+@_coconut_tco
+def fixto(output, item):
+    """Forces an item to result in a specific output."""
+    raise _coconut_tail_call((_coconut.functools.partial(attach, replaceWith(output))), item)
 
-def tokenlist(sep, item):  # line 62
-    """Creates a list of tokens matching the item."""  # line 63
-    return item + ZeroOrMore(sep + item) + Optional(sep)  # line 64
+def tokenlist(sep, item):
+    """Creates a list of tokens matching the item."""
+    return item + ZeroOrMore(sep + item) + Optional(sep)
 
-def parse(grammar, text):  # line 66
-    """Parses text using grammar."""  # line 67
-    return grammar.parseWithTabs().parseString(text)  # line 68
+def parse(grammar, text):
+    """Parses text using grammar."""
+    return grammar.parseWithTabs().parseString(text)
 
 # Grammar:
 
-class Grammar(_coconut.object):  # line 72
+class Grammar(_coconut.object):
 
-    lparen = Literal("(").suppress()  # line 74
-    rparen = Literal(")").suppress()  # line 75
-    comma = Literal(",").suppress()  # line 76
-    dot = Literal(".").suppress()  # line 77
+    lparen = Literal("(").suppress()
+    rparen = Literal(")").suppress()
+    comma = Literal(",").suppress()
+    dot = Literal(".").suppress()
 
-    commalist = _coconut.functools.partial(tokenlist, comma)  # line 79
+    commalist = _coconut.functools.partial(tokenlist, comma)
 
-    not_op = oneOf(all_not_syms).suppress()  # line 81
-    imp_op = oneOf(all_imp_syms).suppress()  # line 82
-    and_op = oneOf(all_and_syms).suppress()  # line 83
-    or_op = oneOf(all_or_syms).suppress()  # line 84
-    forall_op = oneOf(all_forall_syms).suppress()  # line 85
-    exists_op = oneOf(all_exists_syms).suppress()  # line 86
+    not_op = oneOf(all_not_syms).suppress()
+    imp_op = oneOf(all_imp_syms).suppress()
+    and_op = oneOf(all_and_syms).suppress()
+    or_op = oneOf(all_or_syms).suppress()
+    forall_op = oneOf(all_forall_syms).suppress()
+    exists_op = oneOf(all_exists_syms).suppress()
 
-    top_lit = (_coconut.functools.partial(fixto, top))(oneOf(all_top_syms))  # line 88
-    bot_lit = (_coconut.functools.partial(fixto, bot))(oneOf(all_bot_syms))  # line 89
+    top_lit = (_coconut.functools.partial(fixto, top))(oneOf(all_top_syms))
+    bot_lit = (_coconut.functools.partial(fixto, bot))(oneOf(all_bot_syms))
 
-    lowercase_name = Regex("[a-z0-9_]\w*")  # line 91
-    uppercase_name = Regex("[A-Z]\w*")  # line 92
+    lowercase_name = Regex("[a-z0-9_]\w*")
+    uppercase_name = Regex("[A-Z]\w*")
 
-    var = (_coconut.functools.partial(call, Constant))(lowercase_name)  # line 94
-    func = Forward()  # line 95
-    term = func | var  # line 96
-    terms = lparen - commalist(term) - rparen  # line 97
-    func <<= (_coconut.functools.partial(call, Function))(lowercase_name + terms)  # line 98
+    var = (_coconut.functools.partial(call, Constant))(lowercase_name)
+    func = Forward()
+    term = func | var
+    terms = lparen - commalist(term) - rparen
+    func <<= (_coconut.functools.partial(call, Function))(lowercase_name + terms)
 
-    prop = (_coconut.functools.partial(call, Proposition))(uppercase_name)  # line 100
-    pred = Forward()  # line 101
-    atom = pred | prop  # line 102
-    pred <<= (_coconut.functools.partial(call, Predicate))(uppercase_name + terms)  # line 103
+    prop = (_coconut.functools.partial(call, Proposition))(uppercase_name)
+    pred = Forward()
+    atom = pred | prop
+    pred <<= (_coconut.functools.partial(call, Predicate))(uppercase_name + terms)
 
-    expr = Forward()  # line 105
-    quant = ((_coconut.functools.partial(call, Exists))(exists_op + var - dot - expr)) | ((_coconut.functools.partial(call, ForAll))(forall_op + var - dot - expr))  # line 106
+    expr = Forward()
+    quant = ((_coconut.functools.partial(call, Exists))(exists_op + var - dot - expr)) | ((_coconut.functools.partial(call, ForAll))(forall_op + var - dot - expr))
 
-    base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen  # line 108
-    not_expr = quant | ((_coconut.functools.partial(call, Not))(not_op + base_expr)) | base_expr | quant  # line 109
-    and_expr = quant | ((_coconut.functools.partial(call, And))(not_expr + OneOrMore(and_op - not_expr))) | not_expr  # line 110
-    or_expr = quant | ((_coconut.functools.partial(call, Or))(and_expr + OneOrMore(or_op - and_expr))) | and_expr  # line 111
-    expr <<= quant | ((_coconut.functools.partial(call, Implies))(or_expr + OneOrMore(imp_op - or_expr))) | or_expr  # line 112
+    base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen
+    not_expr = quant | ((_coconut.functools.partial(call, Not))(not_op + base_expr)) | base_expr | quant
+    and_expr = quant | ((_coconut.functools.partial(call, And))(not_expr + OneOrMore(and_op - not_expr))) | not_expr
+    or_expr = quant | ((_coconut.functools.partial(call, Or))(and_expr + OneOrMore(or_op - and_expr))) | and_expr
+    expr <<= quant | ((_coconut.functools.partial(call, Implies))(or_expr + OneOrMore(imp_op - or_expr))) | or_expr
 
-    formula = stringStart + expr + stringEnd  # line 114
+    formula = stringStart + expr + stringEnd
 
-for varname, val in vars(Grammar).items():  # line 116
-    if isinstance(val, ParserElement):  # line 117
-        setattr(Grammar, varname, val.setName(varname))  # line 118
+for varname, val in vars(Grammar).items():
+    if isinstance(val, ParserElement):
+        setattr(Grammar, varname, val.setName(varname))
 
 # Endpoint:
 
-def expr(formula):  # line 121
-    """Parses the given formula into an expression."""  # line 123
-    result = Grammar.formula.parseWithTabs().parseString(formula)  # line 124
-    assert len(result) == 1, results  # line 125
-    return result[0]  # line 126
+def expr(formula):
+    """Parses the given formula into an expression."""
+    result = Grammar.formula.parseWithTabs().parseString(formula)
+    assert len(result) == 1, results
+    return result[0]
