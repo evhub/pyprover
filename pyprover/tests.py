@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbe90b1f8
+# __coconut_hash__ = 0x2ab371f1
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -27,7 +27,7 @@ from pyprover.logic import And
 from pyprover.logic import Or
 from pyprover.logic import Eq
 from pyprover.tools import proves
-from pyprover.tools import iff
+from pyprover.tools import proves_and_proved_by
 from pyprover.tools import simplify
 from pyprover.tools import simplest_form
 from pyprover.tools import substitute
@@ -155,9 +155,9 @@ def test_propositional_logic():
         assert Or() == bot
         assert (proves)((), top)
         assert (proves)((a ^ b, a), ~b)
-        assert (iff)(f >> (g >> h), (f & g) >> h)
-        assert (iff)(bot, a & ~a)
-        assert (iff)(top, a | ~a)
+        assert (proves_and_proved_by)(f >> (g >> h), (f & g) >> h)
+        assert (proves_and_proved_by)(bot, a & ~a)
+        assert (proves_and_proved_by)(top, a | ~a)
         assert (simplify)(top & bot) == bot
         assert simplify(a & a, b & b) == (a, b)
         assert (simplest_form)(a ^ b) == (b | a) & (~a | ~b)
@@ -257,6 +257,7 @@ def test_predicate_logic():
         assert (proves)((Eq(a, b) | Eq(a, c), F(a)), F(b) | F(c))
         assert (proves)(FA(x, Eq(a, x)), Eq(a, b))
         assert (proves)(Eq(a, b), Eq(b, a))
+        assert (proves)(Eq(a, b), Eq(f(a), f(b)))
 
 def test_empty_universe():
     """Runs predicate logic tests in a potentially empty universe."""
@@ -344,6 +345,7 @@ def test_empty_universe():
         assert (strict_proves)((Eq(a, b) | Eq(a, c), F(a)), F(b) | F(c))
         assert (strict_proves)(FA(x, Eq(a, x)), Eq(a, b))
         assert (strict_proves)(Eq(a, b), Eq(b, a))
+        assert (strict_proves)(Eq(a, b), Eq(f(a), f(b)))
 
 def test_parser():
     """Tests math notation parsing."""

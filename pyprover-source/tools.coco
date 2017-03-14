@@ -36,12 +36,18 @@ def proves(givens, conclusion, **kwargs) =
     no_proof_of(givens, conclusion) |> solve$(**kwargs) == bot
 strict_proves = proves$(nonempty_universe=False)
 
-def iff(a, b, **kwargs) =
+def iff(a, b) =
+    """Creates a formula for a implies b and b implies a."""
+    assert wff(a), a
+    assert wff(b), b
+    a >> b & b >> a
+
+def proves_and_proved_by(a, b, **kwargs) =
     """Determines if a is true if and only if b."""
     a = a.simplify(dnf=False, **kwargs)
     b = b.simplify(dnf=False, **kwargs)
     a `proves$(**kwargs)` b and b `proves$(**kwargs)` a
-strict_iff = iff$(nonempty_universe=False)
+strict_proves_and_proved_by = proves_and_proved_by$(nonempty_universe=False)
 
 def simplify(expr, *exprs, **kwargs):
     """Simplify the given expression[s]."""

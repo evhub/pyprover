@@ -334,7 +334,7 @@ class Not(UnaryOp):
     def contradicts(self, other, **kwargs) =
         self.neg == other
     def resolve_against(self, other, **kwargs):
-        if isinstance(other, Or):
+        if isinstance(other, (Or, Eq)):
             return other.resolve_against(self, **kwargs)
         elif self.neg.find_unification(other) is not None:
             return bot
@@ -592,12 +592,12 @@ class Or(BoolOp):
             not_other_ors = other.ors |> map$(Not) |> map$(x -> x.simplify(**kwargs))
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
-                    resolved_other = other |> x.resolve_against
+                    resolved_other = other |> x.paramodulant
                     return self.ors[:i] + self.ors[i+1:] + resolved_other.ors |*> Or
                 for j, y in enumerate(not_other_ors):
                     if isinstance(other.ors[j], Eq):
                         y = other.ors[j]
-                        resolved_self = self |> y.resolve_against
+                        resolved_self = self |> y.paramodulant
                         return other.ors[:j] + other.ors[j+1:] + resolved_self.ors |*> Or
                     subs = x.find_unification(y)
                     if subs is not None:
@@ -606,7 +606,7 @@ class Or(BoolOp):
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
-                    return self.ors[:i] + self.ors[i+1:] |*> Or |> x.resolve_against
+                    return self.ors[:i] + self.ors[i+1:] |*> Or |> x.paramodulant
                 subs = x.find_unification(not_other)
                 if subs is not None:
                     return self.ors[:i] + self.ors[i+1:] |> map$(x -> x.substitute(subs, **kwargs)) |*> Or
@@ -744,9 +744,12 @@ class Eq(Expr):
             return None
     def substitute(self, subs, **kwargs) =
         Eq(self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))
+    def paramodulant(self, other) =
+        """Create a paramodulant of other."""
+        other `sub_once` {self.a: self.b, self.b: self.a}
     def resolve_against(self, other, **kwargs):
-        if isinstance(other, Not):
-            return other.resolve_against(self)
+        if isinstance(other, Not) and self.find_unification(other.neg) is not None:
+            return bot
         else:
-            return other `sub_once` {self.a: self.b, self.b: self.a}
+            return self.paramodulant(other)
 Equals = Eq

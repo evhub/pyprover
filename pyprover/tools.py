@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6f86668a
+# __coconut_hash__ = 0xae437798
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -55,12 +55,18 @@ def proves(givens, conclusion, **kwargs):
     return (_coconut.functools.partial(solve, **kwargs))(no_proof_of(givens, conclusion)) == bot
 strict_proves = _coconut.functools.partial(proves, nonempty_universe=False)
 
-def iff(a, b, **kwargs):
+def iff(a, b):
+    """Creates a formula for a implies b and b implies a."""
+    assert wff(a), a
+    assert wff(b), b
+    return a >> b & b >> a
+
+def proves_and_proved_by(a, b, **kwargs):
     """Determines if a is true if and only if b."""
     a = a.simplify(dnf=False, **kwargs)
     b = b.simplify(dnf=False, **kwargs)
     return (_coconut.functools.partial(proves, **kwargs))(a, b) and (_coconut.functools.partial(proves, **kwargs))(b, a)
-strict_iff = _coconut.functools.partial(iff, nonempty_universe=False)
+strict_proves_and_proved_by = _coconut.functools.partial(proves_and_proved_by, nonempty_universe=False)
 
 @_coconut_tco
 def simplify(expr, *exprs, **kwargs):

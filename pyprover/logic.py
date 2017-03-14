@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3cc81780
+# __coconut_hash__ = 0x4cd1a7c8
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -393,7 +393,7 @@ class Not(UnaryOp):
         return self.neg == other
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
-        if isinstance(other, Or):
+        if isinstance(other, (Or, Eq)):
             raise _coconut_tail_call(other.resolve_against, self, **kwargs)
         elif self.neg.find_unification(other) is not None:
             return bot
@@ -665,12 +665,12 @@ class Or(BoolOp):
             not_other_ors = (_coconut.functools.partial(map, lambda x: x.simplify(**kwargs)))((_coconut.functools.partial(map, Not))(other.ors))
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
-                    resolved_other = (x.resolve_against)(other)
+                    resolved_other = (x.paramodulant)(other)
                     raise _coconut_tail_call((Or), *self.ors[:i] + self.ors[i + 1:] + resolved_other.ors)
                 for j, y in enumerate(not_other_ors):
                     if isinstance(other.ors[j], Eq):
                         y = other.ors[j]
-                        resolved_self = (y.resolve_against)(self)
+                        resolved_self = (y.paramodulant)(self)
                         raise _coconut_tail_call((Or), *other.ors[:j] + other.ors[j + 1:] + resolved_self.ors)
                     subs = x.find_unification(y)
                     if subs is not None:
@@ -679,7 +679,7 @@ class Or(BoolOp):
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
-                    raise _coconut_tail_call((x.resolve_against), (Or)(*self.ors[:i] + self.ors[i + 1:]))
+                    raise _coconut_tail_call((x.paramodulant), (Or)(*self.ors[:i] + self.ors[i + 1:]))
                 subs = x.find_unification(not_other)
                 if subs is not None:
                     raise _coconut_tail_call((Or), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.ors[:i] + self.ors[i + 1:]))
@@ -821,9 +821,13 @@ class Eq(Expr):
     def substitute(self, subs, **kwargs):
         raise _coconut_tail_call(Eq, self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))
     @_coconut_tco
+    def paramodulant(self, other):
+        """Create a paramodulant of other."""
+        raise _coconut_tail_call((sub_once), other, {self.a: self.b, self.b: self.a})
+    @_coconut_tco
     def resolve_against(self, other, **kwargs):
-        if isinstance(other, Not):
-            raise _coconut_tail_call(other.resolve_against, self)
+        if isinstance(other, Not) and self.find_unification(other.neg) is not None:
+            return bot
         else:
-            raise _coconut_tail_call((sub_once), other, {self.a: self.b, self.b: self.a})
+            raise _coconut_tail_call(self.paramodulant, other)
 Equals = Eq

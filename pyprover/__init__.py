@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x326ead09
+# __coconut_hash__ = 0x480ece0f
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -39,8 +39,9 @@ from pyprover.tools import strict_solve
 from pyprover.tools import no_proof_of
 from pyprover.tools import proves
 from pyprover.tools import strict_proves
+from pyprover.tools import proves_and_proved_by
+from pyprover.tools import strict_proves_and_proved_by
 from pyprover.tools import iff
-from pyprover.tools import strict_iff
 from pyprover.tools import simplify
 from pyprover.tools import strict_simplify
 from pyprover.tools import simplest_form

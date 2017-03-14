@@ -7,7 +7,7 @@ Installing PyProver is as simple as
 pip install pyprover
 ```
 
-## PyProver Basics
+## Usage
 
 To use PyProver from a Python interpreter, it is recommended to
 ```python

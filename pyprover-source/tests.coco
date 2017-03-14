@@ -11,7 +11,7 @@ from pyprover.logic import (
 )
 from pyprover.tools import (
     proves,
-    iff,
+    proves_and_proved_by,
     simplify,
     simplest_form,
     substitute,
@@ -142,9 +142,9 @@ def test_propositional_logic():
         assert Or() == bot
         assert () `proves` top
         assert (a^b, a) `proves` ~b
-        assert f>>(g>>h) `iff` (f&g)>>h
-        assert bot `iff` a&~a
-        assert top `iff` a|~a
+        assert f>>(g>>h) `proves_and_proved_by` (f&g)>>h
+        assert bot `proves_and_proved_by` a&~a
+        assert top `proves_and_proved_by` a|~a
         assert top & bot |> simplify == bot
         assert simplify(a&a, b&b) == (a, b)
         assert a^b |> simplest_form == (b|a)&(~a|~b)
@@ -244,6 +244,7 @@ def test_predicate_logic():
         assert (Eq(a, b) | Eq(a, c), F(a)) `proves` F(b) | F(c)
         assert FA(x, Eq(a, x)) `proves` Eq(a, b)
         assert Eq(a, b) `proves` Eq(b, a)
+        assert Eq(a, b) `proves` Eq(f(a), f(b))
 
 def test_empty_universe():
     """Runs predicate logic tests in a potentially empty universe."""
@@ -331,6 +332,7 @@ def test_empty_universe():
         assert (Eq(a, b) | Eq(a, c), F(a)) `strict_proves` F(b) | F(c)
         assert FA(x, Eq(a, x)) `strict_proves` Eq(a, b)
         assert Eq(a, b) `strict_proves` Eq(b, a)
+        assert Eq(a, b) `strict_proves` Eq(f(a), f(b))
 
 def test_parser():
     """Tests math notation parsing."""
