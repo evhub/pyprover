@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xaedb66fb
+# __coconut_hash__ = 0x16e23e98
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -53,7 +53,7 @@ def log_simplification(old, new, debug=False, **kwargs):
         if old_str != new_str:
             print(old_str, "=>", new_str)
 
-def rem_sub(subs, var):
+def rem_var_sub(subs, var):
     """Deletes any substitutions of var."""
     newsubs = subs.copy()
     try:
@@ -65,3 +65,41 @@ def rem_sub(subs, var):
     except KeyError:
         pass
     return newsubs
+
+class counter(_coconut.object):
+    def __init__(self, num=-1):
+        self.num = num
+    def inc(self):
+        assert not self.done(), self.num
+        self.num -= 1
+    def done(self):
+        return self.num == 0
+
+@_coconut_tco
+def sub_once(obj, subs):
+    """Performs one substitution of subs into obj."""
+    raise _coconut_tail_call(obj.substitute, subs, counter=counter(1))
+
+def can_sub(kwargs):
+    """Determines if the counter in kwargs allows for another sub."""
+    try:
+        return not kwargs["counter"].done()
+    except KeyError:
+        return True
+
+def do_sub(kwargs):
+    """Increments the counter in kwargs."""
+    try:
+        kwargs["counter"].inc()
+    except KeyError:
+        pass
+
+def merge_dicts(dict1, dict2):
+    """Merge dictionaries if there are no conflicts, otherwise None."""
+    out = {}
+    for key, val in _coconut.itertools.chain.from_iterable((_coconut_lazy_item() for _coconut_lazy_item in (lambda: dict1.items(), lambda: dict2.items()))):
+        if key not in out:
+            out[key] = val
+        elif out[key] != val:
+            return None
+    return out

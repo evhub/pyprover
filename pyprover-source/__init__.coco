@@ -13,6 +13,7 @@ from pyprover.logic import (
     Imp,
     Or,
     And,
+    Eq,
 )
 from pyprover.tools import (
     props,
@@ -30,7 +31,7 @@ from pyprover.tools import (
     strict_simplest_form,
     simplest_solution,
     strict_simplest_solution,
-    sub_in,
+    substitute,
 )
 from pyprover.atoms import (
     LowercasePropositions,

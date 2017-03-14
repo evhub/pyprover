@@ -66,6 +66,6 @@ def simplest_solution(expr, **kwargs) =
     expr |> solve$(**kwargs) |> simplest_form$(**kwargs)
 strict_simplest_solution = simplest_solution$(nonempty_universe=False)
 
-def expr `sub_in` subs =
+def substitute(expr, subs, **kwargs) =
     """Substitutes expressions or booleans into the given expression."""
-    expr.substitute(subs)
+    expr.substitute(subs, **kwargs)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xab8f9220
+# __coconut_hash__ = 0x6f86668a
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -88,6 +88,6 @@ def simplest_solution(expr, **kwargs):
 strict_simplest_solution = _coconut.functools.partial(simplest_solution, nonempty_universe=False)
 
 @_coconut_tco
-def sub_in(expr, subs):
+def substitute(expr, subs, **kwargs):
     """Substitutes expressions or booleans into the given expression."""
-    raise _coconut_tail_call(expr.substitute, subs)
+    raise _coconut_tail_call(expr.substitute, subs, **kwargs)

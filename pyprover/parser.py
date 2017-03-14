@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7c1e2f52
+# __coconut_hash__ = 0xfafb9eb5
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -53,6 +53,7 @@ from pyprover.logic import And
 from pyprover.logic import Or
 from pyprover.logic import Exists
 from pyprover.logic import ForAll
+from pyprover.logic import Eq
 
 ParserElement.enablePackrat()
 
@@ -91,6 +92,7 @@ class Grammar(_coconut.object):
     rparen = Literal(")").suppress()
     comma = Literal(",").suppress()
     dot = Literal(".").suppress()
+    equals = Literal("=").suppress()
 
     commalist = _coconut.functools.partial(tokenlist, comma)
 
@@ -114,9 +116,9 @@ class Grammar(_coconut.object):
     func <<= (_coconut.functools.partial(call, Function))(lowercase_name + terms)
 
     prop = (_coconut.functools.partial(call, Proposition))(uppercase_name)
-    pred = Forward()
-    atom = pred | prop
-    pred <<= (_coconut.functools.partial(call, Predicate))(uppercase_name + terms)
+    pred = (_coconut.functools.partial(call, Predicate))(uppercase_name + terms)
+    equality = (_coconut.functools.partial(call, Eq))(term + equals + term)
+    atom = pred | prop | equality
 
     expr = Forward()
     quant = ((_coconut.functools.partial(call, Exists))(exists_op + var - dot - expr)) | ((_coconut.functools.partial(call, ForAll))(forall_op + var - dot - expr))

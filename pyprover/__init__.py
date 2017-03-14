@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3de4ffb2
+# __coconut_hash__ = 0x326ead09
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -31,6 +31,7 @@ from pyprover.logic import Not
 from pyprover.logic import Imp
 from pyprover.logic import Or
 from pyprover.logic import And
+from pyprover.logic import Eq
 from pyprover.tools import props
 from pyprover.tools import terms
 from pyprover.tools import solve
@@ -46,7 +47,7 @@ from pyprover.tools import simplest_form
 from pyprover.tools import strict_simplest_form
 from pyprover.tools import simplest_solution
 from pyprover.tools import strict_simplest_solution
-from pyprover.tools import sub_in
+from pyprover.tools import substitute
 from pyprover.atoms import LowercasePropositions
 from pyprover.atoms import UppercasePropositions
 from pyprover.atoms import LowercaseVariables

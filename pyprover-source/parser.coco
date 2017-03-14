@@ -39,6 +39,7 @@ from pyprover.logic import (
     Or,
     Exists,
     ForAll,
+    Eq,
 )
 
 ParserElement.enablePackrat()
@@ -75,6 +76,7 @@ class Grammar:
     rparen = Literal(")").suppress()
     comma = Literal(",").suppress()
     dot = Literal(".").suppress()
+    equals = Literal("=").suppress()
 
     commalist = tokenlist$(comma)
 
@@ -98,9 +100,9 @@ class Grammar:
     func <<= lowercase_name + terms |> call$(Function)
 
     prop = uppercase_name |> call$(Proposition)
-    pred = Forward()
-    atom = pred | prop
-    pred <<= uppercase_name + terms |> call$(Predicate)
+    pred = uppercase_name + terms |> call$(Predicate)
+    equality = term + equals + term |> call$(Eq)
+    atom = pred | prop | equality
 
     expr = Forward()
     quant = (exists_op + var - dot - expr |> call$(Exists)) | (forall_op + var - dot - expr |> call$(ForAll))

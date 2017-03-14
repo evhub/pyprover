@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xda888489
+# __coconut_hash__ = 0xbe90b1f8
 
 # Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
 
@@ -25,11 +25,12 @@ from pyprover.logic import top
 from pyprover.logic import bot
 from pyprover.logic import And
 from pyprover.logic import Or
+from pyprover.logic import Eq
 from pyprover.tools import proves
 from pyprover.tools import iff
 from pyprover.tools import simplify
 from pyprover.tools import simplest_form
-from pyprover.tools import sub_in
+from pyprover.tools import substitute
 from pyprover.tools import strict_simplify
 from pyprover.tools import strict_proves
 from pyprover.atoms import LowercasePropositions
@@ -161,8 +162,8 @@ def test_propositional_logic():
         assert simplify(a & a, b & b) == (a, b)
         assert (simplest_form)(a ^ b) == (b | a) & (~a | ~b)
         assert (simplest_form)((s & h | ~s & ~h) & ~(s & h) | (s & ~h | ~s & h) & (s & h)) == ~s & ~h
-        assert (simplify)((sub_in)(a ^ b, {a: True, b: False})) == top
-        assert (simplify)((sub_in)(a ^ b, {a: top, b: top})) == bot
+        assert (simplify)((substitute)(a ^ b, {a: True, b: False})) == top
+        assert (simplify)((substitute)(a ^ b, {a: top, b: top})) == bot
         assert e << f == f >> e
 
 def test_predicate_logic():
@@ -248,6 +249,15 @@ def test_predicate_logic():
         assert (proves)(top, TE(x, R(x) >> (R(j) & R(k))))
         assert (proves)((FA(x, ~F(x)), FA(x, F(x))), bot)
 
+# equality theorems
+        assert (proves)(top, Eq(a, a))
+        assert (proves)(Eq(a, b) & Eq(b, c), Eq(a, c))
+        assert (proves)(Eq(a, b) & Eq(b, c), Eq(c, a))
+        assert (proves)(Eq(a, b) & F(a), F(b))
+        assert (proves)((Eq(a, b) | Eq(a, c), F(a)), F(b) | F(c))
+        assert (proves)(FA(x, Eq(a, x)), Eq(a, b))
+        assert (proves)(Eq(a, b), Eq(b, a))
+
 def test_empty_universe():
     """Runs predicate logic tests in a potentially empty universe."""
     with StandardMath.using(globals()) :
@@ -326,19 +336,29 @@ def test_empty_universe():
         assert not (strict_proves)(top, TE(x, R(x) >> (R(j) & R(k))))
         assert not (strict_proves)((FA(x, ~F(x)), FA(x, F(x))), bot)
 
+# equality theorems
+        assert (strict_proves)(top, Eq(a, a))
+        assert (strict_proves)(Eq(a, b) & Eq(b, c), Eq(a, c))
+        assert (strict_proves)(Eq(a, b) & Eq(b, c), Eq(c, a))
+        assert (strict_proves)(Eq(a, b) & F(a), F(b))
+        assert (strict_proves)((Eq(a, b) | Eq(a, c), F(a)), F(b) | F(c))
+        assert (strict_proves)(FA(x, Eq(a, x)), Eq(a, b))
+        assert (strict_proves)(Eq(a, b), Eq(b, a))
+
 def test_parser():
     """Tests math notation parsing."""
     with StandardMath.using(globals()) :
-        assert expr("A") == A
-        assert expr("F(x)") == F(x)
-        assert expr("F(f(x))") == F(f(x))
-        assert expr("A x. F(x)") == FA(x, F(x))
+        assert expr(r"A") == A
+        assert expr(r"F(x)") == F(x)
+        assert expr(r"F(f(x))") == F(f(x))
+        assert expr(r"A x. F(x)") == FA(x, F(x))
         assert expr(r"A x. E y. F(x) \/ G(y)") == FA(x, TE(y, F(x) | G(y)))
         assert expr(r"F(i) /\ A x. G(x)") == F(i) & FA(x, G(x))
-        assert expr("F -> G -> H") == F >> (G >> H)
-        assert expr("~F(x)") == ~F(x)
+        assert expr(r"F -> G -> H") == F >> (G >> H)
+        assert expr(r"~F(x)") == ~F(x)
         assert expr(r"-G(x) /\ F(x)") == ~G(x) & F(x)
         assert expr(r"A /\ (B \/ C)") == A & (B | C)
+        assert expr(r"a = b") == Eq(a, b)
 
 if __name__ == "__main__":
     test_propositional_logic()

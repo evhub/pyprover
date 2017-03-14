@@ -28,6 +28,7 @@ bot >> E
 FA(x, F(x))
 TE(x, F(x) | G(x))
 FA(x, F(f(x)) >> F(x))
+Eq(a, b)
 ```
 
 Alternatively, the `expr(formula)` function can be used, which parses a formula in standard mathematical notation. For example:
@@ -43,6 +44,7 @@ A x. F(x) /\ G(x)
 E x. C(x) \/ D(x)
 ∃x. C(x) \/ D(x)
 ∀x. ∃y. G(f(x, y))
+a = b
 ```
 
 Once a formula has been constructed, various functions are provided to work with them. Some of the most important of these are:
