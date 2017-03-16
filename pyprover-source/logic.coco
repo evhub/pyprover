@@ -14,7 +14,7 @@ from pyprover.util import (
     unorderd_eq,
     quote,
     log_simplification,
-    rem_var_sub,
+    rem_var,
     can_sub,
     do_sub,
     merge_dicts,
@@ -362,7 +362,7 @@ class Quantifier(Expr):
         else:
             return False
     def substitute(self, subs, **kwargs):
-        return rem_var_sub(subs, self.var) |> self.elem.substitute$(**kwargs) |> self.change_elem
+        return subs |> rem_var$(self.var) |> self.elem.substitute$(**kwargs) |> self.change_elem
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
@@ -370,8 +370,12 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         return self.change_var(var)
-    def find_unification(self, other) =
-        self.make_free_in(other).elem.find_unification(other)
+    def find_unification(self, other):
+        unif = self.elem.find_unification(other)
+        if unif is None:
+            return None
+        else:
+            return unif |> rem_var$(self.var)
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Quantifier):
             resolution = Not(other.elem).simplify(**kwargs) |> self.elem.resolve_against$(**kwargs)

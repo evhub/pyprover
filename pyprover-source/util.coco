@@ -42,8 +42,8 @@ def log_simplification(old, new, debug=False, **kwargs):
         if old_str != new_str:
             print(old_str, "=>", new_str)
 
-def rem_var_sub(subs, var) =
-    """Deletes any substitutions of var."""
+def rem_var(var, subs) =
+    """Deletes any substitutions of var in subs."""
     newsubs = subs.copy()
     try:
         del newsubs[var.constant()]

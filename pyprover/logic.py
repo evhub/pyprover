@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4cd1a7c8
+# __coconut_hash__ = 0x7ef2c208
 
-# Compiled with Coconut version 1.2.2-post_dev5 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev6 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -11,7 +11,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_pipe, _coconut_starpipe, _coconut_backpipe, _coconut_backstarpipe, _coconut_bool_and, _coconut_bool_or, _coconut_minus, _coconut_tee, _coconut_map, _coconut_partial
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_pipe, _coconut_starpipe, _coconut_backpipe, _coconut_backstarpipe, _coconut_bool_and, _coconut_bool_or, _coconut_minus, _coconut_map, _coconut_partial
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
@@ -30,7 +30,7 @@ from pyprover.constants import exists_sym
 from pyprover.util import unorderd_eq
 from pyprover.util import quote
 from pyprover.util import log_simplification
-from pyprover.util import rem_var_sub
+from pyprover.util import rem_var
 from pyprover.util import can_sub
 from pyprover.util import do_sub
 from pyprover.util import merge_dicts
@@ -424,7 +424,7 @@ class Quantifier(Expr):
             return False
     @_coconut_tco
     def substitute(self, subs, **kwargs):
-        raise _coconut_tail_call((self.change_elem), (_coconut.functools.partial(self.elem.substitute, **kwargs))(rem_var_sub(subs, self.var)))
+        raise _coconut_tail_call((self.change_elem), (_coconut.functools.partial(self.elem.substitute, **kwargs))((_coconut.functools.partial(rem_var, self.var))(subs)))
     @_coconut_tco
     def make_free_in(self, other):
         """Makes self free in other."""
@@ -433,8 +433,13 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         raise _coconut_tail_call(self.change_var, var)
+    @_coconut_tco
     def find_unification(self, other):
-        return self.make_free_in(other).elem.find_unification(other)
+        unif = self.elem.find_unification(other)
+        if unif is None:
+            return None
+        else:
+            raise _coconut_tail_call((_coconut.functools.partial(rem_var, self.var)), unif)
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Quantifier):
