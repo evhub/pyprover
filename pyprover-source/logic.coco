@@ -163,7 +163,7 @@ class FuncAtom(Atom):
             assert isinstance(arg, Term), arg
         self.args = args
     def __repr__(self) =
-        self.__class__.__name__ + '("' + self.name + '"' + ", ".join(repr(x) for x in self.args) + ")"
+        self.__class__.__name__ + '("' + self.name + '"' + (", " if self.args else "") + ", ".join(repr(x) for x in self.args) + ")"
     def __str__(self) =
         self.name + "(" + ", ".join(str(x) for x in self.args) + ")"
     def __eq__(self, other) =
