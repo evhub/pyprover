@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xbaef22b6
+# __coconut_hash__ = 0x11683ad3
 
-# Compiled with Coconut version 1.2.2-post_dev6 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -173,10 +173,10 @@ def test_predicate_logic():
 # basic tests
         assert (simplify)(FA(x, F)) == F
         assert (simplify)(TE(x, F)) == F
-        assert (simplify)(FA(x, F(x)) & G(x)) == FA(y, F(y) & G(x))
-        assert (simplify)(FA(x, F(x)) | G(x)) == FA(y, F(y) | G(x))
-        assert (simplify)(TE(x, F(x)) & G(x)) == TE(y, F(y) & G(x))
-        assert (simplify)(TE(x, F(x)) | G(x)) == TE(y, F(y) | G(x))
+        assert (simplify)(FA(x, F(x)) & G) == FA(y, F(y) & G)
+        assert (simplify)(FA(x, F(x)) | G) == FA(y, F(y) | G)
+        assert (simplify)(TE(x, F(x)) & G) == TE(y, F(y) & G)
+        assert (simplify)(TE(x, F(x)) | G) == TE(y, F(y) | G)
         assert FA(x, F(f(x))) == FA(y, F(f(y)))
         assert TE(x, F(f(x))) == TE(y, F(f(y)))
         assert TE(f, F(f(x))) == TE(g, F(g(x)))
@@ -233,6 +233,7 @@ def test_predicate_logic():
         assert (proves)(FA(x, TE(y, F(y)) | G(x)), FA(x, TE(y, F(y) | G(x))))
         assert (proves)(TE(x, FA(y, F(y) & G(x))), TE(x, FA(y, F(y)) & G(x)))
         assert (proves)(TE(x, ~R(x)), TE(y, R(y) >> (R(j) & R(k))))
+        assert (proves)(P(c), TE(x, P(x)))
 
 # invalid theorems
         assert not (proves)(FA(x, R(x)) >> FA(y, S(y)), FA(z, R(z) >> S(z)))
@@ -266,10 +267,10 @@ def test_empty_universe():
 # basic tests
         assert (strict_simplify)(FA(x, F)) != F
         assert (strict_simplify)(TE(x, F)) != F
-        assert (strict_simplify)(FA(x, F(x)) & G(x)) != FA(y, F(y) & G(x))
-        assert (strict_simplify)(FA(x, F(x)) | G(x)) == FA(y, F(y) | G(x))
-        assert (strict_simplify)(TE(x, F(x)) & G(x)) == TE(y, F(y) & G(x))
-        assert (strict_simplify)(TE(x, F(x)) | G(x)) != TE(y, F(y) | G(x))
+        assert (strict_simplify)(FA(x, F(x)) & G) != FA(y, F(y) & G)
+        assert (strict_simplify)(FA(x, F(x)) | G) == FA(y, F(y) | G)
+        assert (strict_simplify)(TE(x, F(x)) & G) == TE(y, F(y) & G)
+        assert (strict_simplify)(TE(x, F(x)) | G) != TE(y, F(y) | G)
 
 # constructive theorems
         assert (strict_proves)(TE(x, bot), bot)
@@ -321,6 +322,7 @@ def test_empty_universe():
         assert (proves)(FA(x, TE(y, F(y)) | G(x)), FA(x, TE(y, F(y) | G(x))))
         assert (proves)(TE(x, FA(y, F(y) & G(x))), TE(x, FA(y, F(y)) & G(x)))
         assert (strict_proves)(TE(x, ~R(x)), TE(y, R(y) >> (R(j) & R(k))))
+        assert (strict_proves)(P(c), TE(x, P(x)))
 
 # invalid theorems
         assert not (strict_proves)(FA(x, R(x)) >> FA(y, S(y)), FA(z, R(z) >> S(z)))

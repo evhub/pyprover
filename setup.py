@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd1bfc4a6
+# __coconut_hash__ = 0xa795041c
 
-# Compiled with Coconut version 1.2.2-post_dev6 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -468,14 +468,14 @@ def fmap(func, obj):
     if _coconut.hasattr(obj, "__fmap__"):
         return obj.__fmap__(func)
     args = _coconut_map(func, obj)
-    if _coconut.isinstance(obj, _coconut.str):
-        return "".join(args)
     if _coconut.isinstance(obj, _coconut.dict):
         args = _coconut_zip(args, obj.values())
     if _coconut.isinstance(obj, _coconut.tuple) and _coconut.hasattr(obj, "_make"):
         return obj._make(args)
-    if _coconut.isinstance(obj, _coconut.map):
+    if _coconut.isinstance(obj, (_coconut.map, _coconut.range)):
         return args
+    if _coconut.isinstance(obj, _coconut.str):
+        return "".join(args)
     return obj.__class__(args)
 _coconut_MatchError, _coconut_count, _coconut_enumerate, _coconut_reversed, _coconut_map, _coconut_tee, _coconut_zip, reduce, takewhile, dropwhile = MatchError, count, enumerate, reversed, map, tee, zip, _coconut.functools.reduce, _coconut.itertools.takewhile, _coconut.itertools.dropwhile
 

@@ -160,10 +160,10 @@ def test_predicate_logic():
         # basic tests
         assert FA(x, F) |> simplify == F
         assert TE(x, F) |> simplify == F
-        assert FA(x, F(x)) & G(x) |> simplify == FA(y, F(y) & G(x))
-        assert FA(x, F(x)) | G(x) |> simplify == FA(y, F(y) | G(x))
-        assert TE(x, F(x)) & G(x) |> simplify == TE(y, F(y) & G(x))
-        assert TE(x, F(x)) | G(x) |> simplify == TE(y, F(y) | G(x))
+        assert FA(x, F(x)) & G |> simplify == FA(y, F(y) & G)
+        assert FA(x, F(x)) | G |> simplify == FA(y, F(y) | G)
+        assert TE(x, F(x)) & G |> simplify == TE(y, F(y) & G)
+        assert TE(x, F(x)) | G |> simplify == TE(y, F(y) | G)
         assert FA(x, F(f(x))) == FA(y, F(f(y)))
         assert TE(x, F(f(x))) == TE(y, F(f(y)))
         assert TE(f, F(f(x))) == TE(g, F(g(x)))
@@ -220,6 +220,7 @@ def test_predicate_logic():
         assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
         assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
         assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
+        assert P(c) `proves` TE(x, P(x))
 
         # invalid theorems
         assert not FA(x, R(x)) >> FA(y, S(y)) `proves` FA(z, R(z) >> S(z))
@@ -253,10 +254,10 @@ def test_empty_universe():
         # basic tests
         assert FA(x, F) |> strict_simplify != F
         assert TE(x, F) |> strict_simplify != F
-        assert FA(x, F(x)) & G(x) |> strict_simplify != FA(y, F(y) & G(x))
-        assert FA(x, F(x)) | G(x) |> strict_simplify == FA(y, F(y) | G(x))
-        assert TE(x, F(x)) & G(x) |> strict_simplify == TE(y, F(y) & G(x))
-        assert TE(x, F(x)) | G(x) |> strict_simplify != TE(y, F(y) | G(x))
+        assert FA(x, F(x)) & G |> strict_simplify != FA(y, F(y) & G)
+        assert FA(x, F(x)) | G |> strict_simplify == FA(y, F(y) | G)
+        assert TE(x, F(x)) & G |> strict_simplify == TE(y, F(y) & G)
+        assert TE(x, F(x)) | G |> strict_simplify != TE(y, F(y) | G)
 
         # constructive theorems
         assert TE(x, bot) `strict_proves` bot
@@ -308,6 +309,7 @@ def test_empty_universe():
         assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
         assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
         assert TE(x, ~R(x)) `strict_proves` TE(y, R(y) >> (R(j) & R(k)))
+        assert P(c) `strict_proves` TE(x, P(x))
 
         # invalid theorems
         assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` FA(z, R(z) >> S(z))
