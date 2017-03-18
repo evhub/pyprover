@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3d154e7c
+# __coconut_hash__ = 0xec0820c2
 
 # Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
@@ -477,8 +477,8 @@ class Quantifier(Expr):
         else:
             return super(Quantifier, self).resolve_against(other, **kwargs)
     @classmethod
-    def blank(cls, elem=top):
-        """Make a quantifier without a variable (or optionally elem)."""
+    def blank(cls, elem):
+        """Make a quantifier without a variable."""
         return cls(empty_var, elem).make_free_in(elem)
 
 class ForAll(Quantifier):
@@ -680,23 +680,23 @@ class Or(BoolOp):
                     ands = ((Or)(*(y,) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
                     return And(*ands).simplify(**kwargs)
         return self
-    def inner_simplify(self, **kwargs):
-        if self.tautology(**kwargs):
-            return top
-        else:
-            return self
-    def tautology(self, **kwargs):
+    @_coconut_tco
+    def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the Or is a blatant tautology."""
+        kwargs["nonempty_universe"] = nonempty_universe
         for i, x in enumerate(self.ors):
             if top == x:
-                return True
+                return x
             for y in self.ors[i + 1:]:
                 if x.contradicts(y, **kwargs):
-                    return True
-        return False
+                    if not nonempty_universe and not self.admits_empty_universe():
+                        raise _coconut_tail_call(Exists.blank, top)
+                    else:
+                        return top
+        return self
     def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
-        return (nonempty_universe or in_forall or not isinstance(other, Exists) or all((isinstance(x, Exists) for x in self.elems)))
+        return (nonempty_universe or in_forall or not isinstance(other, Exists) or not self.admits_empty_universe())
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Eq):
@@ -748,20 +748,20 @@ class And(BoolOp):
                     ors = ((And)(*(y,) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
                     return Or(*ors).simplify(**kwargs)
         return self
-    def inner_simplify(self, **kwargs):
-        if self.contradiction(**kwargs):
-            return bot
-        else:
-            return self
-    def contradiction(self, **kwargs):
+    @_coconut_tco
+    def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the And is a blatant contradiction."""
+        kwargs["nonempty_universe"] = nonempty_universe
         for i, x in enumerate(self.ands):
             if bot == x:
-                return True
+                return x
             for y in self.ands[i + 1:]:
                 if x.contradicts(y, **kwargs):
-                    return True
-        return False
+                    if not nonempty_universe and self.admits_empty_universe():
+                        raise _coconut_tail_call(ForAll.blank, bot)
+                    else:
+                        return bot
+        return self
     def can_prenex(self, other, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         return (nonempty_universe or in_exists or not isinstance(other, ForAll) or all((isinstance(x, ForAll) for x in self.elems)))
@@ -776,7 +776,7 @@ class And(BoolOp):
         clauses = (list)(resolved.ands)
         quantifiers = []
         if not nonempty_universe and not self.admits_empty_universe():
-            blank = Exists.blank()
+            blank = Exists.blank(top)
             (quantifiers.append)(blank.change_elem)
             kwargs = (blank.inner_kwargs)(kwargs)
         prev_clause_len = 1
