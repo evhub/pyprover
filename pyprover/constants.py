@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb5041e82
+# __coconut_hash__ = 0x8ec57ce6
 
 # Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
@@ -38,7 +38,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.4.2"
+version = "0.4.3"
 requirements = []
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent",]
 
@@ -67,3 +67,5 @@ forall_sym = (first_encodeable)(all_forall_syms)
 
 all_exists_syms = "\u2203", "E ", "E:", "TE ", "TE:"
 exists_sym = (first_encodeable)(all_exists_syms)
+
+empty_var = "_"

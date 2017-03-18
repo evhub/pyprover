@@ -19,7 +19,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.4.2"
+version = "0.4.3"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -53,3 +53,5 @@ forall_sym = all_forall_syms |> first_encodeable
 
 all_exists_syms = "\u2203", "E ", "E:", "TE ", "TE:"
 exists_sym = all_exists_syms |> first_encodeable
+
+empty_var = "_"

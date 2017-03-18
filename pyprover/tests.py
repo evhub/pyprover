@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x11683ad3
+# __coconut_hash__ = 0xd4daab3b
 
 # Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
@@ -234,6 +234,7 @@ def test_predicate_logic():
         assert (proves)(TE(x, FA(y, F(y) & G(x))), TE(x, FA(y, F(y)) & G(x)))
         assert (proves)(TE(x, ~R(x)), TE(y, R(y) >> (R(j) & R(k))))
         assert (proves)(P(c), TE(x, P(x)))
+        assert (proves)(P(c), TE(x, top))
 
 # invalid theorems
         assert not (proves)(FA(x, R(x)) >> FA(y, S(y)), FA(z, R(z) >> S(z)))
@@ -323,6 +324,7 @@ def test_empty_universe():
         assert (proves)(TE(x, FA(y, F(y) & G(x))), TE(x, FA(y, F(y)) & G(x)))
         assert (strict_proves)(TE(x, ~R(x)), TE(y, R(y) >> (R(j) & R(k))))
         assert (strict_proves)(P(c), TE(x, P(x)))
+        assert (strict_proves)(P(c), TE(x, top))
 
 # invalid theorems
         assert not (strict_proves)(FA(x, R(x)) >> FA(y, S(y)), FA(z, R(z) >> S(z)))

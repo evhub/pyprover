@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x851d08db
+# __coconut_hash__ = 0x3d154e7c
 
 # Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
 
@@ -27,6 +27,7 @@ from pyprover.constants import and_sym
 from pyprover.constants import or_sym
 from pyprover.constants import forall_sym
 from pyprover.constants import exists_sym
+from pyprover.constants import empty_var
 from pyprover.util import unorderd_eq
 from pyprover.util import quote
 from pyprover.util import log_simplification
@@ -439,6 +440,12 @@ class Quantifier(Expr):
             return self.elem == other.change_var(self.var).elem
         else:
             return False
+    def inner_kwargs(self, kwargs):
+        inner_kwargs = kwargs.copy()
+        inner_kwargs["in_" + self.__class__.__name__.lower()] = True
+        return inner_kwargs
+    def simplify(self, **kwargs):
+        return self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier(**kwargs)
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         raise _coconut_tail_call((self.change_elem), (_coconut.functools.partial(self.elem.substitute, **kwargs))((_coconut.functools.partial(rem_var, self.var))(subs)))
@@ -469,10 +476,10 @@ class Quantifier(Expr):
                 raise _coconut_tail_call((self.change_elem), (other.change_elem)(resolution))
         else:
             return super(Quantifier, self).resolve_against(other, **kwargs)
-    def simplify(self, **kwargs):
-        inner_kwargs = kwargs.copy()
-        inner_kwargs["in_" + self.__class__.__name__.lower()] = True
-        return self.__class__(self.var, self.elem.simplify(**inner_kwargs)).drop_quantifier(**kwargs)
+    @classmethod
+    def blank(cls, elem=top):
+        """Make a quantifier without a variable (or optionally elem)."""
+        return cls(empty_var, elem).make_free_in(elem)
 
 class ForAll(Quantifier):
     """Universal quantifier."""
@@ -486,8 +493,7 @@ class ForAll(Quantifier):
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
     def resolve(self, **kwargs):
-        inner_kwargs = kwargs.copy()
-        inner_kwargs["in_forall"] = True
+        inner_kwargs = self.inner_kwargs(kwargs)
         inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         return ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
@@ -515,8 +521,7 @@ class Exists(Quantifier):
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
     def resolve(self, **kwargs):
-        inner_kwargs = kwargs.copy()
-        inner_kwargs["in_exists"] = True
+        inner_kwargs = self.inner_kwargs(kwargs)
         variables = inner_kwargs.get("variables")
         if variables is None:
             skolem_elem = self.elem
@@ -691,7 +696,7 @@ class Or(BoolOp):
         return False
     def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
-        return (nonempty_universe or in_forall or not isinstance(other, Exists) or not self.admits_empty_universe())
+        return (nonempty_universe or in_forall or not isinstance(other, Exists) or all((isinstance(x, Exists) for x in self.elems)))
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Eq):
@@ -761,15 +766,19 @@ class And(BoolOp):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         return (nonempty_universe or in_exists or not isinstance(other, ForAll) or all((isinstance(x, ForAll) for x in self.elems)))
     @_coconut_tco
-    def resolve(self, debug=False, **kwargs):
+    def resolve(self, nonempty_universe=True, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
-        kwargs["debug"] = debug
+        kwargs["nonempty_universe"], kwargs["debug"] = nonempty_universe, debug
         resolved = super(And, self).resolve(**kwargs)
         if not isinstance(resolved, And):
             log_simplification(self, resolved, **kwargs)
             return resolved
         clauses = (list)(resolved.ands)
         quantifiers = []
+        if not nonempty_universe and not self.admits_empty_universe():
+            blank = Exists.blank()
+            (quantifiers.append)(blank.change_elem)
+            kwargs = (blank.inner_kwargs)(kwargs)
         prev_clause_len = 1
         while prev_clause_len < len(clauses):
             prev_clause_len = len(clauses)
@@ -783,25 +792,30 @@ class And(BoolOp):
                         if debug:
                             print(x, "+", y, "=>", resolution)
                         new_quantifiers = []
+                        inner_kwargs = kwargs
                         while isinstance(resolution, Quantifier) and self.can_prenex(resolution, **kwargs):
                             (new_quantifiers.append)(resolution.change_elem)
+                            inner_kwargs = (resolution.inner_kwargs)(inner_kwargs)
                             resolution = resolution.elem
                         if isinstance(resolution, And):
                             new_clauses = resolution.ands
                         else:
                             new_clauses = (resolution,)
-                        if bot in new_clauses:
-                            quantifiers.extend(new_quantifiers)
-                            clauses = [bot]
-                            break
                         novel = False
                         for new_clause in new_clauses:
-                            if new_clause != top and new_clause not in clauses:
+                            if new_clause == bot:
+                                clauses = [bot]
+                                novel = True
+                                break
+                            elif new_clause != top and new_clause not in clauses:
                                 clauses.append(new_clause)
                                 novel = True
                         if novel:
                             quantifiers.extend(new_quantifiers)
-                if bot in clauses:
+                            kwargs = inner_kwargs
+                            if clauses == [bot]:
+                                break
+                if clauses == [bot]:
                     break
         resolved = reduce(_coconut_pipe, [And(*clauses)] + quantifiers)
         log_simplification(self, resolved, **kwargs)

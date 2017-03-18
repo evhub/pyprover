@@ -221,6 +221,7 @@ def test_predicate_logic():
         assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
         assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
         assert P(c) `proves` TE(x, P(x))
+        assert P(c) `proves` TE(x, top)
 
         # invalid theorems
         assert not FA(x, R(x)) >> FA(y, S(y)) `proves` FA(z, R(z) >> S(z))
@@ -310,6 +311,7 @@ def test_empty_universe():
         assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
         assert TE(x, ~R(x)) `strict_proves` TE(y, R(y) >> (R(j) & R(k)))
         assert P(c) `strict_proves` TE(x, P(x))
+        assert P(c) `strict_proves` TE(x, top)
 
         # invalid theorems
         assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` FA(z, R(z) >> S(z))
