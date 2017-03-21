@@ -59,9 +59,10 @@ ParserElement.enablePackrat()
 
 # Utilities:
 
+@_coconut_tco
 def attach(action, item):
     """Attaches a parse action to an item."""
-    return item.copy().addParseAction(action)
+    raise _coconut_tail_call(item.copy().addParseAction, action)
 
 @_coconut_tco
 def call(action, item):
@@ -80,9 +81,10 @@ def tokenlist(sep, item):
     """Creates a list of tokens matching the item."""
     return item + ZeroOrMore(sep + item) + Optional(sep)
 
+@_coconut_tco
 def parse(grammar, text):
     """Parses text using grammar."""
-    return grammar.parseWithTabs().parseString(text)
+    raise _coconut_tail_call(grammar.parseWithTabs().parseString, text)
 
 # Grammar:
 

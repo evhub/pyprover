@@ -320,11 +320,12 @@ class Const(Term):
     @_coconut_tco
     def __call__(self, *args):
         raise _coconut_tail_call(Func, self.name, *args)
+    @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return super(Const, self).find_unification(other)
+            raise _coconut_tail_call(super(Const, self).find_unification, other)
     def admits_empty_universe(self):
         return False
 Constant = Const
@@ -338,11 +339,12 @@ class Func(Term, FuncAtom):
     @_coconut_tco
     def rename(self, name):
         raise _coconut_tail_call(self.__class__, name, *self.args)
+    @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return super(Func, self).find_unification(other)
+            raise _coconut_tail_call(super(Func, self).find_unification, other)
 Function = Func
 
 class UnaryOp(Expr):
@@ -370,8 +372,9 @@ class UnaryOp(Expr):
             raise _coconut_tail_call(self.elem.find_unification, other.elem)
         else:
             return None
+    @_coconut_tco
     def resolve(self, **kwargs):
-        return self.__class__(self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+        raise _coconut_tail_call(self.__class__(self.elem.resolve(**kwargs)).simplify, dnf=False, **kwargs)
 
 class Not(UnaryOp):
     """Logical not."""
@@ -389,12 +392,12 @@ class Not(UnaryOp):
         elif isinstance(self.neg, Not):
             raise _coconut_tail_call(self.neg.neg.simplify, **kwargs)
         elif isinstance(self.neg, And):
-            return Or(*map(Not, self.neg.ands)).simplify(**kwargs)
+            raise _coconut_tail_call(Or(*map(Not, self.neg.ands)).simplify, **kwargs)
         elif isinstance(self.neg, Or):
-            return And(*map(Not, self.neg.ors)).simplify(**kwargs)
+            raise _coconut_tail_call(And(*map(Not, self.neg.ors)).simplify, **kwargs)
         elif isinstance(self.neg, Imp):
             ands = self.neg.conds + (Not(self.neg.concl),)
-            return And(*ands).simplify(**kwargs)
+            raise _coconut_tail_call(And(*ands).simplify, **kwargs)
         elif isinstance(self.neg, Exists):
             raise _coconut_tail_call(ForAll, self.neg.var, Not(self.neg.elem).simplify(**kwargs))
         elif isinstance(self.neg, ForAll):
@@ -444,8 +447,9 @@ class Quantifier(Expr):
         inner_kwargs = kwargs.copy()
         inner_kwargs["in_" + self.__class__.__name__.lower()] = True
         return inner_kwargs
+    @_coconut_tco
     def simplify(self, **kwargs):
-        return self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier(**kwargs)
+        raise _coconut_tail_call(self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier, **kwargs)
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         raise _coconut_tail_call((self.change_elem), (_coconut.functools.partial(self.elem.substitute, **kwargs))((_coconut.functools.partial(rem_var, self.var))(subs)))
@@ -475,11 +479,12 @@ class Quantifier(Expr):
             else:
                 raise _coconut_tail_call((self.change_elem), (other.change_elem)(resolution))
         else:
-            return super(Quantifier, self).resolve_against(other, **kwargs)
+            raise _coconut_tail_call(super(Quantifier, self).resolve_against, other, **kwargs)
     @classmethod
+    @_coconut_tco
     def blank(cls, elem):
         """Make a quantifier without a variable."""
-        return cls(empty_var, elem).make_free_in(elem)
+        raise _coconut_tail_call(cls(empty_var, elem).make_free_in, elem)
 
 class ForAll(Quantifier):
     """Universal quantifier."""
@@ -492,10 +497,11 @@ class ForAll(Quantifier):
         assert isvar(var), var
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
+    @_coconut_tco
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
         inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
-        return ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+        raise _coconut_tail_call(ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify, dnf=False, **kwargs)
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
         if not nonempty_universe and not in_forall:
@@ -520,6 +526,7 @@ class Exists(Quantifier):
         assert isvar(var), var
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
+    @_coconut_tco
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
         variables = inner_kwargs.get("variables")
@@ -528,7 +535,7 @@ class Exists(Quantifier):
         else:
             skolem_var = Func(self.var.name, *variables)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
-        return Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+        raise _coconut_tail_call(Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify, dnf=False, **kwargs)
     def drop_quantifier(self, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         if not nonempty_universe and not in_exists:
@@ -548,6 +555,7 @@ class BinaryOp(Expr):
     """Base class for binary operators."""
     __slots__ = ("elems",)
     identity = None
+    @_coconut_tco
     def __new__(cls, *elems):
         if not elems:
             if cls.identity is None:
@@ -558,7 +566,7 @@ class BinaryOp(Expr):
             assert wff(elems[0]), elems[0]
             return elems[0]  # sometimes returns an instance of cls
         else:
-            return super(BinaryOp, cls).__new__(cls)
+            raise _coconut_tail_call(super(BinaryOp, cls).__new__, cls)
     def __init__(self, *elems):
         if len(elems) > 1:  # __new__ should handle all other cases
             assert len(elems) >= 2, elems
@@ -575,9 +583,10 @@ class BinaryOp(Expr):
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         raise _coconut_tail_call((self.__class__), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.elems))
+    @_coconut_tco
     def resolve(self, **kwargs):
         elems = (_coconut.functools.partial(map, lambda x: x.resolve(**kwargs)))(self.elems)
-        return self.__class__(*elems).simplify(dnf=False, **kwargs)
+        raise _coconut_tail_call(self.__class__(*elems).simplify, dnf=False, **kwargs)
 
 class Imp(BinaryOp):
     """Logical implication."""
@@ -604,10 +613,12 @@ class Imp(BinaryOp):
     def to_or(self):
         ors = tuple(map(Not, self.conds)) + (self.concl,)
         raise _coconut_tail_call(Or, *ors)
+    @_coconut_tco
     def simplify(self, **kwargs):
-        return self.to_or().simplify(**kwargs)
+        raise _coconut_tail_call(self.to_or().simplify, **kwargs)
+    @_coconut_tco
     def admits_empty_universe(self):
-        return self.to_or().admits_empty_universe()
+        raise _coconut_tail_call(self.to_or().admits_empty_universe)
 Implies = Imp
 
 class BoolOp(BinaryOp):
@@ -650,6 +661,7 @@ class BoolOp(BinaryOp):
     def clean(self):
         """Removes copies of the identity."""
         raise _coconut_tail_call((self.__class__), *(_coconut.functools.partial(filter, _coconut.functools.partial(_coconut.operator.ne, self.identity)))(self.elems))
+    @_coconut_tco
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -657,7 +669,7 @@ class BoolOp(BinaryOp):
                 elems = self.elems[:i] + self.elems[i + 1:]
                 free_x = x.make_free_in(self.__class__(*elems))
                 elems += (free_x.elem,)
-                return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
+                raise _coconut_tail_call(free_x.change_elem(self.__class__(*elems)).simplify, **kwargs)
         return self
 
 class Or(BoolOp):
@@ -671,6 +683,7 @@ class Or(BoolOp):
     @property
     def ors(self):
         return self.elems
+    @_coconut_tco
     def distribute(self, dnf=False, **kwargs):
         """If this Or contains an And, distribute into it."""
         kwargs["dnf"] = dnf
@@ -678,7 +691,7 @@ class Or(BoolOp):
             for i, x in enumerate(self.ors):
                 if isinstance(x, And):
                     ands = ((Or)(*(y,) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
-                    return And(*ands).simplify(**kwargs)
+                    raise _coconut_tail_call(And(*ands).simplify, **kwargs)
         return self
     @_coconut_tco
     def inner_simplify(self, nonempty_universe=True, **kwargs):
@@ -739,6 +752,7 @@ class And(BoolOp):
     @property
     def ands(self):
         return self.elems
+    @_coconut_tco
     def distribute(self, dnf=False, **kwargs):
         """If this And contains an Or, distribute into it."""
         kwargs["dnf"] = dnf
@@ -746,7 +760,7 @@ class And(BoolOp):
             for i, x in enumerate(self.ands):
                 if isinstance(x, Or):
                     ors = ((And)(*(y,) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
-                    return Or(*ors).simplify(**kwargs)
+                    raise _coconut_tail_call(Or(*ors).simplify, **kwargs)
         return self
     @_coconut_tco
     def inner_simplify(self, nonempty_universe=True, **kwargs):

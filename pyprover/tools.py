@@ -37,9 +37,10 @@ def terms(names):
     """Constructs constants from a space-seperated string of names."""
     raise _coconut_tail_call(map, Constant, names.split())
 
+@_coconut_tco
 def solve(expr, **kwargs):
     """Converts to CNF and performs all possible resolutions."""
-    return expr.simplify(dnf=False, **kwargs).resolve(**kwargs)
+    raise _coconut_tail_call(expr.simplify(dnf=False, **kwargs).resolve, **kwargs)
 strict_solve = _coconut.functools.partial(solve, nonempty_universe=False)
 
 def no_proof_of(givens, conclusion):
