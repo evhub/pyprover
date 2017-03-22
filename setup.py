@@ -1,20 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa795041c
+# __coconut_hash__ = 0x39844829
 
-# Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev8 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
 import sys as _coconut_sys
 if _coconut_sys.version_info < (3,):
-    py_chr, py_filter, py_hex, py_input, py_int, py_map, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, oct, open, print, range, str, zip, filter, reversed, enumerate
+    py_chr, py_filter, py_hex, py_input, py_int, py_map, py_object, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, object, oct, open, print, range, str, zip, filter, reversed, enumerate
     py_raw_input, py_xrange = raw_input, xrange
-    _coconut_raw_input, _coconut_xrange, _coconut_int, _coconut_long, _coconut_print, _coconut_str, _coconut_unicode, _coconut_repr = raw_input, xrange, int, long, print, str, unicode, repr
+    _coconut_NotImplemented, _coconut_raw_input, _coconut_xrange, _coconut_int, _coconut_long, _coconut_print, _coconut_str, _coconut_unicode, _coconut_repr = NotImplemented, raw_input, xrange, int, long, print, str, unicode, repr
     from future_builtins import *
     chr, str = unichr, unicode
     from io import open
+    class object(object):
+        if hasattr(object, "__doc__"):
+            __doc__ = object.__doc__
+        def __ne__(self, other):
+            eq = self == other
+            if eq is _coconut_NotImplemented:
+                return eq
+            else:
+                return not eq
     class range(object):
         __slots__ = ("_xrange",)
         if hasattr(_coconut_xrange, "__doc__"):
@@ -103,7 +112,7 @@ if _coconut_sys.version_info < (3,):
             return (_coconut_new_partial, (self.func, self.args, self.keywords))
         _coconut_copy_reg.pickle(_coconut_functools.partial, _coconut_reduce_partial)
 else:
-    py_chr, py_filter, py_hex, py_input, py_int, py_map, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, oct, open, print, range, str, zip, filter, reversed, enumerate
+    py_chr, py_filter, py_hex, py_input, py_int, py_map, py_object, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, object, oct, open, print, range, str, zip, filter, reversed, enumerate
 
 class _coconut(object):
     import collections, functools, imp, itertools, operator, types, copy, pickle

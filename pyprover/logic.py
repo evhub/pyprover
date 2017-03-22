@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xec0820c2
+# __coconut_hash__ = 0xbb7d00c0
 
-# Compiled with Coconut version 1.2.2-post_dev7 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev8 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -82,8 +82,6 @@ class Expr(_coconut.object):
         raise _coconut_tail_call(Or, And(self, Not(other)), And(Not(self), other))
     def __len__(self):
         return 1
-    def __ne__(self, other):
-        return not self == other
     def simplify(self, **kwargs):
         """Simplify the given expression."""
         return self
@@ -259,7 +257,7 @@ class Pred(FuncAtom):
             do_sub(kwargs)
             name = sub.name
         if can_sub(kwargs):
-            raise _coconut_tail_call((_coconut.functools.partial(Pred, name)), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.args))
+            raise _coconut_tail_call((_coconut.functools.partial(Pred, name)), *(_coconut.functools.partial(map, _coconut.operator.methodcaller("substitute", subs, **kwargs)))(self.args))
         else:
             raise _coconut_tail_call(Pred, name, *self.args)
 Predicate = Pred
@@ -335,7 +333,7 @@ class Func(Term, FuncAtom):
     __slots__ = ()
     @_coconut_tco
     def substitute_elements(self, subs, **kwargs):
-        raise _coconut_tail_call((_coconut.functools.partial(Func, self.name)), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.args))
+        raise _coconut_tail_call((_coconut.functools.partial(Func, self.name)), *(_coconut.functools.partial(map, _coconut.operator.methodcaller("substitute", subs, **kwargs)))(self.args))
     @_coconut_tco
     def rename(self, name):
         raise _coconut_tail_call(self.__class__, name, *self.args)
@@ -582,10 +580,10 @@ class BinaryOp(Expr):
         return sum(map(len, self.elems)) + 1
     @_coconut_tco
     def substitute(self, subs, **kwargs):
-        raise _coconut_tail_call((self.__class__), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.elems))
+        raise _coconut_tail_call((self.__class__), *(_coconut.functools.partial(map, _coconut.operator.methodcaller("substitute", subs, **kwargs)))(self.elems))
     @_coconut_tco
     def resolve(self, **kwargs):
-        elems = (_coconut.functools.partial(map, lambda x: x.resolve(**kwargs)))(self.elems)
+        elems = (_coconut.functools.partial(map, _coconut.operator.methodcaller("resolve", **kwargs)))(self.elems)
         raise _coconut_tail_call(self.__class__(*elems).simplify, dnf=False, **kwargs)
 
 class Imp(BinaryOp):
@@ -627,7 +625,7 @@ class BoolOp(BinaryOp):
     def __eq__(self, other):
         return isinstance(other, self.__class__) and (unorderd_eq)(self.elems, other.elems)
     def simplify(self, **kwargs):
-        elems = (_coconut.functools.partial(map, lambda x: x.simplify(**kwargs)))(self.merge().elems)
+        elems = (_coconut.functools.partial(map, _coconut.operator.methodcaller("simplify", **kwargs)))(self.merge().elems)
         out = self.__class__(*elems).clean()
         if isinstance(out, self.__class__):
             out = out.distribute(**kwargs)
@@ -715,7 +713,7 @@ class Or(BoolOp):
         if isinstance(other, Eq):
             raise _coconut_tail_call(other.resolve_against, self)
         elif isinstance(other, Or):
-            not_other_ors = (_coconut.functools.partial(map, lambda x: x.simplify(**kwargs)))((_coconut.functools.partial(map, Not))(other.ors))
+            not_other_ors = (_coconut.functools.partial(map, _coconut.operator.methodcaller("simplify", **kwargs)))((_coconut.functools.partial(map, Not))(other.ors))
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
                     resolved_other = (x.paramodulant)(other)
@@ -727,7 +725,7 @@ class Or(BoolOp):
                         raise _coconut_tail_call((Or), *other.ors[:j] + other.ors[j + 1:] + resolved_self.ors)
                     subs = x.find_unification(y)
                     if subs is not None:
-                        raise _coconut_tail_call((Or), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
+                        raise _coconut_tail_call((Or), *(_coconut.functools.partial(map, _coconut.operator.methodcaller("substitute", subs, **kwargs)))(self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
         else:
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
@@ -735,7 +733,7 @@ class Or(BoolOp):
                     raise _coconut_tail_call((x.paramodulant), (Or)(*self.ors[:i] + self.ors[i + 1:]))
                 subs = x.find_unification(not_other)
                 if subs is not None:
-                    raise _coconut_tail_call((Or), *(_coconut.functools.partial(map, lambda x: x.substitute(subs, **kwargs)))(self.ors[:i] + self.ors[i + 1:]))
+                    raise _coconut_tail_call((Or), *(_coconut.functools.partial(map, _coconut.operator.methodcaller("substitute", subs, **kwargs)))(self.ors[:i] + self.ors[i + 1:]))
         return None
     @_coconut_tco
     def admits_empty_universe(self):

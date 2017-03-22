@@ -60,7 +60,6 @@ class Expr:
     def __xor__(self, other) =
         Or(And(self, Not(other)), And(Not(self), other))
     def __len__(self) = 1
-    def __ne__(self, other) = not self == other
     def simplify(self, **kwargs) =
         """Simplify the given expression."""
         self
@@ -213,7 +212,7 @@ class Pred(FuncAtom):
             do_sub(kwargs)
             name = sub.name
         if can_sub(kwargs):
-            return self.args |> map$(x -> x.substitute(subs, **kwargs)) |*> Pred$(name)
+            return self.args |> map$(.substitute(subs, **kwargs)) |*> Pred$(name)
         else:
             return Pred(name, *self.args)
 Predicate = Pred
@@ -277,7 +276,7 @@ class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
     def substitute_elements(self, subs, **kwargs) =
-        self.args |> map$(x -> x.substitute(subs, **kwargs)) |*> Func$(self.name)
+        self.args |> map$(.substitute(subs, **kwargs)) |*> Func$(self.name)
     def rename(self, name) =
         self.__class__(name, *self.args)
     def find_unification(self, other):
@@ -501,9 +500,9 @@ class BinaryOp(Expr):
     def __len__(self) =
         sum(map(len, self.elems)) + 1
     def substitute(self, subs, **kwargs):
-        return self.elems |> map$(x -> x.substitute(subs, **kwargs)) |*> self.__class__
+        return self.elems |> map$(.substitute(subs, **kwargs)) |*> self.__class__
     def resolve(self, **kwargs) =
-        elems = self.elems |> map$(x -> x.resolve(**kwargs))
+        elems = self.elems |> map$(.resolve(**kwargs))
         self.__class__(*elems).simplify(dnf=False, **kwargs)
 
 class Imp(BinaryOp):
@@ -538,7 +537,7 @@ class BoolOp(BinaryOp):
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
     def simplify(self, **kwargs):
-        elems = self.merge().elems |> map$(x -> x.simplify(**kwargs))
+        elems = self.merge().elems |> map$(.simplify(**kwargs))
         out = self.__class__(*elems).clean()
         if isinstance(out, self.__class__):
             out = out.distribute(**kwargs)
@@ -620,7 +619,7 @@ class Or(BoolOp):
         if isinstance(other, Eq):
             return other.resolve_against(self)
         elif isinstance(other, Or):
-            not_other_ors = other.ors |> map$(Not) |> map$(x -> x.simplify(**kwargs))
+            not_other_ors = other.ors |> map$(Not) |> map$(.simplify(**kwargs))
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
                     resolved_other = other |> x.paramodulant
@@ -632,7 +631,7 @@ class Or(BoolOp):
                         return other.ors[:j] + other.ors[j+1:] + resolved_self.ors |*> Or
                     subs = x.find_unification(y)
                     if subs is not None:
-                        return self.ors[:i] + self.ors[i+1:] + other.ors[:j] + other.ors[j+1:] |> map$(x -> x.substitute(subs, **kwargs)) |*> Or
+                        return self.ors[:i] + self.ors[i+1:] + other.ors[:j] + other.ors[j+1:] |> map$(.substitute(subs, **kwargs)) |*> Or
         else:
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
@@ -640,7 +639,7 @@ class Or(BoolOp):
                     return self.ors[:i] + self.ors[i+1:] |*> Or |> x.paramodulant
                 subs = x.find_unification(not_other)
                 if subs is not None:
-                    return self.ors[:i] + self.ors[i+1:] |> map$(x -> x.substitute(subs, **kwargs)) |*> Or
+                    return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs, **kwargs)) |*> Or
         return None
     def admits_empty_universe(self) =
         any(x.admits_empty_universe() for x in self.elems)
