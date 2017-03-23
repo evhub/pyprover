@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5bba3474
+# __coconut_hash__ = 0x7dc3ea6d
 
 # Compiled with Coconut version 1.2.2-post_dev9 [Colonel]
 
@@ -188,7 +188,7 @@ class Atom(Expr):
             elif sub is False:
                 return bot
             else:
-                raise TypeError("cannot perform substitution " + self + " => " + sub)
+                raise TypeError("cannot perform substitution " + str(self) + " => " + str(sub))
 
 class Prop(Atom):
     """Logical proposition that is either true or false."""

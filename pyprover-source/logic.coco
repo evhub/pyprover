@@ -149,7 +149,7 @@ class Atom(Expr):
             elif sub is False:
                 return bot
             else:
-                raise TypeError("cannot perform substitution " + self + " => " + sub)
+                raise TypeError("cannot perform substitution " + str(self) + " => " + str(sub))
 
 class Prop(Atom):
     """Logical proposition that is either true or false."""
