@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.2.2-post_dev8 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev9 [Colonel]
 
 """Built-in Coconut utilities."""
 
@@ -13,19 +13,32 @@ import sys as _coconut_sys
 if _coconut_sys.version_info < (3,):
     py_chr, py_filter, py_hex, py_input, py_int, py_map, py_object, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate = chr, filter, hex, input, int, map, object, oct, open, print, range, str, zip, filter, reversed, enumerate
     py_raw_input, py_xrange = raw_input, xrange
-    _coconut_NotImplemented, _coconut_raw_input, _coconut_xrange, _coconut_int, _coconut_long, _coconut_print, _coconut_str, _coconut_unicode, _coconut_repr = NotImplemented, raw_input, xrange, int, long, print, str, unicode, repr
+    _coconut_NotImplemented, _coconut_raw_input, _coconut_xrange, _coconut_int, _coconut_long, _coconut_print, _coconut_str, _coconut_unicode, _coconut_repr, _coconut_object = NotImplemented, raw_input, xrange, int, long, print, str, unicode, repr, object
     from future_builtins import *
     chr, str = unichr, unicode
     from io import open
-    class object(object):
-        if hasattr(object, "__doc__"):
-            __doc__ = object.__doc__
+    class _coconut_base_object(_coconut_object):
+        __slots__ = ()
         def __ne__(self, other):
             eq = self == other
             if eq is _coconut_NotImplemented:
                 return eq
             else:
                 return not eq
+    class object(_coconut_base_object):
+        __slots__ = ()
+        if hasattr(_coconut_object, "__doc__"):
+            __doc__ = _coconut_object.__doc__
+        class __metaclass__(type):
+            def __new__(cls, name, bases, dict):
+                if dict.get("__metaclass__") is not cls:
+                    cls, bases = type, tuple(b if b is not _coconut_new_object else _coconut_base_object for b in bases)
+                return type.__new__(cls, name, bases, dict)
+            def __instancecheck__(cls, inst):
+                return _coconut.isinstance(inst, _coconut_object)
+            def __subclasscheck__(cls, subcls):
+                return _coconut.issubclass(subcls, _coconut_object)
+    _coconut_new_object = object
     class range(object):
         __slots__ = ("_xrange",)
         if hasattr(_coconut_xrange, "__doc__"):
@@ -79,6 +92,8 @@ if _coconut_sys.version_info < (3,):
         class __metaclass__(type):
             def __instancecheck__(cls, inst):
                 return _coconut.isinstance(inst, (_coconut_int, _coconut_long))
+            def __subclasscheck__(cls, subcls):
+                return _coconut.issubclass(subcls, (_coconut_int, _coconut_long))
     from functools import wraps as _coconut_wraps
     @_coconut_wraps(_coconut_print)
     def print(*args, **kwargs):
@@ -122,7 +137,7 @@ class _coconut(object):
         abc = collections
     else:
         import collections.abc as abc
-    IndexError, NameError, TypeError, ValueError, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, iter, len, list, map, min, max, next, object, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = IndexError, NameError, TypeError, ValueError, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, iter, len, list, map, min, max, next, object, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
+    IndexError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = IndexError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
 class MatchError(Exception):
     """Pattern-matching error."""
     __slots__ = ("pattern", "value")
@@ -470,7 +485,10 @@ class _coconut_partial(object):
         return _coconut.repr(self.func) + "$(" + ", ".join(args) + ")"
 def datamaker(data_type):
     """Returns base data constructor of passed data type."""
-    return _coconut.functools.partial(_coconut.super(data_type, data_type).__new__, data_type)
+    if _coconut.isinstance(data_type, _coconut.tuple) and _coconut.hasattr(data_type, "_make"):
+        return data_type._make
+    else:
+        return _coconut.functools.partial(_coconut.super(data_type, data_type).__new__, data_type)
 def consume(iterable, keep_last=0):
     """Fully exhaust iterable and return the last keep_last elements."""
     return _coconut.collections.deque(iterable, maxlen=keep_last)  # fastest way to exhaust an iterator
