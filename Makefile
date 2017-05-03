@@ -31,3 +31,7 @@ clean:
 wipe: clean
 	find . -name '*.py' -delete
 	rm -rf ./pyprover
+
+.PHONY: watch
+watch: install
+	coconut pyprover-source pyprover -sw -j sys

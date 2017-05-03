@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x1b959761
+# __coconut_hash__ = 0x67f3691e
 
-# Compiled with Coconut version 1.2.2-post_dev9 [Colonel]
+# Compiled with Coconut version 1.2.2-post_dev16 [Colonel]
 
 # Coconut Header: --------------------------------------------------------
 
@@ -41,7 +41,7 @@ from pyprover.parser import expr
 
 def test_propositional_logic():
     """Runs propositional logic tests."""
-    with LowercasePropositions.using(globals()) :
+    with LowercasePropositions.using(globals()):
 
 # constructive theorems
         assert (proves)(e & f, e)
@@ -168,7 +168,7 @@ def test_propositional_logic():
 
 def test_predicate_logic():
     """Runs predicate logic tests."""
-    with StandardMath.using(globals()) :
+    with StandardMath.using(globals()):
 
 # basic tests
         assert (simplify)(FA(x, F)) == F
@@ -265,7 +265,7 @@ def test_predicate_logic():
 
 def test_empty_universe():
     """Runs predicate logic tests in a potentially empty universe."""
-    with StandardMath.using(globals()) :
+    with StandardMath.using(globals()):
 
 # basic tests
         assert (strict_simplify)(FA(x, F)) != F
@@ -357,7 +357,7 @@ def test_empty_universe():
 
 def test_parser():
     """Tests math notation parsing."""
-    with StandardMath.using(globals()) :
+    with StandardMath.using(globals()):
         assert expr(r"A") == A
         assert expr(r"F(x)") == F(x)
         assert expr(r"F(f(x))") == F(f(x))
