@@ -4,8 +4,8 @@ install: build
 
 .PHONY: build
 build:
-	coconut setup.coco -s
-	coconut pyprover-source pyprover -s -j sys
+	coconut setup.coco --strict
+	coconut pyprover-source pyprover --strict --jobs sys
 
 .PHONY: upload
 upload: clean install
@@ -34,4 +34,4 @@ wipe: clean
 
 .PHONY: watch
 watch: install
-	coconut pyprover-source pyprover -sw -j sys
+	coconut pyprover-source pyprover --watch --strict --jobs sys
