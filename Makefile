@@ -34,4 +34,4 @@ wipe: clean
 
 .PHONY: watch
 watch: install
-	coconut pyprover-source pyprover --watch --strict --jobs sys
+	coconut pyprover-source pyprover --watch --strict
