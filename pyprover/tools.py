@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xda4bfa30
+# __coconut_hash__ = 0xce5402d0
 
-# Compiled with Coconut version 1.2.2-post_dev16 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev31 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: -------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_pipe, _coconut_starpipe, _coconut_backpipe, _coconut_backstarpipe, _coconut_bool_and, _coconut_bool_or, _coconut_minus, _coconut_map, _coconut_partial
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_back_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
 
@@ -30,17 +29,17 @@ from pyprover.logic import bot
 @_coconut_tco
 def props(names):
     """Constructs propositions from a space-seperated string of names."""
-    raise _coconut_tail_call(map, Proposition, names.split())
+    return _coconut_tail_call(map, Proposition, names.split())
 
 @_coconut_tco
 def terms(names):
     """Constructs constants from a space-seperated string of names."""
-    raise _coconut_tail_call(map, Constant, names.split())
+    return _coconut_tail_call(map, Constant, names.split())
 
 @_coconut_tco
 def solve(expr, **kwargs):
     """Converts to CNF and performs all possible resolutions."""
-    raise _coconut_tail_call(expr.simplify(dnf=False, **kwargs).resolve, **kwargs)
+    return _coconut_tail_call(expr.simplify(dnf=False, **kwargs).resolve, **kwargs)
 strict_solve = _coconut.functools.partial(solve, nonempty_universe=False)
 
 def no_proof_of(givens, conclusion):
@@ -53,7 +52,7 @@ def no_proof_of(givens, conclusion):
 
 def proves(givens, conclusion, **kwargs):
     """Determines if the givens prove the conclusion."""
-    return (_coconut.functools.partial(solve, **kwargs))(no_proof_of(givens, conclusion)) == bot
+    return solve(no_proof_of(givens, conclusion), **kwargs) == bot
 strict_proves = _coconut.functools.partial(proves, nonempty_universe=False)
 
 def iff(a, b):
@@ -73,9 +72,9 @@ strict_proves_and_proved_by = _coconut.functools.partial(proves_and_proved_by, n
 def simplify(expr, *exprs, **kwargs):
     """Simplify the given expression[s]."""
     if exprs:
-        raise _coconut_tail_call((tuple), (_coconut.functools.partial(map, lambda x: x.simplify(**kwargs)))((expr,) + exprs))
+        return _coconut_tail_call((tuple), map(lambda x: x.simplify(**kwargs), (expr,) + exprs))
     else:
-        raise _coconut_tail_call(expr.simplify, **kwargs)
+        return _coconut_tail_call(expr.simplify, **kwargs)
 strict_simplify = _coconut.functools.partial(simplify, nonempty_universe=False)
 
 def simplest_form(expr, **kwargs):
@@ -91,10 +90,10 @@ strict_simplest_form = _coconut.functools.partial(simplest_form, nonempty_univer
 @_coconut_tco
 def simplest_solution(expr, **kwargs):
     """Finds the shortest resolved simplification for the given expression."""
-    raise _coconut_tail_call((_coconut.functools.partial(simplest_form, **kwargs)), (_coconut.functools.partial(solve, **kwargs))(expr))
+    return _coconut_tail_call(simplest_form, solve(expr, **kwargs), **kwargs)
 strict_simplest_solution = _coconut.functools.partial(simplest_solution, nonempty_universe=False)
 
 @_coconut_tco
 def substitute(expr, subs, **kwargs):
     """Substitutes expressions or booleans into the given expression."""
-    raise _coconut_tail_call(expr.substitute, subs, **kwargs)
+    return _coconut_tail_call(expr.substitute, subs, **kwargs)

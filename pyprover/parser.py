@@ -1,21 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7aba6ee9
+# __coconut_hash__ = 0xfa26469a
 
-# Compiled with Coconut version 1.2.2-post_dev16 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev31 [Colonel]
 
-# Coconut Header: --------------------------------------------------------
+# Coconut Header: -------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_pipe, _coconut_starpipe, _coconut_backpipe, _coconut_backstarpipe, _coconut_bool_and, _coconut_bool_or, _coconut_minus, _coconut_map, _coconut_partial
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_back_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
-# Compiled Coconut: ------------------------------------------------------
+# Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
 
@@ -62,20 +61,20 @@ ParserElement.enablePackrat()
 @_coconut_tco
 def attach(action, item):
     """Attaches a parse action to an item."""
-    raise _coconut_tail_call(item.copy().addParseAction, action)
+    return _coconut_tail_call(item.copy().addParseAction, action)
 
 @_coconut_tco
 def call(action, item):
     """Call an action on the tokens in item."""
     @_coconut_tco
     def parse_action(o, l, tokens):
-        raise _coconut_tail_call(action, *tokens)
-    raise _coconut_tail_call((_coconut.functools.partial(attach, parse_action)), item)
+        return _coconut_tail_call(action, *tokens)
+    return _coconut_tail_call(attach, parse_action, item)
 
 @_coconut_tco
 def fixto(output, item):
     """Forces an item to result in a specific output."""
-    raise _coconut_tail_call((_coconut.functools.partial(attach, replaceWith(output))), item)
+    return _coconut_tail_call(attach, replaceWith(output), item)
 
 def tokenlist(sep, item):
     """Creates a list of tokens matching the item."""
@@ -84,7 +83,7 @@ def tokenlist(sep, item):
 @_coconut_tco
 def parse(grammar, text):
     """Parses text using grammar."""
-    raise _coconut_tail_call(grammar.parseWithTabs().parseString, text)
+    return _coconut_tail_call(grammar.parseWithTabs().parseString, text)
 
 # Grammar:
 
@@ -105,31 +104,31 @@ class Grammar(_coconut.object):
     forall_op = oneOf(all_forall_syms).suppress()
     exists_op = oneOf(all_exists_syms).suppress()
 
-    top_lit = (_coconut.functools.partial(fixto, top))(oneOf(all_top_syms))
-    bot_lit = (_coconut.functools.partial(fixto, bot))(oneOf(all_bot_syms))
+    top_lit = fixto(top, oneOf(all_top_syms))
+    bot_lit = fixto(bot, oneOf(all_bot_syms))
 
     lowercase_name = Regex("[a-z0-9_]\w*")
     uppercase_name = Regex("[A-Z]\w*")
 
-    var = (_coconut.functools.partial(call, Constant))(lowercase_name)
+    var = call(Constant, lowercase_name)
     func = Forward()
     term = func | var
     terms = lparen - commalist(term) - rparen
-    func <<= (_coconut.functools.partial(call, Function))(lowercase_name + terms)
+    func <<= call(Function, lowercase_name + terms)
 
-    prop = (_coconut.functools.partial(call, Proposition))(uppercase_name)
-    pred = (_coconut.functools.partial(call, Predicate))(uppercase_name + terms)
-    equality = (_coconut.functools.partial(call, Eq))(term + equals + term)
+    prop = call(Proposition, uppercase_name)
+    pred = call(Predicate, uppercase_name + terms)
+    equality = call(Eq, term + equals + term)
     atom = pred | prop | equality
 
     expr = Forward()
-    quant = ((_coconut.functools.partial(call, Exists))(exists_op + var - dot - expr)) | ((_coconut.functools.partial(call, ForAll))(forall_op + var - dot - expr))
+    quant = (call(Exists, exists_op + var - dot - expr)) | (call(ForAll, forall_op + var - dot - expr))
 
     base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen
-    not_expr = quant | ((_coconut.functools.partial(call, Not))(not_op + base_expr)) | base_expr | quant
-    and_expr = quant | ((_coconut.functools.partial(call, And))(not_expr + OneOrMore(and_op - not_expr))) | not_expr
-    or_expr = quant | ((_coconut.functools.partial(call, Or))(and_expr + OneOrMore(or_op - and_expr))) | and_expr
-    expr <<= quant | ((_coconut.functools.partial(call, Implies))(or_expr + OneOrMore(imp_op - or_expr))) | or_expr
+    not_expr = quant | (call(Not, not_op + base_expr)) | base_expr | quant
+    and_expr = quant | (call(And, not_expr + OneOrMore(and_op - not_expr))) | not_expr
+    or_expr = quant | (call(Or, and_expr + OneOrMore(or_op - and_expr))) | and_expr
+    expr <<= quant | (call(Implies, or_expr + OneOrMore(imp_op - or_expr))) | or_expr
 
     formula = stringStart + expr + stringEnd
 
