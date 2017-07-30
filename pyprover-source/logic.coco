@@ -136,11 +136,7 @@ class Atom(Expr):
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        try:
-            sub = subs[self]
-        except KeyError:
-            return self.substitute_elements(subs, **kwargs)
-        else:
+        match {=self: sub, **_} in subs:
             do_sub(kwargs)
             if wff(sub):
                 return sub
@@ -150,6 +146,8 @@ class Atom(Expr):
                 return bot
             else:
                 raise TypeError("cannot perform substitution " + str(self) + " => " + str(sub))
+        else:
+            return self.substitute_elements(subs, **kwargs)
 
 class Prop(Atom):
     """Logical proposition that is either true or false."""
@@ -203,14 +201,12 @@ class Pred(FuncAtom):
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        try:
-            sub = subs[self.proposition()]
-        except KeyError:
-            name = self.name
-        else:
+        match {=self.proposition(): sub, **_} in subs:
             assert isinstance(sub, Atom), sub
             do_sub(kwargs)
             name = sub.name
+        else:
+            name = self.name
         if can_sub(kwargs):
             return self.args |> map$(.substitute(subs, **kwargs)) |*> Pred$(name)
         else:

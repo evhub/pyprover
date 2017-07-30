@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x44a1ab7d
+# __coconut_hash__ = 0x6f093754
 
-# Compiled with Coconut version 1.2.3-post_dev31 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev33 [Colonel]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -174,11 +174,12 @@ class Atom(Expr):
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        try:
-            sub = subs[self]
-        except KeyError:
-            return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
-        else:
+        _coconut_match_check = False
+        _coconut_match_to = subs
+        if (_coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping)) and (self in _coconut_match_to):
+            sub = _coconut_match_to[self]
+            _coconut_match_check = True
+        if _coconut_match_check:
             do_sub(kwargs)
             if wff(sub):
                 return sub
@@ -188,6 +189,8 @@ class Atom(Expr):
                 return bot
             else:
                 raise TypeError("cannot perform substitution " + str(self) + " => " + str(sub))
+        else:
+            return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
 
 class Prop(Atom):
     """Logical proposition that is either true or false."""
@@ -247,14 +250,17 @@ class Pred(FuncAtom):
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        try:
-            sub = subs[self.proposition()]
-        except KeyError:
-            name = self.name
-        else:
+        _coconut_match_check = False
+        _coconut_match_to = subs
+        if (_coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping)) and (self.proposition() in _coconut_match_to):
+            sub = _coconut_match_to[self.proposition()]
+            _coconut_match_check = True
+        if _coconut_match_check:
             assert isinstance(sub, Atom), sub
             do_sub(kwargs)
             name = sub.name
+        else:
+            name = self.name
         if can_sub(kwargs):
             return _coconut_tail_call(Pred, name, *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
         else:

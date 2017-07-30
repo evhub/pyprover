@@ -83,3 +83,11 @@ assert top `proves` TE(x, D(x)) | FA(x, ~D(x))
 assert expr(r"A x. E y. F(x) \/ G(y)") == FA(x, TE(y, F(x) | G(y)))
 assert expr(r"a = b /\ b = c") == Eq(a, b) & Eq(b, c)
 ```
+
+## Compiling PyProver
+
+If you want to compile PyProver yourself instead of installing it from PyPI with `pip`, you can
+
+1. clone the `git` repository,
+2. run `make setup`, and
+3. run `make install`.
