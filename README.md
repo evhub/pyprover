@@ -1,6 +1,6 @@
 # PyProver
 
-PyProver is a resolution theorem prover for first-order predicate logic. PyProver is written in [Coconut](http://coconut-lang.org/) which compiles to pure, universal Python, and allowing PyProver to work on any Python version.
+PyProver is a resolution theorem prover for first-order predicate logic. PyProver is written in [Coconut](http://coconut-lang.org/) which compiles to pure, universal Python, allowing PyProver to work on any Python version.
 
 Installing PyProver is as simple as
 ```
