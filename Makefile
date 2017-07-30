@@ -1,6 +1,6 @@
 .PHONY: install
 install: build
-	pip install -e .
+	pip install --upgrade -e .
 
 .PHONY: build
 build:
@@ -15,7 +15,8 @@ upload: clean install
 
 .PHONY: setup
 setup:
-	pip install coconut-develop
+	pip install --upgrade setuptools pip
+	pip install --upgrade "coconut-develop[watch]"
 
 .PHONY: test
 test: install
