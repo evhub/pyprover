@@ -1,6 +1,7 @@
 language: python
 notifications:
-  email: false
+  email:
+    on_failure: change
 sudo: false
 cache: pip
 python:
