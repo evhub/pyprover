@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x6f093754
+# __coconut_hash__ = 0x73530fab
 
-# Compiled with Coconut version 1.2.3-post_dev33 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev40 [Colonel]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -10,7 +10,7 @@ from __future__ import print_function, absolute_import, unicode_literals, divisi
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
 _coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_compose, _coconut_back_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
+from __coconut__ import _coconut, _coconut_NamedTuple, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
 from __coconut__ import *
 _coconut_sys.path.remove(_coconut_file_path)
 
@@ -176,9 +176,12 @@ class Atom(Expr):
             return self
         _coconut_match_check = False
         _coconut_match_to = subs
-        if (_coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping)) and (self in _coconut_match_to):
-            sub = _coconut_match_to[self]
-            _coconut_match_check = True
+        _coconut_sentinel = _coconut.object()
+        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
+            _coconut_match_temp_0 = _coconut_match_to.get(self, _coconut_sentinel)
+            if _coconut_match_temp_0 is not _coconut_sentinel:
+                sub = _coconut_match_temp_0
+                _coconut_match_check = True
         if _coconut_match_check:
             do_sub(kwargs)
             if wff(sub):
@@ -252,9 +255,12 @@ class Pred(FuncAtom):
             return self
         _coconut_match_check = False
         _coconut_match_to = subs
-        if (_coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping)) and (self.proposition() in _coconut_match_to):
-            sub = _coconut_match_to[self.proposition()]
-            _coconut_match_check = True
+        _coconut_sentinel = _coconut.object()
+        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
+            _coconut_match_temp_0 = _coconut_match_to.get(self.proposition(), _coconut_sentinel)
+            if _coconut_match_temp_0 is not _coconut_sentinel:
+                sub = _coconut_match_temp_0
+                _coconut_match_check = True
         if _coconut_match_check:
             assert isinstance(sub, Atom), sub
             do_sub(kwargs)

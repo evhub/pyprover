@@ -15,11 +15,11 @@ def first_encodeable(symbols):
             pass
         else:
             return sym
-    raise ValueError("No encodeable symbol in " + repr(symbols))
+    raise ValueError("No encodable symbol in " + repr(symbols))
 
 # Installation:
 
-version = "0.4.3"
+version = "0.4.4"
 requirements = []
 classifiers = [
     "Development Status :: 3 - Alpha",
