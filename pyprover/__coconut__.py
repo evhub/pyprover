@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.2.3-post_dev40 [Colonel]
+# Compiled with Coconut version 1.2.3-post_dev41 [Colonel]
 
 """Built-in Coconut utilities."""
 
@@ -135,7 +135,7 @@ class _coconut(object):
         abc = collections
     else:
         import collections.abc as abc
-    Exception, IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = Exception, IndexError, KeyError, NameError, TypeError, ValueError, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
+    Exception, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, repr, bytearray = Exception, IndexError, KeyError, NameError, TypeError, ValueError, StopIteration, classmethod, dict, enumerate, filter, frozenset, getattr, hasattr, hash, id, int, isinstance, issubclass, iter, len, list, map, min, max, next, object, property, range, reversed, set, slice, str, sum, super, tuple, zip, staticmethod(repr), bytearray
 def _coconut_NamedTuple(name, fields):
     return _coconut.collections.namedtuple(name, [x for x, t in fields])
 class MatchError(Exception):
@@ -218,7 +218,7 @@ def tee(iterable, n=2):
     if n >= 0 and _coconut.isinstance(iterable, (_coconut.tuple, _coconut.frozenset)):
         return (iterable,) * n
     if n > 0 and (_coconut.hasattr(iterable, "__copy__") or _coconut.isinstance(iterable, _coconut.abc.Sequence)):
-        return (iterable,) + _coconut.tuple(_coconut.copy.copy(iterable) for i in _coconut.range(n - 1))
+        return (iterable,) + _coconut.tuple(_coconut.copy.copy(iterable) for _ in _coconut.range(n - 1))
     return _coconut.itertools.tee(iterable, n)
 class reiterable(object):
     """Allows an iterator to be iterated over multiple times."""
@@ -462,6 +462,40 @@ class count(object):
         return self.__class__(self.start, self.step)
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.start == other.start and self.step == other.step
+    def __fmap__(self, func):
+        return _coconut_map(func, self)
+class groupsof(object):
+    """groupsof(n, iterable) splits iterable into groups of size n.
+    If the length of the iterable is not divisible by n, the last group may be of size < n."""
+    __slots__ = ("group_size", "iter")
+    def __init__(self, n, iterable):
+        self.iter = iterable
+        try:
+            self.group_size = _coconut.int(n)
+        except _coconut.ValueError:
+            raise _coconut.TypeError("group size must be an int; not %r" % (n,))
+        if self.group_size <= 0:
+            raise _coconut.ValueError("group size must be > 0; not %s" % (self.group_size,))
+    def __iter__(self):
+        loop, iterator = True, _coconut.iter(self.iter)
+        while loop:
+            group = []
+            for _ in _coconut.range(self.group_size):
+                try:
+                    group.append(_coconut.next(iterator))
+                except _coconut.StopIteration:
+                    loop = False
+                    break
+            if group:
+                yield _coconut.tuple(group)
+    def __len__(self):
+        return _coconut.len(self.iter)
+    def __repr__(self):
+        return "groupsof(%r)" % (_coconut.repr(self.iter),)
+    def __reduce__(self):
+        return (self.__class__, (self.group_size, self.iter))
+    def __copy__(self):
+        return self.__class__(self.group_size, _coconut.copy.copy(self.iter))
     def __fmap__(self, func):
         return _coconut_map(func, self)
 def recursive_iterator(func):
