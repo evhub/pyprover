@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.2.3-post_dev41 [Colonel]
+# Compiled with Coconut version 1.3.0-post_dev1 [Dead Parrot]
 
 """Built-in Coconut utilities."""
 
