@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x730e6b6d
+# __coconut_hash__ = 0x4ccde82b
 
-# Compiled with Coconut version 1.3.0-post_dev1 [Dead Parrot]
+# Compiled with Coconut version 1.3.0-post_dev6 [Dead Parrot]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -506,7 +506,7 @@ def recursive_iterator(func):
             hash(key)
         except _coconut.Exception:
             try:
-                key = _coconut.pickle.dumps(key, _coconut.pickle.HIGHEST_PROTOCOL)
+                key = _coconut.pickle.dumps(key, -1)
             except _coconut.Exception:
                 use_backup = True
         if use_backup:
