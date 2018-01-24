@@ -1,7 +1,5 @@
 # Imports:
 
-import string
-
 from pyparsing import (
     Literal,
     ZeroOrMore,

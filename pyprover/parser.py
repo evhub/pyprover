@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa90dc42e
+# __coconut_hash__ = 0xab7e5bc9
 
-# Compiled with Coconut version 1.3.1 [Dead Parrot]
+# Compiled with Coconut version 1.3.1-post_dev14 [Dead Parrot]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -17,8 +17,6 @@ _coconut_sys.path.remove(_coconut_file_path)
 # Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
-
-import string
 
 from pyparsing import Literal
 from pyparsing import ZeroOrMore
