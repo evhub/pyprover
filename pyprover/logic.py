@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7d36fea9
+# __coconut_hash__ = 0x3c86fe9e
 
-# Compiled with Coconut version 1.3.1-post_dev17 [Dead Parrot]
+# Compiled with Coconut version 1.3.1-post_dev28 [Dead Parrot]
 
 # Coconut Header: -------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
 import sys as _coconut_sys, os.path as _coconut_os_path
 _coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
+_coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
+if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cached_module.__file__) != _coconut_file_path:
+    del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_path)
 from __coconut__ import _coconut, _coconut_NamedTuple, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
 from __coconut__ import *
@@ -174,8 +177,8 @@ class Atom(Expr):
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        _coconut_match_check = False
         _coconut_match_to = subs
+        _coconut_match_check = False
         _coconut_sentinel = _coconut.object()
         if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to.get(self, _coconut_sentinel)
@@ -253,8 +256,8 @@ class Pred(FuncAtom):
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        _coconut_match_check = False
         _coconut_match_to = subs
+        _coconut_match_check = False
         _coconut_sentinel = _coconut.object()
         if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to.get(self.proposition(), _coconut_sentinel)
