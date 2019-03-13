@@ -753,7 +753,7 @@ class Eq(Expr):
         else:
             return self
     def swap(self) =
-        """Swapts the order of equality."""
+        """Swaps the order of equality."""
         Eq(self.b, self.a)
     def find_unification(self, other):
         if isinstance(other, Quantifier):

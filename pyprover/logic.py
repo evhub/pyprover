@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3c86fe9e
+# __coconut_hash__ = 0xcb96dd64
 
-# Compiled with Coconut version 1.3.1-post_dev28 [Dead Parrot]
+# Compiled with Coconut version 1.4.0-post_dev23 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -13,9 +13,10 @@ _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
 if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cached_module.__file__) != _coconut_file_path:
     del _coconut_sys.modules[str("__coconut__")]
 _coconut_sys.path.insert(0, _coconut_file_path)
-from __coconut__ import _coconut, _coconut_NamedTuple, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_pipe, _coconut_star_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial
+from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_back_pipe, _coconut_star_pipe, _coconut_back_star_pipe, _coconut_dubstar_pipe, _coconut_back_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_addpattern, _coconut_sentinel
 from __coconut__ import *
-_coconut_sys.path.remove(_coconut_file_path)
+if _coconut_sys.version_info >= (3,):
+    _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
 
@@ -179,7 +180,6 @@ class Atom(Expr):
             return self
         _coconut_match_to = subs
         _coconut_match_check = False
-        _coconut_sentinel = _coconut.object()
         if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to.get(self, _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
@@ -258,7 +258,6 @@ class Pred(FuncAtom):
             return self
         _coconut_match_to = subs
         _coconut_match_check = False
-        _coconut_sentinel = _coconut.object()
         if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to.get(self.proposition(), _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
@@ -304,7 +303,7 @@ class Term(Atom):
                     if isvar(self) or self == var:
                         return sub
                     else:
-                        return _coconut_tail_call(self.rename, sub.name)
+                        return self.rename(sub.name)
         if can_sub(kwargs):
             return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
         return self
@@ -673,7 +672,6 @@ class BoolOp(BinaryOp):
     def clean(self):
         """Removes copies of the identity."""
         return _coconut_tail_call((self.__class__), *filter(_coconut.functools.partial(_coconut.operator.ne, self.identity), self.elems))
-    @_coconut_tco
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -681,7 +679,7 @@ class BoolOp(BinaryOp):
                 elems = self.elems[:i] + self.elems[i + 1:]
                 free_x = x.make_free_in(self.__class__(*elems))
                 elems += (free_x.elem,)
-                return _coconut_tail_call(free_x.change_elem(self.__class__(*elems)).simplify, **kwargs)
+                return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
 
 class Or(BoolOp):
@@ -695,7 +693,6 @@ class Or(BoolOp):
     @property
     def ors(self):
         return self.elems
-    @_coconut_tco
     def distribute(self, dnf=False, **kwargs):
         """If this Or contains an And, distribute into it."""
         kwargs["dnf"] = dnf
@@ -703,9 +700,8 @@ class Or(BoolOp):
             for i, x in enumerate(self.ors):
                 if isinstance(x, And):
                     ands = ((Or)(*(y,) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
-                    return _coconut_tail_call(And(*ands).simplify, **kwargs)
+                    return And(*ands).simplify(**kwargs)
         return self
-    @_coconut_tco
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the Or is a blatant tautology."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -715,7 +711,7 @@ class Or(BoolOp):
             for y in self.ors[i + 1:]:
                 if x.contradicts(y, **kwargs):
                     if not nonempty_universe and not self.admits_empty_universe():
-                        return _coconut_tail_call(Exists.blank, top)
+                        return Exists.blank(top)
                     else:
                         return top
         return self
@@ -731,23 +727,23 @@ class Or(BoolOp):
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
                     resolved_other = (x.paramodulant)(other)
-                    return _coconut_tail_call((Or), *self.ors[:i] + self.ors[i + 1:] + resolved_other.ors)
+                    return (Or)(*self.ors[:i] + self.ors[i + 1:] + resolved_other.ors)
                 for j, y in enumerate(not_other_ors):
                     if isinstance(other.ors[j], Eq):
                         y = other.ors[j]
                         resolved_self = (y.paramodulant)(self)
-                        return _coconut_tail_call((Or), *other.ors[:j] + other.ors[j + 1:] + resolved_self.ors)
+                        return (Or)(*other.ors[:j] + other.ors[j + 1:] + resolved_self.ors)
                     subs = x.find_unification(y)
                     if subs is not None:
-                        return _coconut_tail_call((Or), *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
+                        return (Or)(*map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
         else:
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
-                    return _coconut_tail_call((x.paramodulant), (Or)(*self.ors[:i] + self.ors[i + 1:]))
+                    return (x.paramodulant)((Or)(*self.ors[:i] + self.ors[i + 1:]))
                 subs = x.find_unification(not_other)
                 if subs is not None:
-                    return _coconut_tail_call((Or), *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:]))
+                    return (Or)(*map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:]))
         return None
     @_coconut_tco
     def admits_empty_universe(self):
@@ -764,7 +760,6 @@ class And(BoolOp):
     @property
     def ands(self):
         return self.elems
-    @_coconut_tco
     def distribute(self, dnf=False, **kwargs):
         """If this And contains an Or, distribute into it."""
         kwargs["dnf"] = dnf
@@ -772,9 +767,8 @@ class And(BoolOp):
             for i, x in enumerate(self.ands):
                 if isinstance(x, Or):
                     ors = ((And)(*(y,) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
-                    return _coconut_tail_call(Or(*ors).simplify, **kwargs)
+                    return Or(*ors).simplify(**kwargs)
         return self
-    @_coconut_tco
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the And is a blatant contradiction."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -784,7 +778,7 @@ class And(BoolOp):
             for y in self.ands[i + 1:]:
                 if x.contradicts(y, **kwargs):
                     if not nonempty_universe and self.admits_empty_universe():
-                        return _coconut_tail_call(ForAll.blank, bot)
+                        return ForAll.blank(bot)
                     else:
                         return bot
         return self
@@ -870,7 +864,7 @@ class Eq(Expr):
             return self
     @_coconut_tco
     def swap(self):
-        """Swapts the order of equality."""
+        """Swaps the order of equality."""
         return _coconut_tail_call(Eq, self.b, self.a)
     @_coconut_tco
     def find_unification(self, other):
