@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb5b796c4
+# __coconut_hash__ = 0xefda457f
 
-# Compiled with Coconut version 1.4.0-post_dev23 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.0-post_dev29 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -223,6 +223,7 @@ def _coconut_dubstar_pipe(kws, f): return f(**kws)
 def _coconut_back_pipe(f, x): return f(x)
 def _coconut_back_star_pipe(f, xs): return f(*xs)
 def _coconut_back_dubstar_pipe(f, kws): return f(**kws)
+def _coconut_assert(cond, msg=None): assert cond, msg if msg is not None else "(assert) got falsey value " + _coconut.repr(cond)
 def _coconut_bool_and(a, b): return a and b
 def _coconut_bool_or(a, b): return a or b
 def _coconut_none_coalesce(a, b): return a if a is not None else b

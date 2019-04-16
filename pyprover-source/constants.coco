@@ -19,8 +19,10 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.4.5"
-requirements = []
+version = "0.4.6"
+requirements = [
+    "pyparsing",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
