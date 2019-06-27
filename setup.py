@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7745b01d
+# __coconut_hash__ = 0xd2e6593e
 
 # Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
 
@@ -758,10 +758,10 @@ import setuptools
 
 sys = _coconut_sys
 import os.path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pyprover"))
 
-from pyprover.constants import version
-from pyprover.constants import requirements
-from pyprover.constants import classifiers
+from constants import version
+from constants import requirements
+from constants import classifiers
 
 setuptools.setup(name="pyprover", version=version, description="Resolution theorem proving for predicate logic in pure Python.", url="https://github.com/evhub/pyprover", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)
