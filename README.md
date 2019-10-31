@@ -45,6 +45,8 @@ E x. C(x) \/ D(x)
 ∃x. C(x) \/ D(x)
 ∀x. ∃y. G(f(x, y))
 a = b
+forall x: A, B(x)
+exists x: A, B(x)
 ```
 
 Once a formula has been constructed, various functions are provided to work with them. Some of the most important of these are:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x2c0e938d
+# __coconut_hash__ = 0xe46a65bb
 
-# Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -58,6 +58,8 @@ from pyprover.logic import Eq
 
 ParserElement.enablePackrat()
 
+oneOf = _coconut_forward_compose(list, oneOf)
+
 # Utilities:
 
 @_coconut_tco
@@ -89,6 +91,92 @@ def parse(grammar, text):
 
 # Grammar:
 
+@_coconut_tco
+def exists_handle(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+    _coconut_match_check = False
+    _coconut_FunctionMatchError = _coconut_get_function_match_error()
+    if (_coconut.len(_coconut_match_to_args) <= 2) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "const" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "expr" in _coconut_match_to_kwargs)) == 1):
+        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("const")
+        _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("expr")
+        if not _coconut_match_to_kwargs:
+            const = _coconut_match_temp_0
+            expr = _coconut_match_temp_1
+            _coconut_match_check = True
+    if not _coconut_match_check:
+        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
+        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def exists_handle(const, expr) = Exists(const, expr)'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+        _coconut_match_err.pattern = 'match def exists_handle(const, expr) = Exists(const, expr)'
+        _coconut_match_err.value = _coconut_match_to_args
+        raise _coconut_match_err
+
+    return _coconut_tail_call(Exists, const, expr)
+
+@addpattern(exists_handle)
+@_coconut_tco
+def exists_handle(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+    _coconut_match_check = False
+    _coconut_FunctionMatchError = _coconut_get_function_match_error()
+    if (_coconut.len(_coconut_match_to_args) <= 3) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "const" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "prop" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 2, "expr" in _coconut_match_to_kwargs)) == 1):
+        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("const")
+        _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("prop")
+        _coconut_match_temp_2 = _coconut_match_to_args[2] if _coconut.len(_coconut_match_to_args) > 2 else _coconut_match_to_kwargs.pop("expr")
+        if not _coconut_match_to_kwargs:
+            const = _coconut_match_temp_0
+            prop = _coconut_match_temp_1
+            expr = _coconut_match_temp_2
+            _coconut_match_check = True
+    if not _coconut_match_check:
+        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
+        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def exists_handle(const, prop, expr) ='" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+        _coconut_match_err.pattern = 'match def exists_handle(const, prop, expr) ='
+        _coconut_match_err.value = _coconut_match_to_args
+        raise _coconut_match_err
+
+    return _coconut_tail_call(Exists, const, prop(const) & expr)
+
+@_coconut_tco
+def forall_handle(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+    _coconut_match_check = False
+    _coconut_FunctionMatchError = _coconut_get_function_match_error()
+    if (_coconut.len(_coconut_match_to_args) <= 2) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "const" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "expr" in _coconut_match_to_kwargs)) == 1):
+        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("const")
+        _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("expr")
+        if not _coconut_match_to_kwargs:
+            const = _coconut_match_temp_0
+            expr = _coconut_match_temp_1
+            _coconut_match_check = True
+    if not _coconut_match_check:
+        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
+        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def forall_handle(const, expr) = ForAll(const, expr)'" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+        _coconut_match_err.pattern = 'match def forall_handle(const, expr) = ForAll(const, expr)'
+        _coconut_match_err.value = _coconut_match_to_args
+        raise _coconut_match_err
+
+    return _coconut_tail_call(ForAll, const, expr)
+
+@addpattern(forall_handle)
+@_coconut_tco
+def forall_handle(*_coconut_match_to_args, **_coconut_match_to_kwargs):
+    _coconut_match_check = False
+    _coconut_FunctionMatchError = _coconut_get_function_match_error()
+    if (_coconut.len(_coconut_match_to_args) <= 3) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 0, "const" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 1, "prop" in _coconut_match_to_kwargs)) == 1) and (_coconut.sum((_coconut.len(_coconut_match_to_args) > 2, "expr" in _coconut_match_to_kwargs)) == 1):
+        _coconut_match_temp_0 = _coconut_match_to_args[0] if _coconut.len(_coconut_match_to_args) > 0 else _coconut_match_to_kwargs.pop("const")
+        _coconut_match_temp_1 = _coconut_match_to_args[1] if _coconut.len(_coconut_match_to_args) > 1 else _coconut_match_to_kwargs.pop("prop")
+        _coconut_match_temp_2 = _coconut_match_to_args[2] if _coconut.len(_coconut_match_to_args) > 2 else _coconut_match_to_kwargs.pop("expr")
+        if not _coconut_match_to_kwargs:
+            const = _coconut_match_temp_0
+            prop = _coconut_match_temp_1
+            expr = _coconut_match_temp_2
+            _coconut_match_check = True
+    if not _coconut_match_check:
+        _coconut_match_val_repr = _coconut.repr(_coconut_match_to_args)
+        _coconut_match_err = _coconut_FunctionMatchError("pattern-matching failed for " "'match def forall_handle(const, prop, expr) ='" " in " + (_coconut_match_val_repr if _coconut.len(_coconut_match_val_repr) <= 500 else _coconut_match_val_repr[:500] + "..."))
+        _coconut_match_err.pattern = 'match def forall_handle(const, prop, expr) ='
+        _coconut_match_err.value = _coconut_match_to_args
+        raise _coconut_match_err
+
+    return _coconut_tail_call(ForAll, const, prop(const) >> expr)
+
 class Grammar(_coconut.object):
 
     lparen = Literal("(").suppress()
@@ -96,6 +184,7 @@ class Grammar(_coconut.object):
     comma = Literal(",").suppress()
     dot = Literal(".").suppress()
     equals = Literal("=").suppress()
+    colon = Literal(":").suppress()
 
     commalist = _coconut.functools.partial(tokenlist, comma)
 
@@ -124,7 +213,10 @@ class Grammar(_coconut.object):
     atom = pred | prop | equality
 
     expr = Forward()
-    quant = (call(Exists, exists_op + var - dot - expr)) | (call(ForAll, forall_op + var - dot - expr))
+    quant_sep = dot | comma
+    exists = (call(exists_handle, exists_op + var + Optional(colon + prop) + quant_sep + expr))
+    forall = (call(forall_handle, forall_op + var + Optional(colon + prop) + quant_sep + expr))
+    quant = exists | forall
 
     base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen
     not_expr = quant | (call(Not, not_op + base_expr)) | base_expr | quant
@@ -142,6 +234,6 @@ for varname, val in vars(Grammar).items():
 
 def expr(formula):
     """Parses the given formula into an expression."""
-    result = Grammar.formula.parseWithTabs().parseString(formula)
+    result = parse(Grammar.formula, formula)
     assert len(result) == 1, results
     return result[0]

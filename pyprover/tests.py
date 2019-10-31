@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x93aa412
+# __coconut_hash__ = 0x3e28e126
 
-# Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -372,6 +372,8 @@ def test_parser():
         assert expr(r"-G(x) /\ F(x)") == ~G(x) & F(x)
         assert expr(r"A /\ (B \/ C)") == A & (B | C)
         assert expr(r"a = b") == Eq(a, b)
+        assert expr(r"forall x: A, B(x)") == FA(x, A(x) >> B(x))
+        assert expr(r"exists x: A, B(x)") == TE(x, A(x) & B(x))
 
 if __name__ == "__main__":
     test_propositional_logic()

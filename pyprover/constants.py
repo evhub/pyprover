@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe9c8264
+# __coconut_hash__ = 0xa7804fe5
 
-# Compiled with Coconut version 1.4.0-post_dev40 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -41,7 +41,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.4.7"
+version = "0.5.0"
 requirements = ["pyparsing",]
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent",]
 
@@ -65,10 +65,10 @@ and_sym = (first_encodeable)(all_and_syms)
 all_or_syms = "\u2228", "\\/", "|"
 or_sym = (first_encodeable)(all_or_syms)
 
-all_forall_syms = "\u2200", "A ", "A:", "FA ", "FA:"
+all_forall_syms = "\u2200", "A", "FA", "fa", "forall"
 forall_sym = (first_encodeable)(all_forall_syms)
 
-all_exists_syms = "\u2203", "E ", "E:", "TE ", "TE:"
+all_exists_syms = "\u2203", "E", "TE", "te", "exists"
 exists_sym = (first_encodeable)(all_exists_syms)
 
 empty_var = "_"

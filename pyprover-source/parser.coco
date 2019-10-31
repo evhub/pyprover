@@ -42,6 +42,8 @@ from pyprover.logic import (
 
 ParserElement.enablePackrat()
 
+oneOf = oneOf .. list
+
 # Utilities:
 
 def attach(action, item):
@@ -68,6 +70,18 @@ def parse(grammar, text):
 
 # Grammar:
 
+match def exists_handle(const, expr) = Exists(const, expr)
+
+@addpattern(exists_handle)
+match def exists_handle(const, prop, expr) =
+    Exists(const, prop(const) & expr)
+
+match def forall_handle(const, expr) = ForAll(const, expr)
+
+@addpattern(forall_handle)
+match def forall_handle(const, prop, expr) =
+    ForAll(const, prop(const) >> expr)
+
 class Grammar:
 
     lparen = Literal("(").suppress()
@@ -75,6 +89,7 @@ class Grammar:
     comma = Literal(",").suppress()
     dot = Literal(".").suppress()
     equals = Literal("=").suppress()
+    colon = Literal(":").suppress()
 
     commalist = tokenlist$(comma)
 
@@ -103,7 +118,16 @@ class Grammar:
     atom = pred | prop | equality
 
     expr = Forward()
-    quant = (exists_op + var - dot - expr |> call$(Exists)) | (forall_op + var - dot - expr |> call$(ForAll))
+    quant_sep = dot | comma
+    exists = (
+        exists_op + var + Optional(colon + prop) + quant_sep + expr
+        |> call$(exists_handle)
+    )
+    forall = (
+        forall_op + var + Optional(colon + prop) + quant_sep + expr
+        |> call$(forall_handle)
+    )
+    quant = exists | forall
 
     base_expr = top_lit | bot_lit | quant | atom | lparen - expr - rparen
     not_expr = quant | (not_op + base_expr |> call$(Not)) | base_expr | quant
@@ -119,8 +143,8 @@ for varname, val in vars(Grammar).items():
 
 # Endpoint:
 
-def expr(formula) =
+def expr(formula):
     """Parses the given formula into an expression."""
-    result = Grammar.formula.parseWithTabs().parseString(formula)
+    result = parse(Grammar.formula, formula)
     assert len(result) == 1, results
-    result[0]
+    return result[0]
