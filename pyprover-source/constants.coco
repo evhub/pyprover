@@ -19,7 +19,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.5.0"
+version = "0.5.1"
 requirements = [
     "pyparsing",
 ]
@@ -32,28 +32,28 @@ classifiers = [
 
 # Symbols:
 
-all_top_syms = "\u22a4", "\u252c", "top", "true"
+all_top_syms = "top", "\u22a4", "\u252c", "true"
 top_sym = all_top_syms |> first_encodeable
 
-all_bot_syms = "\u22a5", "\u2534", "bot", "_|_", "false"
+all_bot_syms = "bot", "\u22a5", "\u2534", "_|_", "false"
 bot_sym = all_bot_syms |> first_encodeable
 
-all_not_syms = "\xac", "~", "-"
+all_not_syms = "~", "\xac", "-", "not"
 not_sym = all_not_syms |> first_encodeable
 
-all_imp_syms = "\u2192", "->"
+all_imp_syms = "->", "\u2192"
 imp_sym = all_imp_syms |> first_encodeable
 
-all_and_syms = "\u2227", "/\\", "&"
+all_and_syms = "&", "\u2227", "/\\", "and"
 and_sym = all_and_syms |> first_encodeable
 
-all_or_syms = "\u2228", "\\/", "|"
+all_or_syms = "|", "\u2228", "\\/", "or"
 or_sym = all_or_syms |> first_encodeable
 
-all_forall_syms = "\u2200", "A", "FA", "fa", "forall"
+all_forall_syms = "forall", "\u2200", "A", "FA", "fa"
 forall_sym = all_forall_syms |> first_encodeable
 
-all_exists_syms = "\u2203", "E", "TE", "te", "exists"
+all_exists_syms = "exists", "\u2203", "E", "TE", "te"
 exists_sym = all_exists_syms |> first_encodeable
 
 empty_var = "_"

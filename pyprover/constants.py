@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa7804fe5
+# __coconut_hash__ = 0x7544b277
 
 # Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
@@ -41,34 +41,34 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.5.0"
+version = "0.5.1"
 requirements = ["pyparsing",]
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent",]
 
 # Symbols:
 
-all_top_syms = "\u22a4", "\u252c", "top", "true"
+all_top_syms = "top", "\u22a4", "\u252c", "true"
 top_sym = (first_encodeable)(all_top_syms)
 
-all_bot_syms = "\u22a5", "\u2534", "bot", "_|_", "false"
+all_bot_syms = "bot", "\u22a5", "\u2534", "_|_", "false"
 bot_sym = (first_encodeable)(all_bot_syms)
 
-all_not_syms = "\xac", "~", "-"
+all_not_syms = "~", "\xac", "-", "not"
 not_sym = (first_encodeable)(all_not_syms)
 
-all_imp_syms = "\u2192", "->"
+all_imp_syms = "->", "\u2192"
 imp_sym = (first_encodeable)(all_imp_syms)
 
-all_and_syms = "\u2227", "/\\", "&"
+all_and_syms = "&", "\u2227", "/\\", "and"
 and_sym = (first_encodeable)(all_and_syms)
 
-all_or_syms = "\u2228", "\\/", "|"
+all_or_syms = "|", "\u2228", "\\/", "or"
 or_sym = (first_encodeable)(all_or_syms)
 
-all_forall_syms = "\u2200", "A", "FA", "fa", "forall"
+all_forall_syms = "forall", "\u2200", "A", "FA", "fa"
 forall_sym = (first_encodeable)(all_forall_syms)
 
-all_exists_syms = "\u2203", "E", "TE", "te", "exists"
+all_exists_syms = "exists", "\u2203", "E", "TE", "te"
 exists_sym = (first_encodeable)(all_exists_syms)
 
 empty_var = "_"
