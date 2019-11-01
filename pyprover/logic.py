@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x2a4315dd
+# __coconut_hash__ = 0x6acd6c1b
 
 # Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
@@ -438,7 +438,7 @@ class Quantifier(Expr):
     def __repr__(self):
         return self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
     def __str__(self):
-        return self.opstr + str(self.var) + ". " + quote(self.elem, in_quantifier=True)
+        return self.opstr + " " + str(self.var) + ", " + quote(self.elem, in_quantifier=True)
     def __len__(self):
         return len(self.elem) + len(self.var)
     @_coconut_tco

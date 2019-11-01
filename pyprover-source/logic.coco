@@ -355,7 +355,7 @@ class Quantifier(Expr):
     def __repr__(self) =
         self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
     def __str__(self) =
-        self.opstr + str(self.var) + ". " + quote(self.elem, in_quantifier=True)
+        self.opstr + " " + str(self.var) + ", " + quote(self.elem, in_quantifier=True)
     def __len__(self) =
         len(self.elem) + len(self.var)
     def change_var(self, var):
