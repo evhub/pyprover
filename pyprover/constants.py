@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x763685c7
+# __coconut_hash__ = 0xb024d8b3
 
 # Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
 
@@ -65,10 +65,10 @@ and_sym = (first_encodeable)(all_and_syms)
 all_or_syms = "|", "\u2228", "\\/", "or"
 or_sym = (first_encodeable)(all_or_syms)
 
-all_forall_syms = "fa", "forall", "A", "FA", "\u2200"
+all_forall_syms = "FA", "fa", "forall", "A", "\u2200"
 forall_sym = (first_encodeable)(all_forall_syms)
 
-all_exists_syms = "te", "exists", "E", "TE", "\u2203"
+all_exists_syms = "TE", "te", "exists", "E", "\u2203"
 exists_sym = (first_encodeable)(all_exists_syms)
 
 empty_var = "_"
