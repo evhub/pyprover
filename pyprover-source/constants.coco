@@ -19,7 +19,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.5.2"
+version = "0.5.3"
 requirements = [
     "pyparsing",
 ]
@@ -50,10 +50,10 @@ and_sym = all_and_syms |> first_encodeable
 all_or_syms = "|", "\u2228", "\\/", "or"
 or_sym = all_or_syms |> first_encodeable
 
-all_forall_syms = "forall", "\u2200", "A", "FA", "fa"
+all_forall_syms = "fa", "forall", "A", "FA", "\u2200"
 forall_sym = all_forall_syms |> first_encodeable
 
-all_exists_syms = "exists", "\u2203", "E", "TE", "te"
+all_exists_syms = "te", "exists", "E", "TE", "\u2203"
 exists_sym = all_exists_syms |> first_encodeable
 
 empty_var = "_"
