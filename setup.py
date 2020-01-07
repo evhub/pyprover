@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7d84bf47
+# __coconut_hash__ = 0xfc4bb3c3
 
-# Compiled with Coconut version 1.4.1-post_dev3 [Ernest Scribbler]
+# Compiled with Coconut version 1.4.2-post_dev5 [Ernest Scribbler]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -122,7 +122,7 @@ else:
     py_chr, py_hex, py_input, py_int, py_map, py_object, py_oct, py_open, py_print, py_range, py_str, py_zip, py_filter, py_reversed, py_enumerate, py_repr = chr, hex, input, int, map, object, oct, open, print, range, str, zip, filter, reversed, enumerate, repr
     _coconut_str = str
 class _coconut(object):
-    import collections, copy, functools, types, itertools, operator, threading, weakref, os
+    import collections, copy, functools, types, itertools, operator, threading, weakref, os, warnings
     if _coconut_sys.version_info < (3, 2):
         try:
             from backports.functools_lru_cache import lru_cache
@@ -617,6 +617,7 @@ class _coconut_FunctionMatchErrorContext(object):
 _coconut_get_function_match_error = _coconut_FunctionMatchErrorContext.get
 class _coconut_base_pattern_func(object):
     __slots__ = ("FunctionMatchError", "__doc__", "patterns")
+    _coconut_is_match = True
     def __init__(self, *funcs):
         self.FunctionMatchError = _coconut.type(_coconut_str("MatchError"), (_coconut_MatchError,), {})
         self.__doc__ = None
@@ -650,10 +651,20 @@ class _coconut_base_pattern_func(object):
     def __reduce__(self):
         return (self.__class__, _coconut.tuple(self.patterns))
     def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
         return _coconut.functools.partial(self, obj)
-def addpattern(base_func):
+def _coconut_mark_as_match(base_func):
+    base_func._coconut_is_match = True
+    return base_func
+def addpattern(base_func, **kwargs):
     """Decorator to add a new case to a pattern-matching function,
     where the new case is checked last."""
+    allow_any_func = kwargs.pop("allow_any_func", False)
+    if not allow_any_func and not _coconut.getattr(base_func, "_coconut_is_match", False):
+        _coconut.warnings.warn("Possible misuse of addpattern with non-pattern-matching function " + _coconut.repr(base_func) + " (pass allow_any_func=True to dismiss)", stacklevel=2)
+    if kwargs:
+        raise _coconut.TypeError("addpattern() got unexpected keyword arguments " + _coconut.repr(kwargs))
     return _coconut.functools.partial(_coconut_base_pattern_func, base_func)
 _coconut_addpattern = addpattern
 class _coconut_partial(object):
