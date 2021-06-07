@@ -11,12 +11,12 @@ from constants import (
 )
 
 setuptools.setup(
-    name="pyprover-px",
+    name="pyprover",
     version=version,
-    description="Fork of pyprover, https://github.com/evhub/pyprover",
-    url="https://github.com/vineetvermait/pyprover",
-    author="Vineet Verma (Original: Evan Hubinger)",
-    author_email="vineetverma.it@gmail.com",
+    description="Resolution theorem proving for predicate logic in pure Python.",
+    url="https://github.com/evhub/pyprover",
+    author="Evan Hubinger",
+    author_email="evanjhub@gmail.com",
     packages=setuptools.find_packages(),
     install_requires=requirements,
     classifiers=classifiers,
