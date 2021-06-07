@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3b3eecb
+# __coconut_hash__ = 0xa556ffd7
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -1097,4 +1097,4 @@ from constants import version
 from constants import requirements
 from constants import classifiers
 
-setuptools.setup(name="pyprover-px", version=version, description="Fork of pyprover, https://github.com/evhub/pyprover", url="https://github.com/vineetvermait/pyprover", author="Vineet Verma (Original: Evan Hubinger)", author_email="vineetverma.it@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)
+setuptools.setup(name="pyprover", version=version, description="Resolution theorem proving for predicate logic in pure Python.", url="https://github.com/evhub/pyprover", author="Evan Hubinger", author_email="evanjhub@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)
