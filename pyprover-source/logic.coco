@@ -37,6 +37,22 @@ def isvar(var) =
 class Expr:
     """Base class for all formulae."""
     __slots__ = ()
+
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
     def __and__(self, other):
         if isinstance(other, And):
             return other & self
@@ -102,6 +118,21 @@ class Top(Expr):
     def __repr__(self) = "top"
     def __str__(self) = top_sym
     def __bool__(self) = True
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 top = true = Top()
 
 class Bot(Expr):
@@ -112,6 +143,21 @@ class Bot(Expr):
     def __str__(self) = bot_sym
     def __bool__(self) = False
     def admits_empty_universe(self) = False
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 bot = false = Bot()
 
 class Atom(Expr):
@@ -149,11 +195,42 @@ class Atom(Expr):
         else:
             return self.substitute_elements(subs, **kwargs)
 
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
+
 class Prop(Atom):
     """Logical proposition that is either true or false."""
     __slots__ = ()
     def __call__(self, *args) =
         Pred(self.name, *args)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Proposition = Prop
 
 class FuncAtom(Atom):
@@ -192,6 +269,21 @@ class FuncAtom(Atom):
             return None
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.args)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Pred(FuncAtom):
     """Boolean function of terms."""
@@ -211,6 +303,21 @@ class Pred(FuncAtom):
             return self.args |> map$(.substitute(subs, **kwargs)) |*> Pred$(name)
         else:
             return Pred(name, *self.args)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Predicate = Pred
 
 class Term(Atom):
@@ -240,6 +347,21 @@ class Term(Atom):
         if can_sub(kwargs):
             return self.substitute_elements(subs, **kwargs)
         return self
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Var(Term):
     """A variable quantified by a ForAll."""
@@ -252,6 +374,21 @@ class Var(Term):
             return {self: other}
         else:
             return None
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Variable = Var
 
 class Const(Term):
@@ -266,6 +403,21 @@ class Const(Term):
         else:
             return super(Const, self).find_unification(other)
     def admits_empty_universe(self) = False
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Constant = Const
 
 class Func(Term, FuncAtom):
@@ -280,6 +432,21 @@ class Func(Term, FuncAtom):
             return {other: self}
         else:
             return super(Func, self).find_unification(other)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Function = Func
 
 class UnaryOp(Expr):
@@ -307,6 +474,21 @@ class UnaryOp(Expr):
             return None
     def resolve(self, **kwargs) =
         self.__class__(self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Not(UnaryOp):
     """Logical not."""
@@ -348,6 +530,21 @@ class Not(UnaryOp):
             return self.neg.admits_empty_universe()
         else:
             return not self.neg.admits_empty_universe()
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Quantifier(Expr):
     """Base class for logical quantifiers."""
@@ -405,6 +602,21 @@ class Quantifier(Expr):
     def blank(cls, elem) =
         """Make a quantifier without a variable."""
         cls(empty_var, elem).make_free_in(elem)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class ForAll(Quantifier):
     """Universal quantifier."""
@@ -432,6 +644,21 @@ class ForAll(Quantifier):
         elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
         return self
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 FA = ForAll
 
 class Exists(Quantifier):
@@ -466,6 +693,21 @@ class Exists(Quantifier):
             return self.elem
         return self
     def admits_empty_universe(self) = False
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 TE = Exists
 
 class BinaryOp(Expr):
@@ -500,6 +742,21 @@ class BinaryOp(Expr):
     def resolve(self, **kwargs) =
         elems = self.elems |> map$(.resolve(**kwargs))
         self.__class__(*elems).simplify(dnf=False, **kwargs)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Imp(BinaryOp):
     """Logical implication."""
@@ -525,6 +782,21 @@ class Imp(BinaryOp):
         self.to_or().simplify(**kwargs)
     def admits_empty_universe(self) =
         self.to_or().admits_empty_universe()
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Implies = Imp
 
 class BoolOp(BinaryOp):
@@ -573,6 +845,21 @@ class BoolOp(BinaryOp):
                 elems += (free_x.elem,)
                 return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Or(BoolOp):
     """Logical disjunction."""
@@ -639,6 +926,21 @@ class Or(BoolOp):
         return None
     def admits_empty_universe(self) =
         any(x.admits_empty_universe() for x in self.elems)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class And(BoolOp):
     """Logical conjunction."""
@@ -733,6 +1035,21 @@ class And(BoolOp):
         return resolved.simplify(dnf=False, **kwargs)
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.elems)
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 class Eq(Expr):
     """Equality operator."""
@@ -785,4 +1102,19 @@ class Eq(Expr):
             return self.paramodulant(other)
     def admits_empty_universe(self) =
         self.a.admits_empty_universe() and self.b.admits_empty_universe()
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 Equals = Eq
