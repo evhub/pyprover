@@ -2,7 +2,7 @@
 
 from contextlib import contextmanager
 
-from pxprover.tools import (
+from pyprover.tools import (
     props,
     terms,
 )

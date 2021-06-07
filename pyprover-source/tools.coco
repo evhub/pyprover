@@ -1,6 +1,6 @@
 # Imports:
 
-from pxprover.logic import (
+from pyprover.logic import (
     Proposition,
     Constant,
     Implies,

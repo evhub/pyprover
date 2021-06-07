@@ -1,6 +1,6 @@
 # Imports:
 
-from pxprover.constants import (
+from pyprover.constants import (
     imp_sym,
     and_sym,
     or_sym,
