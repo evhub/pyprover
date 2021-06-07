@@ -41,6 +41,21 @@ class Vars:
                     globs[name] = prevars[name]
                 else:
                     del globs[name]
+    def __hash__(self) -> int:
+        return str(self).__hash__()
+
+    def __lt__(self, other) -> int:
+        return str(self) < str(other)
+
+    def __gt__(self, other) -> int:
+        return str(self) > str(other)
+
+    def __ge__(self, other) -> int:
+        return str(self) >= str(other)
+
+    def __le__(self, other) -> int:
+        return str(self) <= str(other)
+
 
 # Derived Classes:
 

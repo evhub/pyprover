@@ -1,23 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x4a8b33a4
+# __coconut_hash__ = 0x67040014
 
-# Compiled with Coconut version 1.4.2-post_dev5 [Ernest Scribbler]
+# Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-import sys as _coconut_sys, os.path as _coconut_os_path
-_coconut_file_path = _coconut_os_path.dirname(_coconut_os_path.abspath(__file__))
+import sys as _coconut_sys, os as _coconut_os
+_coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os_path.dirname(_coconut_cached_module.__file__) != _coconut_file_path:
+if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:
     del _coconut_sys.modules[str("__coconut__")]
-_coconut_sys.path.insert(0, _coconut_file_path)
+_coconut_sys.path.insert(0, _coconut_file_dir)
+_coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
+if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha() or c.isdigit() for c in _coconut_module_name) and "__init__.py" in _coconut_os.listdir(_coconut_file_dir):
+    _coconut_full_module_name = str(_coconut_module_name + ".__coconut__")
+    import __coconut__ as _coconut__coconut__
+    _coconut__coconut__.__name__ = _coconut_full_module_name
+    for _coconut_v in vars(_coconut__coconut__).values():
+        if getattr(_coconut_v, "__module__", None) == str("__coconut__"):
+            try:
+                _coconut_v.__module__ = _coconut_full_module_name
+            except AttributeError:
+                type(_coconut_v).__module__ = _coconut_full_module_name
+    _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut, _coconut_MatchError, _coconut_tail_call, _coconut_tco, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_back_pipe, _coconut_star_pipe, _coconut_back_star_pipe, _coconut_dubstar_pipe, _coconut_back_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match
-if _coconut_sys.version_info >= (3,):
-    _coconut_sys.path.pop(0)
-
+from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable
+_coconut_sys.path.pop(0)
 # Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
@@ -56,6 +66,28 @@ def isvar(var):
 class Expr(_coconut.object):
     """Base class for all formulae."""
     __slots__ = ()
+
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
     @_coconut_tco
     def __and__(self, other):
         if isinstance(other, And):
@@ -124,6 +156,7 @@ class Expr(_coconut.object):
         """Determines if self allows for the possibility of an empty universe."""
         return True
 
+_coconut_call_set_names(Expr)
 class Top(Expr):
     """True"""
     __slots__ = ()
@@ -136,6 +169,28 @@ class Top(Expr):
         return top_sym
     def __bool__(self):
         return True
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Top)
 top = true = Top()
 
 class Bot(Expr):
@@ -152,6 +207,28 @@ class Bot(Expr):
         return False
     def admits_empty_universe(self):
         return False
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Bot)
 bot = false = Bot()
 
 class Atom(Expr):
@@ -178,14 +255,14 @@ class Atom(Expr):
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        _coconut_match_to = subs
-        _coconut_match_check = False
-        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
-            _coconut_match_temp_0 = _coconut_match_to.get(self, _coconut_sentinel)
+        _coconut_match_to_0 = subs
+        _coconut_match_check_0 = False
+        if _coconut.isinstance(_coconut_match_to_0, _coconut.abc.Mapping):
+            _coconut_match_temp_0 = _coconut_match_to_0.get(self, _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
                 sub = _coconut_match_temp_0
-                _coconut_match_check = True
-        if _coconut_match_check:
+                _coconut_match_check_0 = True
+        if _coconut_match_check_0:
             do_sub(kwargs)
             if wff(sub):
                 return sub
@@ -198,12 +275,57 @@ class Atom(Expr):
         else:
             return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
 
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(Atom)
 class Prop(Atom):
     """Logical proposition that is either true or false."""
     __slots__ = ()
     @_coconut_tco
     def __call__(self, *args):
         return _coconut_tail_call(Pred, self.name, *args)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Prop)
 Proposition = Prop
 
 class FuncAtom(Atom):
@@ -245,7 +367,29 @@ class FuncAtom(Atom):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.args))
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(FuncAtom)
 class Pred(FuncAtom):
     """Boolean function of terms."""
     __slots__ = ()
@@ -256,23 +400,45 @@ class Pred(FuncAtom):
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
-        _coconut_match_to = subs
-        _coconut_match_check = False
-        if _coconut.isinstance(_coconut_match_to, _coconut.abc.Mapping):
-            _coconut_match_temp_0 = _coconut_match_to.get(self.proposition(), _coconut_sentinel)
+        _coconut_match_to_1 = subs
+        _coconut_match_check_1 = False
+        if _coconut.isinstance(_coconut_match_to_1, _coconut.abc.Mapping):
+            _coconut_match_temp_0 = _coconut_match_to_1.get(self.proposition(), _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
                 sub = _coconut_match_temp_0
-                _coconut_match_check = True
-        if _coconut_match_check:
+                _coconut_match_check_1 = True
+        if _coconut_match_check_1:
             assert isinstance(sub, Atom), sub
             do_sub(kwargs)
             name = sub.name
         else:
             name = self.name
         if can_sub(kwargs):
-            return _coconut_tail_call(Pred, name, *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
+            return (Pred)(name, *(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
         else:
             return _coconut_tail_call(Pred, name, *self.args)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Pred)
 Predicate = Pred
 
 class Term(Atom):
@@ -307,7 +473,29 @@ class Term(Atom):
         if can_sub(kwargs):
             return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
         return self
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(Term)
 class Var(Term):
     """A variable quantified by a ForAll."""
     __slots__ = ()
@@ -321,6 +509,28 @@ class Var(Term):
             return {self: other}
         else:
             return None
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Var)
 Variable = Var
 
 class Const(Term):
@@ -339,14 +549,35 @@ class Const(Term):
             return _coconut_tail_call(super(Const, self).find_unification, other)
     def admits_empty_universe(self):
         return False
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Const)
 Constant = Const
 
 class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
-    @_coconut_tco
     def substitute_elements(self, subs, **kwargs):
-        return _coconut_tail_call(Func, self.name, *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
+        return (Func)(self.name, *(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
     @_coconut_tco
     def rename(self, name):
         return _coconut_tail_call(self.__class__, name, *self.args)
@@ -356,6 +587,28 @@ class Func(Term, FuncAtom):
             return {other: self}
         else:
             return _coconut_tail_call(super(Func, self).find_unification, other)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Func)
 Function = Func
 
 class UnaryOp(Expr):
@@ -386,7 +639,29 @@ class UnaryOp(Expr):
     @_coconut_tco
     def resolve(self, **kwargs):
         return _coconut_tail_call(self.__class__(self.elem.resolve(**kwargs)).simplify, dnf=False, **kwargs)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(UnaryOp)
 class Not(UnaryOp):
     """Logical not."""
     __slots__ = ()
@@ -431,7 +706,29 @@ class Not(UnaryOp):
             return _coconut_tail_call(self.neg.admits_empty_universe)
         else:
             return not self.neg.admits_empty_universe()
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(Not)
 class Quantifier(Expr):
     """Base class for logical quantifiers."""
     __slots__ = ("var", "elem")
@@ -463,7 +760,7 @@ class Quantifier(Expr):
         return _coconut_tail_call(self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier, **kwargs)
     @_coconut_tco
     def substitute(self, subs, **kwargs):
-        return _coconut_tail_call((self.change_elem), self.elem.substitute(rem_var(self.var, subs), **kwargs))
+        return _coconut_tail_call((self.change_elem), (self.elem.substitute)((rem_var)(self.var, subs), **kwargs))
     @_coconut_tco
     def make_free_in(self, other):
         """Makes self free in other."""
@@ -478,11 +775,11 @@ class Quantifier(Expr):
         if unif is None:
             return None
         else:
-            return _coconut_tail_call(rem_var, self.var, unif)
+            return _coconut_tail_call((rem_var), self.var, unif)
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Quantifier):
-            resolution = self.elem.resolve_against(Not(other.elem).simplify(**kwargs), **kwargs)
+            resolution = (self.elem.resolve_against)(Not(other.elem).simplify(**kwargs), **kwargs)
             if resolution is None:
                 return None
             elif isinstance(other, ForAll):  # don't pull an Exists out of a ForAll
@@ -496,7 +793,29 @@ class Quantifier(Expr):
     def blank(cls, elem):
         """Make a quantifier without a variable."""
         return _coconut_tail_call(cls(empty_var, elem).make_free_in, elem)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(Quantifier)
 class ForAll(Quantifier):
     """Universal quantifier."""
     __slots__ = ()
@@ -524,6 +843,28 @@ class ForAll(Quantifier):
         elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
         return self
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(ForAll)
 FA = ForAll
 
 class Exists(Quantifier):
@@ -560,6 +901,28 @@ class Exists(Quantifier):
         return self
     def admits_empty_universe(self):
         return False
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Exists)
 TE = Exists
 
 class BinaryOp(Expr):
@@ -591,14 +954,35 @@ class BinaryOp(Expr):
         return _coconut_tail_call((" " + self.opstr + " ").join, (quote(x) for x in self.elems))
     def __len__(self):
         return sum(map(len, self.elems)) + 1
-    @_coconut_tco
     def substitute(self, subs, **kwargs):
-        return _coconut_tail_call((self.__class__), *map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.elems))
+        return (self.__class__)(*(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.elems))
     @_coconut_tco
     def resolve(self, **kwargs):
-        elems = map(_coconut.operator.methodcaller("resolve", **kwargs), self.elems)
+        elems = (map)(_coconut.operator.methodcaller("resolve", **kwargs), self.elems)
         return _coconut_tail_call(self.__class__(*elems).simplify, dnf=False, **kwargs)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(BinaryOp)
 class Imp(BinaryOp):
     """Logical implication."""
     __slots__ = ()
@@ -630,6 +1014,28 @@ class Imp(BinaryOp):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(self.to_or().admits_empty_universe)
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Imp)
 Implies = Imp
 
 class BoolOp(BinaryOp):
@@ -638,7 +1044,7 @@ class BoolOp(BinaryOp):
     def __eq__(self, other):
         return isinstance(other, self.__class__) and (unorderd_eq)(self.elems, other.elems)
     def simplify(self, **kwargs):
-        elems = map(_coconut.operator.methodcaller("simplify", **kwargs), self.merge().elems)
+        elems = (map)(_coconut.operator.methodcaller("simplify", **kwargs), self.merge().elems)
         out = self.__class__(*elems).clean()
         if isinstance(out, self.__class__):
             out = out.distribute(**kwargs)
@@ -671,7 +1077,7 @@ class BoolOp(BinaryOp):
     @_coconut_tco
     def clean(self):
         """Removes copies of the identity."""
-        return _coconut_tail_call((self.__class__), *filter(_coconut.functools.partial(_coconut.operator.ne, self.identity), self.elems))
+        return _coconut_tail_call((self.__class__), *(filter)(_coconut.functools.partial(_coconut.operator.ne, self.identity), self.elems))
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -681,7 +1087,29 @@ class BoolOp(BinaryOp):
                 elems += (free_x.elem,)
                 return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(BoolOp)
 class Or(BoolOp):
     """Logical disjunction."""
     __slots__ = ()
@@ -723,7 +1151,7 @@ class Or(BoolOp):
         if isinstance(other, Eq):
             return _coconut_tail_call(other.resolve_against, self)
         elif isinstance(other, Or):
-            not_other_ors = map(_coconut.operator.methodcaller("simplify", **kwargs), map(Not, other.ors))
+            not_other_ors = (map)(_coconut.operator.methodcaller("simplify", **kwargs), (map)(Not, other.ors))
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
                     resolved_other = (x.paramodulant)(other)
@@ -735,7 +1163,7 @@ class Or(BoolOp):
                         return (Or)(*other.ors[:j] + other.ors[j + 1:] + resolved_self.ors)
                     subs = x.find_unification(y)
                     if subs is not None:
-                        return (Or)(*map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
+                        return (Or)(*(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:] + other.ors[:j] + other.ors[j + 1:]))
         else:
             not_other = Not(other).simplify(**kwargs)
             for i, x in enumerate(self.ors):
@@ -743,12 +1171,34 @@ class Or(BoolOp):
                     return (x.paramodulant)((Or)(*self.ors[:i] + self.ors[i + 1:]))
                 subs = x.find_unification(not_other)
                 if subs is not None:
-                    return (Or)(*map(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:]))
+                    return (Or)(*(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:]))
         return None
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(any, (x.admits_empty_universe() for x in self.elems))
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(Or)
 class And(BoolOp):
     """Logical conjunction."""
     __slots__ = ()
@@ -837,13 +1287,35 @@ class And(BoolOp):
                                 break
                 if clauses == [bot]:
                     break
-        resolved = reduce(_coconut_pipe, [And(*clauses)] + quantifiers)
+        resolved = (reduce)(_coconut_pipe, [And(*clauses)] + quantifiers)
         log_simplification(self, resolved, **kwargs)
         return _coconut_tail_call(resolved.simplify, dnf=False, **kwargs)
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.elems))
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
 
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+
+_coconut_call_set_names(And)
 class Eq(Expr):
     """Equality operator."""
     __slots__ = ("a", "b")
@@ -900,4 +1372,26 @@ class Eq(Expr):
             return _coconut_tail_call(self.paramodulant, other)
     def admits_empty_universe(self):
         return self.a.admits_empty_universe() and self.b.admits_empty_universe()
+    @_coconut_tco
+    def __hash__(self):
+# type: (...) -> int
+        return _coconut_tail_call(str(self).__hash__)
+
+    def __lt__(self, other):
+# type: (...) -> int
+        return str(self) < str(other)
+
+    def __gt__(self, other):
+# type: (...) -> int
+        return str(self) > str(other)
+
+    def __ge__(self, other):
+# type: (...) -> int
+        return str(self) >= str(other)
+
+    def __le__(self, other):
+# type: (...) -> int
+        return str(self) <= str(other)
+
+_coconut_call_set_names(Eq)
 Equals = Eq
