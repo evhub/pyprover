@@ -1,6 +1,6 @@
 # Imports:
 
-from pyprover.logic import (
+from pxprover.logic import (
     ForAll,
     Exists,
     FA,
@@ -15,7 +15,7 @@ from pyprover.logic import (
     And,
     Eq,
 )
-from pyprover.tools import (
+from pxprover.tools import (
     props,
     terms,
     solve,
@@ -34,14 +34,14 @@ from pyprover.tools import (
     strict_simplest_solution,
     substitute,
 )
-from pyprover.atoms import (
+from pxprover.atoms import (
     LowercasePropositions,
     UppercasePropositions,
     LowercaseVariables,
     UppercaseVariables,
     StandardMath,
 )
-from pyprover.parser import expr
+from pxprover.parser import expr
 
 # Main:
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x78fad73
+# __coconut_hash__ = 0xb93e4175
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -32,42 +32,42 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pyprover.logic import ForAll
-from pyprover.logic import Exists
-from pyprover.logic import FA
-from pyprover.logic import TE
-from pyprover.logic import top
-from pyprover.logic import bot
-from pyprover.logic import true
-from pyprover.logic import false
-from pyprover.logic import Not
-from pyprover.logic import Imp
-from pyprover.logic import Or
-from pyprover.logic import And
-from pyprover.logic import Eq
-from pyprover.tools import props
-from pyprover.tools import terms
-from pyprover.tools import solve
-from pyprover.tools import strict_solve
-from pyprover.tools import no_proof_of
-from pyprover.tools import proves
-from pyprover.tools import strict_proves
-from pyprover.tools import proves_and_proved_by
-from pyprover.tools import strict_proves_and_proved_by
-from pyprover.tools import iff
-from pyprover.tools import simplify
-from pyprover.tools import strict_simplify
-from pyprover.tools import simplest_form
-from pyprover.tools import strict_simplest_form
-from pyprover.tools import simplest_solution
-from pyprover.tools import strict_simplest_solution
-from pyprover.tools import substitute
-from pyprover.atoms import LowercasePropositions
-from pyprover.atoms import UppercasePropositions
-from pyprover.atoms import LowercaseVariables
-from pyprover.atoms import UppercaseVariables
-from pyprover.atoms import StandardMath
-from pyprover.parser import expr
+from pxprover.logic import ForAll
+from pxprover.logic import Exists
+from pxprover.logic import FA
+from pxprover.logic import TE
+from pxprover.logic import top
+from pxprover.logic import bot
+from pxprover.logic import true
+from pxprover.logic import false
+from pxprover.logic import Not
+from pxprover.logic import Imp
+from pxprover.logic import Or
+from pxprover.logic import And
+from pxprover.logic import Eq
+from pxprover.tools import props
+from pxprover.tools import terms
+from pxprover.tools import solve
+from pxprover.tools import strict_solve
+from pxprover.tools import no_proof_of
+from pxprover.tools import proves
+from pxprover.tools import strict_proves
+from pxprover.tools import proves_and_proved_by
+from pxprover.tools import strict_proves_and_proved_by
+from pxprover.tools import iff
+from pxprover.tools import simplify
+from pxprover.tools import strict_simplify
+from pxprover.tools import simplest_form
+from pxprover.tools import strict_simplest_form
+from pxprover.tools import simplest_solution
+from pxprover.tools import strict_simplest_solution
+from pxprover.tools import substitute
+from pxprover.atoms import LowercasePropositions
+from pxprover.atoms import UppercasePropositions
+from pxprover.atoms import LowercaseVariables
+from pxprover.atoms import UppercaseVariables
+from pxprover.atoms import StandardMath
+from pxprover.parser import expr
 
 # Main:
 

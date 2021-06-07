@@ -1,19 +1,19 @@
-# PyProver
+# pxprover
 
-PyProver is a resolution theorem prover for first-order predicate logic. PyProver is written in [Coconut](http://coconut-lang.org/) which compiles to pure, universal Python, allowing PyProver to work on any Python version.
+pxprover is a resolution theorem prover for first-order predicate logic. pxprover is written in [Coconut](http://coconut-lang.org/) which compiles to pure, universal Python, allowing pxprover to work on any Python version.
 
-Installing PyProver is as simple as
+Installing pxprover is as simple as
 ```
-pip install pyprover
+pip install pxprover
 ```
 
 ## Usage
 
-To use PyProver from a Python interpreter, it is recommended to
+To use pxprover from a Python interpreter, it is recommended to
 ```python
-from pyprover import *
+from pxprover import *
 ```
-which will populate the global namespace with capital letters as propositions/predicates, and lowercase letters as constants/variables/functions. When using PyProver from a Python file, however, it is recommended to only import what you need.
+which will populate the global namespace with capital letters as propositions/predicates, and lowercase letters as constants/variables/functions. When using pxprover from a Python file, however, it is recommended to only import what you need.
 
 Formulas can be constructed using the built-in Python operators on propositions and terms combined with `Exists` (or `TE`), `ForAll` (or `FA`), `Eq`, `top`, and `bot`. For example:
 ```python
@@ -63,7 +63,7 @@ To construct additional propositions/predicates, the function `props("name1 name
 _The backtick infix syntax here is from [Coconut](http://coconut-lang.org/). If using Python instead simply adjust to standard function call syntax._
 
 ```python
-from pyprover import *
+from pxprover import *
 
 # constructive propositional logic
 assert (E, E>>F, F>>G) `proves` G
@@ -86,9 +86,9 @@ assert expr(r"A x. E y. F(x) \/ G(y)") == FA(x, TE(y, F(x) | G(y)))
 assert expr(r"a = b /\ b = c") == Eq(a, b) & Eq(b, c)
 ```
 
-## Compiling PyProver
+## Compiling pxprover
 
-If you want to compile PyProver yourself instead of installing it from PyPI with `pip`, you can
+If you want to compile pxprover yourself instead of installing it from PyPI with `pip`, you can
 
 1. clone the `git` repository,
 2. run `make setup`, and

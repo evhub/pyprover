@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x2d972424
+# __coconut_hash__ = 0xa510900d
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -34,8 +34,8 @@ _coconut_sys.path.pop(0)
 
 from contextlib import contextmanager
 
-from pyprover.tools import props
-from pyprover.tools import terms
+from pxprover.tools import props
+from pxprover.tools import terms
 
 # Base Class:
 
