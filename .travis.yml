@@ -5,12 +5,12 @@ notifications:
 sudo: false
 cache: pip
 python:
-  - "2.7"
-  - "3.6"
+- '2.7'
+- '3.6'
 install:
-  - make setup
+- make setup
 script:
-  - make test
+- make test
 deploy:
   provider: pypi
   edge:
@@ -20,4 +20,4 @@ deploy:
     secure: HDf3gQtuwFF99Zq1NhwaAVRLvEw0RgATXlxxYPh6mkYc7tm/1BtIHJnq/JQgb9fLqZsBikqQexHQ47LESA40OMByavOgnrox7NU2BXAO6VYDijUR3Q0X6IAuzZ6xHURTVMOEaBbCYoizIy6A18SvEQtgQPEgmtDoMy+e0wx/FgoFPo0HWNGJOQD5wiMp/qa7kz516v4grQVFvzhJnU6LVtUu9ThZ2IHd+nDf5s5VouKDC1NQ1deUlUWhsOx04oUo4y1f5xfn7IuDopnbG60FSx5ct1uPp8fUZHs3BbN/HBsWEsdfVwNcgnf3CfL/5tvZUoxa6CdfeWt4noSfOf2vWz1oL2c0cJgS1lHjrUe3R5SEgRP49u7h6bFxXPRAcmkVr30mkXvEEnmSy/tTles4yE2rEiIbGqsoiCXttHNFSfGe3W3GvS7bGRg/aRjPvGQfKonqRD68pxY40ZhghuTsEcH7Iw922g1GuvopzDYEMldgcMD3A8hpyCVnmh32+y2CpY9SpVSpKYjPLcXID3oVXxMiKxXc/Eul+Jae5fB+kxYOaTpHodVNShNlB1eAjg2ohCdG/Z+bWbmi8SPH0ufzd4jCrFZgZvjbCtWlDBJmuVTa8f+c0GlGeA46iNMi7+HDafRb3tLf9b1JcQxfBtDkZu9sHTKl3z16hFdG/0gZzSQ=
   on:
     distributions: sdist bdist_wheel
-    repo: evhub/pxprover
+    repo: evhub/pyprover

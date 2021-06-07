@@ -1,6 +1,6 @@
 # Imports:
 
-from pxprover.logic import (
+from pyprover.logic import (
     FA,
     TE,
     top,
@@ -9,7 +9,7 @@ from pxprover.logic import (
     Or,
     Eq,
 )
-from pxprover.tools import (
+from pyprover.tools import (
     proves,
     proves_and_proved_by,
     simplify,
@@ -18,11 +18,11 @@ from pxprover.tools import (
     strict_simplify,
     strict_proves,
 )
-from pxprover.atoms import (
+from pyprover.atoms import (
     LowercasePropositions,
     StandardMath,
 )
-from pxprover.parser import expr
+from pyprover.parser import expr
 
 # Tests:
 

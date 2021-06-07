@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd6d4a64
+# __coconut_hash__ = 0x774454dc
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -32,11 +32,11 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pxprover.logic import Proposition
-from pxprover.logic import Constant
-from pxprover.logic import Implies
-from pxprover.logic import wff
-from pxprover.logic import bot
+from pyprover.logic import Proposition
+from pyprover.logic import Constant
+from pyprover.logic import Implies
+from pyprover.logic import wff
+from pyprover.logic import bot
 
 # Functions:
 

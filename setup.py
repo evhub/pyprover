@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x360771f7
+# __coconut_hash__ = 0x3b3eecb
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -1091,10 +1091,10 @@ import setuptools
 
 sys = _coconut_sys
 import os.path
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pxprover"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pyprover"))
 
 from constants import version
 from constants import requirements
 from constants import classifiers
 
-setuptools.setup(name="pxprover", version=version, description="Fork of pyprover, https://github.com/evhub/pyprover", url="https://github.com/vineetvermait/pyprover-px", author="Vineet Verma (Original: Evan Hubinger)", author_email="vineetverma.it@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)
+setuptools.setup(name="pyprover-px", version=version, description="Fork of pyprover, https://github.com/evhub/pyprover", url="https://github.com/vineetvermait/pyprover", author="Vineet Verma (Original: Evan Hubinger)", author_email="vineetverma.it@gmail.com", packages=setuptools.find_packages(), install_requires=requirements, classifiers=classifiers)

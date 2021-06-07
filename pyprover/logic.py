@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7340207
+# __coconut_hash__ = 0x67040014
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -32,23 +32,23 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pxprover.constants import top_sym
-from pxprover.constants import bot_sym
-from pxprover.constants import not_sym
-from pxprover.constants import imp_sym
-from pxprover.constants import and_sym
-from pxprover.constants import or_sym
-from pxprover.constants import forall_sym
-from pxprover.constants import exists_sym
-from pxprover.constants import empty_var
-from pxprover.util import unorderd_eq
-from pxprover.util import quote
-from pxprover.util import log_simplification
-from pxprover.util import rem_var
-from pxprover.util import can_sub
-from pxprover.util import do_sub
-from pxprover.util import merge_dicts
-from pxprover.util import sub_once
+from pyprover.constants import top_sym
+from pyprover.constants import bot_sym
+from pyprover.constants import not_sym
+from pyprover.constants import imp_sym
+from pyprover.constants import and_sym
+from pyprover.constants import or_sym
+from pyprover.constants import forall_sym
+from pyprover.constants import exists_sym
+from pyprover.constants import empty_var
+from pyprover.util import unorderd_eq
+from pyprover.util import quote
+from pyprover.util import log_simplification
+from pyprover.util import rem_var
+from pyprover.util import can_sub
+from pyprover.util import do_sub
+from pyprover.util import merge_dicts
+from pyprover.util import sub_once
 
 # Functions:
 

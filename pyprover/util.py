@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x519dacc2
+# __coconut_hash__ = 0xc592e403
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -32,11 +32,11 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pxprover.constants import imp_sym
-from pxprover.constants import and_sym
-from pxprover.constants import or_sym
-from pxprover.constants import forall_sym
-from pxprover.constants import exists_sym
+from pyprover.constants import imp_sym
+from pyprover.constants import and_sym
+from pyprover.constants import or_sym
+from pyprover.constants import forall_sym
+from pyprover.constants import exists_sym
 
 # Functions:
 
