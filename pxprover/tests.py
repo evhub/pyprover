@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x812bfe7c
+# __coconut_hash__ = 0xe775abe7
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -32,23 +32,23 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pyprover.logic import FA
-from pyprover.logic import TE
-from pyprover.logic import top
-from pyprover.logic import bot
-from pyprover.logic import And
-from pyprover.logic import Or
-from pyprover.logic import Eq
-from pyprover.tools import proves
-from pyprover.tools import proves_and_proved_by
-from pyprover.tools import simplify
-from pyprover.tools import simplest_form
-from pyprover.tools import substitute
-from pyprover.tools import strict_simplify
-from pyprover.tools import strict_proves
-from pyprover.atoms import LowercasePropositions
-from pyprover.atoms import StandardMath
-from pyprover.parser import expr
+from pxprover.logic import FA
+from pxprover.logic import TE
+from pxprover.logic import top
+from pxprover.logic import bot
+from pxprover.logic import And
+from pxprover.logic import Or
+from pxprover.logic import Eq
+from pxprover.tools import proves
+from pxprover.tools import proves_and_proved_by
+from pxprover.tools import simplify
+from pxprover.tools import simplest_form
+from pxprover.tools import substitute
+from pxprover.tools import strict_simplify
+from pxprover.tools import strict_proves
+from pxprover.atoms import LowercasePropositions
+from pxprover.atoms import StandardMath
+from pxprover.parser import expr
 
 # Tests:
 

@@ -5,7 +5,7 @@ install: build
 .PHONY: build
 build:
 	coconut setup.coco --strict
-	coconut pyprover-source pyprover --strict --jobs sys
+	coconut pxprover-source pxprover --strict --jobs sys
 
 .PHONY: upload
 upload: clean install
@@ -20,7 +20,7 @@ setup:
 
 .PHONY: test
 test: install
-	python pyprover/tests.py
+	python pxprover/tests.py
 
 .PHONY: clean
 clean:
@@ -31,8 +31,8 @@ clean:
 .PHONY: wipe
 wipe: clean
 	find . -name '*.py' -delete
-	rm -rf ./pyprover
+	rm -rf ./pxprover
 
 .PHONY: watch
 watch: install
-	coconut pyprover-source pyprover --watch --strict
+	coconut pxprover-source pxprover --watch --strict

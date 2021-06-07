@@ -1,6 +1,6 @@
 # Imports:
 
-from pyprover.constants import (
+from pxprover.constants import (
     top_sym,
     bot_sym,
     not_sym,
@@ -11,7 +11,7 @@ from pyprover.constants import (
     exists_sym,
     empty_var,
 )
-from pyprover.util import (
+from pxprover.util import (
     unorderd_eq,
     quote,
     log_simplification,

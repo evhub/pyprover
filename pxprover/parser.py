@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x216e9829
+# __coconut_hash__ = 0x8a660474
 
 # Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
 
@@ -44,27 +44,27 @@ from pyparsing import ParserElement
 from pyparsing import stringStart
 from pyparsing import stringEnd
 
-from pyprover.constants import all_top_syms
-from pyprover.constants import all_bot_syms
-from pyprover.constants import all_not_syms
-from pyprover.constants import all_imp_syms
-from pyprover.constants import all_and_syms
-from pyprover.constants import all_or_syms
-from pyprover.constants import all_forall_syms
-from pyprover.constants import all_exists_syms
-from pyprover.logic import top
-from pyprover.logic import bot
-from pyprover.logic import Proposition
-from pyprover.logic import Predicate
-from pyprover.logic import Constant
-from pyprover.logic import Function
-from pyprover.logic import Not
-from pyprover.logic import Implies
-from pyprover.logic import And
-from pyprover.logic import Or
-from pyprover.logic import Exists
-from pyprover.logic import ForAll
-from pyprover.logic import Eq
+from pxprover.constants import all_top_syms
+from pxprover.constants import all_bot_syms
+from pxprover.constants import all_not_syms
+from pxprover.constants import all_imp_syms
+from pxprover.constants import all_and_syms
+from pxprover.constants import all_or_syms
+from pxprover.constants import all_forall_syms
+from pxprover.constants import all_exists_syms
+from pxprover.logic import top
+from pxprover.logic import bot
+from pxprover.logic import Proposition
+from pxprover.logic import Predicate
+from pxprover.logic import Constant
+from pxprover.logic import Function
+from pxprover.logic import Not
+from pxprover.logic import Implies
+from pxprover.logic import And
+from pxprover.logic import Or
+from pxprover.logic import Exists
+from pxprover.logic import ForAll
+from pxprover.logic import Eq
 
 ParserElement.enablePackrat()
 

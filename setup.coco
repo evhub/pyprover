@@ -2,7 +2,7 @@ import setuptools
 
 import sys
 import os.path
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pyprover"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "pxprover"))
 
 from constants import (
     version,
@@ -11,10 +11,10 @@ from constants import (
 )
 
 setuptools.setup(
-    name="pyprover-px",
+    name="pxprover",
     version=version,
     description="Fork of pyprover, https://github.com/evhub/pyprover",
-    url="https://github.com/vineetvermait/pyprover",
+    url="https://github.com/vineetvermait/pyprover-px",
     author="Vineet Verma (Original: Evan Hubinger)",
     author_email="vineetverma.it@gmail.com",
     packages=setuptools.find_packages(),

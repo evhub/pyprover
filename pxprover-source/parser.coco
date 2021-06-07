@@ -14,7 +14,7 @@ from pyparsing import (
     stringEnd,
 )
 
-from pyprover.constants import (
+from pxprover.constants import (
     all_top_syms,
     all_bot_syms,
     all_not_syms,
@@ -24,7 +24,7 @@ from pyprover.constants import (
     all_forall_syms,
     all_exists_syms,
 )
-from pyprover.logic import (
+from pxprover.logic import (
     top,
     bot,
     Proposition,
