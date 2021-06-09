@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x67040014
+# __coconut_hash__ = 0x449e373a
 
-# Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev60 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -159,7 +159,7 @@ class Expr(_coconut.object):
 _coconut_call_set_names(Expr)
 class Top(Expr):
     """True"""
-    __slots__ = ()
+    __slots__ = ('elems')
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Top)
@@ -169,33 +169,13 @@ class Top(Expr):
         return top_sym
     def __bool__(self):
         return True
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Top)
 top = true = Top()
 
 class Bot(Expr):
     """False"""
-    __slots__ = ()
+    __slots__ = ('elems')
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Bot)
@@ -207,26 +187,6 @@ class Bot(Expr):
         return False
     def admits_empty_universe(self):
         return False
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Bot)
 bot = false = Bot()
@@ -275,27 +235,6 @@ class Atom(Expr):
         else:
             return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
 
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
-
 
 _coconut_call_set_names(Atom)
 class Prop(Atom):
@@ -304,26 +243,6 @@ class Prop(Atom):
     @_coconut_tco
     def __call__(self, *args):
         return _coconut_tail_call(Pred, self.name, *args)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Prop)
 Proposition = Prop
@@ -367,27 +286,6 @@ class FuncAtom(Atom):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.args))
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
-
 
 _coconut_call_set_names(FuncAtom)
 class Pred(FuncAtom):
@@ -417,26 +315,6 @@ class Pred(FuncAtom):
             return (Pred)(name, *(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
         else:
             return _coconut_tail_call(Pred, name, *self.args)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Pred)
 Predicate = Pred
@@ -473,26 +351,6 @@ class Term(Atom):
         if can_sub(kwargs):
             return _coconut_tail_call(self.substitute_elements, subs, **kwargs)
         return self
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(Term)
@@ -509,26 +367,6 @@ class Var(Term):
             return {self: other}
         else:
             return None
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Var)
 Variable = Var
@@ -549,26 +387,6 @@ class Const(Term):
             return _coconut_tail_call(super(Const, self).find_unification, other)
     def admits_empty_universe(self):
         return False
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Const)
 Constant = Const
@@ -587,26 +405,6 @@ class Func(Term, FuncAtom):
             return {other: self}
         else:
             return _coconut_tail_call(super(Func, self).find_unification, other)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Func)
 Function = Func
@@ -639,26 +437,6 @@ class UnaryOp(Expr):
     @_coconut_tco
     def resolve(self, **kwargs):
         return _coconut_tail_call(self.__class__(self.elem.resolve(**kwargs)).simplify, dnf=False, **kwargs)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(UnaryOp)
@@ -706,26 +484,6 @@ class Not(UnaryOp):
             return _coconut_tail_call(self.neg.admits_empty_universe)
         else:
             return not self.neg.admits_empty_universe()
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(Not)
@@ -793,27 +551,6 @@ class Quantifier(Expr):
     def blank(cls, elem):
         """Make a quantifier without a variable."""
         return _coconut_tail_call(cls(empty_var, elem).make_free_in, elem)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
-
 
 _coconut_call_set_names(Quantifier)
 class ForAll(Quantifier):
@@ -843,26 +580,6 @@ class ForAll(Quantifier):
         elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
         return self
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(ForAll)
 FA = ForAll
@@ -901,26 +618,6 @@ class Exists(Quantifier):
         return self
     def admits_empty_universe(self):
         return False
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Exists)
 TE = Exists
@@ -960,26 +657,6 @@ class BinaryOp(Expr):
     def resolve(self, **kwargs):
         elems = (map)(_coconut.operator.methodcaller("resolve", **kwargs), self.elems)
         return _coconut_tail_call(self.__class__(*elems).simplify, dnf=False, **kwargs)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(BinaryOp)
@@ -1014,26 +691,6 @@ class Imp(BinaryOp):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(self.to_or().admits_empty_universe)
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Imp)
 Implies = Imp
@@ -1087,26 +744,6 @@ class BoolOp(BinaryOp):
                 elems += (free_x.elem,)
                 return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(BoolOp)
@@ -1176,26 +813,6 @@ class Or(BoolOp):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(any, (x.admits_empty_universe() for x in self.elems))
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(Or)
@@ -1293,26 +910,6 @@ class And(BoolOp):
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.elems))
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 
 _coconut_call_set_names(And)
@@ -1372,26 +969,6 @@ class Eq(Expr):
             return _coconut_tail_call(self.paramodulant, other)
     def admits_empty_universe(self):
         return self.a.admits_empty_universe() and self.b.admits_empty_universe()
-    @_coconut_tco
-    def __hash__(self):
-# type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
-
-    def __lt__(self, other):
-# type: (...) -> int
-        return str(self) < str(other)
-
-    def __gt__(self, other):
-# type: (...) -> int
-        return str(self) > str(other)
-
-    def __ge__(self, other):
-# type: (...) -> int
-        return str(self) >= str(other)
-
-    def __le__(self, other):
-# type: (...) -> int
-        return str(self) <= str(other)
 
 _coconut_call_set_names(Eq)
 Equals = Eq

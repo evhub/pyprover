@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x812bfe7c
+# __coconut_hash__ = 0xda4865e1
 
-# Compiled with Coconut version 1.5.0-post_dev58 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev60 [Fish License]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -49,7 +49,7 @@ from pyprover.tools import strict_proves
 from pyprover.atoms import LowercasePropositions
 from pyprover.atoms import StandardMath
 from pyprover.parser import expr
-
+import copy
 # Tests:
 
 def test_propositional_logic():
@@ -385,9 +385,22 @@ def test_parser():
         assert expr(r"forall x: A, B(x)") == FA(x, A(x) >> B(x))
         assert expr(r"exists x: A, B(x)") == TE(x, A(x) & B(x))
 
+
+def test_copy():
+    """Tests Copy on predicates."""
+    exp = expr("A")
+    assert str(exp) == str(copy.deepcopy(exp))
+
+def test_sort():
+    """Tests Copy on predicates."""
+    assert [expr('A'), expr('B')] == sorted([expr('B'), expr('A')])
+
+
 if __name__ == "__main__":
     test_propositional_logic()
     test_predicate_logic()
     test_empty_universe()
     test_parser()
+    test_copy()
+    test_sort()
     print("<success>")
