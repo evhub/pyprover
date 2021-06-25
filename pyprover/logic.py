@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x2d8c799f
+# __coconut_hash__ = 0x5aab3df4
 
 # Compiled with Coconut version 1.5.0-post_dev62 [Fish License]
 
@@ -159,7 +159,7 @@ class Expr(_coconut.object):
 _coconut_call_set_names(Expr)
 class Top(Expr):
     """True"""
-    __slots__ = ('elems',)
+    __slots__ = ()
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Top)
@@ -175,7 +175,7 @@ top = true = Top()
 
 class Bot(Expr):
     """False"""
-    __slots__ = ('elems',)
+    __slots__ = ()
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Bot)
