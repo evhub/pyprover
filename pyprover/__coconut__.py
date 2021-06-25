@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.5.0-post_dev60 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev62 [Fish License]
 
 """Built-in Coconut utilities."""
 
