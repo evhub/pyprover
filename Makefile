@@ -25,12 +25,12 @@ test: install
 .PHONY: clean
 clean:
 	rm -rf ./dist ./build
-	find . -name '*.pyc' -delete
-	find . -name '__pycache__' -delete
+	-find . -name '*.pyc' -delete
+	-find . -name '__pycache__' -delete
 
 .PHONY: wipe
 wipe: clean
-	find . -name '*.py' -delete
+	-find . -name '*.py' -delete
 	rm -rf ./pyprover
 
 .PHONY: watch
