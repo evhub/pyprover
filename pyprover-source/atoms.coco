@@ -15,6 +15,7 @@ class Vars:
         for name, var in vars(cls).items():
             if not name.startswith("_"):
                 yield name, var
+
     @classmethod
     def use(cls, globs=None):
         """Put variables into the global namespace."""
@@ -22,6 +23,7 @@ class Vars:
             globs = globals()
         for name, var in cls.items():
             globs[name] = var
+
     @classmethod
     @contextmanager
     def using(cls, globs=None):
@@ -41,8 +43,9 @@ class Vars:
                     globs[name] = prevars[name]
                 else:
                     del globs[name]
+
     def __hash__(self) -> int:
-        return str(self).__hash__()
+        return str(self) |> hash
 
     def __lt__(self, other) -> int:
         return str(self) < str(other)

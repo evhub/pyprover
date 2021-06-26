@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5b780e02
+# __coconut_hash__ = 0x42f4d236
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -52,6 +52,8 @@ from pyprover.tools import strict_proves
 from pyprover.atoms import LowercasePropositions
 from pyprover.atoms import StandardMath
 from pyprover.parser import expr
+
+
 # Tests:
 
 def test_propositional_logic():
@@ -180,6 +182,7 @@ def test_propositional_logic():
         assert (simplify)((substitute)(a ^ b, {a: True, b: False})) == top
         assert (simplify)((substitute)(a ^ b, {a: top, b: top})) == bot
         assert e << f == f >> e
+
 
 def test_predicate_logic():
     """Runs predicate logic tests."""
@@ -390,7 +393,7 @@ def test_parser():
 
 def test_sort():
     """Tests Sorting on predicates."""
-    assert [expr('A'), expr('B')] == sorted([expr('B'), expr('A')])
+    assert sorted([expr('B'), expr('A')]) == [expr('A'), expr('B')]
 
 
 if __name__ == "__main__":

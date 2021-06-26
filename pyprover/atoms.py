@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xa200c7d4
+# __coconut_hash__ = 0x5bdb72b9
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -48,6 +48,7 @@ class Vars(_coconut.object):
         for name, var in vars(cls).items():
             if not name.startswith("_"):
                 yield name, var
+
     @classmethod
     def use(cls, globs=None):
         """Put variables into the global namespace."""
@@ -55,6 +56,7 @@ class Vars(_coconut.object):
             globs = globals()
         for name, var in cls.items():
             globs[name] = var
+
     @classmethod
     @contextmanager
     def using(cls, globs=None):
@@ -74,10 +76,11 @@ class Vars(_coconut.object):
                     globs[name] = prevars[name]
                 else:
                     del globs[name]
+
     @_coconut_tco
     def __hash__(self):
 # type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
+        return _coconut_tail_call((hash), str(self))
 
     def __lt__(self, other):
 # type: (...) -> int

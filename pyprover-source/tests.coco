@@ -23,6 +23,8 @@ from pyprover.atoms import (
     StandardMath,
 )
 from pyprover.parser import expr
+
+
 # Tests:
 
 def test_propositional_logic():
@@ -151,6 +153,7 @@ def test_propositional_logic():
         assert a^b `substitute` {a:True, b:False} |> simplify == top
         assert a^b `substitute` {a:top, b:top} |> simplify == bot
         assert e << f == f >> e
+
 
 def test_predicate_logic():
     """Runs predicate logic tests."""
@@ -361,7 +364,7 @@ def test_parser():
 
 def test_sort():
     """Tests Sorting on predicates."""
-    assert [expr('A'), expr('B')] == sorted([expr('B'), expr('A')])
+    assert sorted([expr('B'), expr('A')]) == [expr('A'), expr('B')]
 
 
 if __name__ == "__main__":

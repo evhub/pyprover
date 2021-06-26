@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xeb0e068f
+# __coconut_hash__ = 0xd79939d
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -54,7 +54,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.5.4"
+version = "0.5.5"
 requirements = ["pyparsing",]
 classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent",]
 

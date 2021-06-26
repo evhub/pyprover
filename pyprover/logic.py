@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x1ca8e0db
+# __coconut_hash__ = 0xee9f0cbb
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -59,10 +59,12 @@ def wff(expr):
     """Determines whether expr is a well-formed formula."""
     return isinstance(expr, Expr) and not isinstance(expr, Term)
 
+
 @_coconut_tco
 def isvar(var):
     """Whether a term is a variable."""
     return _coconut_tail_call(isinstance, var, (Const, Var))
+
 
 # Classes:
 
@@ -73,7 +75,7 @@ class Expr(_coconut.object):
     @_coconut_tco
     def __hash__(self):
 # type: (...) -> int
-        return _coconut_tail_call(str(self).__hash__)
+        return _coconut_tail_call((hash), str(self))
 
     def __lt__(self, other):
 # type: (...) -> int
@@ -97,39 +99,49 @@ class Expr(_coconut.object):
             return other & self
         else:
             return _coconut_tail_call(And, self, other)
+
     @_coconut_tco
     def __or__(self, other):
         if isinstance(other, Or):
             return other | self
         else:
             return _coconut_tail_call(Or, self, other)
+
     @_coconut_tco
     def __rshift__(self, other):
         if isinstance(other, Imp):
             return other << self
         else:
             return _coconut_tail_call(Imp, self, other)
+
     def __lshift__(self, other):
         assert wff(other), other
         return other >> self
+
     @_coconut_tco
     def __invert__(self):
         return _coconut_tail_call(Not, self)
+
     @_coconut_tco
     def __xor__(self, other):
         return _coconut_tail_call(Or, And(self, Not(other)), And(Not(self), other))
+
     def __len__(self):
         return 1
+
     def simplify(self, **kwargs):
         """Simplify the given expression."""
         return self
+
     def substitute(self, subs, **kwargs):
         """Substitutes a dictionary into the expression."""
         return self
+
     @_coconut_tco
     def resolve(self, **kwargs):
         """Performs resolution on the clauses in a CNF expression."""
         return _coconut_tail_call(self.simplify, dnf=False, **kwargs)
+
     @_coconut_tco
     def find_unification(self, other):
         """Find a substitution in self that would make self into other."""
@@ -139,6 +151,7 @@ class Expr(_coconut.object):
             return {}
         else:
             return None
+
     @_coconut_tco
     def contradicts(self, other, **kwargs):
         """Assuming self is simplified, determines if it contradicts other."""
@@ -146,6 +159,7 @@ class Expr(_coconut.object):
             return _coconut_tail_call(other.contradicts, self, **kwargs)
         else:
             return self == Not(other).simplify(**kwargs)
+
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         """Attempt to perform a resolution against other else None."""
@@ -155,65 +169,85 @@ class Expr(_coconut.object):
             return bot
         else:
             return None
+
     def admits_empty_universe(self):
         """Determines if self allows for the possibility of an empty universe."""
         return True
+
 
 _coconut_call_set_names(Expr)
 class Top(Expr):
     """True"""
     __slots__ = ()
+
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Top)
+
     def __repr__(self):
         return "top"
+
     def __str__(self):
         return top_sym
+
     def __bool__(self):
         return True
 
 _coconut_call_set_names(Top)
 top = true = Top()
 
+
 class Bot(Expr):
     """False"""
     __slots__ = ()
+
     @_coconut_tco
     def __eq__(self, other):
         return _coconut_tail_call(isinstance, other, Bot)
+
     def __repr__(self):
         return "bot"
+
     def __str__(self):
         return bot_sym
+
     def __bool__(self):
         return False
+
     def admits_empty_universe(self):
         return False
 
 _coconut_call_set_names(Bot)
 bot = false = Bot()
 
+
 class Atom(Expr):
     """Base class for all variables."""
     __slots__ = ("name",)
+
     def __init__(self, name):
         if isinstance(name, Atom):
             name = name.name
         assert isinstance(name, str), name
         self.name = name
+
     def __repr__(self):
         return self.__class__.__name__ + '("' + self.name + '")'
+
     def __str__(self):
         return self.name
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.name == other.name
+
     @_coconut_tco
     def __hash__(self):
         return _coconut_tail_call((hash), (self.__class__.__name__, self.name))
+
     def substitute_elements(self, subs, **kwargs):
         """Substitute for the elements of the Atom, not the Atom itself."""
         return self
+
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
@@ -243,6 +277,7 @@ _coconut_call_set_names(Atom)
 class Prop(Atom):
     """Logical proposition that is either true or false."""
     __slots__ = ()
+
     @_coconut_tco
     def __call__(self, *args):
         return _coconut_tail_call(Pred, self.name, *args)
@@ -250,23 +285,30 @@ class Prop(Atom):
 _coconut_call_set_names(Prop)
 Proposition = Prop
 
+
 class FuncAtom(Atom):
     """Base class for predicates and functions."""
     __slots__ = ("args",)
+
     def __init__(self, name, *args):
         super(FuncAtom, self).__init__(name)
         for arg in args:
             assert isinstance(arg, Term), arg
         self.args = args
+
     def __repr__(self):
         return self.__class__.__name__ + '("' + self.name + '"' + (", " if self.args else "") + ", ".join((repr(x) for x in self.args)) + ")"
+
     def __str__(self):
         return self.name + "(" + ", ".join((str(x) for x in self.args)) + ")"
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.name == other.name and self.args == other.args
+
     @_coconut_tco
     def __hash__(self):
         return _coconut_tail_call((hash), (self.__class__.__name__, self.name, self.args))
+
     @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Quantifier):
@@ -286,17 +328,21 @@ class FuncAtom(Atom):
             return subs
         else:
             return None
+
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.args))
+
 
 _coconut_call_set_names(FuncAtom)
 class Pred(FuncAtom):
     """Boolean function of terms."""
     __slots__ = ()
+
     @_coconut_tco
     def proposition(self):
         return _coconut_tail_call(Prop, self.name)
+
     @_coconut_tco
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
@@ -322,25 +368,31 @@ class Pred(FuncAtom):
 _coconut_call_set_names(Pred)
 Predicate = Pred
 
+
 class Term(Atom):
     """Base class for all terms."""
     __slots__ = ()
+
     @_coconut_tco
     def variable(self):
         """Convert to a variable."""
         return _coconut_tail_call(Var, self.name)
+
     @_coconut_tco
     def constant(self):
         """Convert to a constant."""
         return _coconut_tail_call(Const, self.name)
+
     @_coconut_tco
     def rename(self, name):
         """Create a new term with a different name."""
         return _coconut_tail_call(self.__class__, name)
+
     @_coconut_tco
     def prime(self):
         """Rename by adding a prime."""
         return _coconut_tail_call(self.rename, self.name + "'")
+
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         if can_sub(kwargs):
@@ -360,11 +412,14 @@ _coconut_call_set_names(Term)
 class Var(Term):
     """A variable quantified by a ForAll."""
     __slots__ = ()
+
     def variable(self):
         return self
+
     @_coconut_tco
     def __call__(self, *args):
         return _coconut_tail_call(Func, self.name, *args)
+
     def find_unification(self, other):
         if isinstance(other, Term):
             return {self: other}
@@ -374,34 +429,43 @@ class Var(Term):
 _coconut_call_set_names(Var)
 Variable = Var
 
+
 class Const(Term):
     """A variable quantified by an Exists."""
     __slots__ = ()
+
     def constant(self):
         return self
+
     @_coconut_tco
     def __call__(self, *args):
         return _coconut_tail_call(Func, self.name, *args)
+
     @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
             return _coconut_tail_call(super(Const, self).find_unification, other)
+
     def admits_empty_universe(self):
         return False
 
 _coconut_call_set_names(Const)
 Constant = Const
 
+
 class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
+
     def substitute_elements(self, subs, **kwargs):
         return (Func)(self.name, *(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.args))
+
     @_coconut_tco
     def rename(self, name):
         return _coconut_tail_call(self.__class__, name, *self.args)
+
     @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
@@ -412,23 +476,31 @@ class Func(Term, FuncAtom):
 _coconut_call_set_names(Func)
 Function = Func
 
+
 class UnaryOp(Expr):
     """Base class for unary operators."""
     __slots__ = ("elem",)
+
     def __init__(self, elem):
         assert wff(elem), elem
         self.elem = elem
+
     def __repr__(self):
         return self.__class__.__name__ + "(" + repr(self.elem) + ")"
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.elem == other.elem
+
     def __str__(self):
         return self.opstr + quote(self.elem)
+
     def __len__(self):
         return len(self.elem) + 1
+
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         return _coconut_tail_call(self.__class__, self.elem.substitute(subs, **kwargs))
+
     @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Quantifier):
@@ -437,6 +509,7 @@ class UnaryOp(Expr):
             return _coconut_tail_call(self.elem.find_unification, other.elem)
         else:
             return None
+
     @_coconut_tco
     def resolve(self, **kwargs):
         return _coconut_tail_call(self.__class__(self.elem.resolve(**kwargs)).simplify, dnf=False, **kwargs)
@@ -450,6 +523,7 @@ class Not(UnaryOp):
     @property
     def neg(self):
         return self.elem
+
     @_coconut_tco
     def simplify(self, **kwargs):
         if top == self.neg:
@@ -471,8 +545,10 @@ class Not(UnaryOp):
             return _coconut_tail_call(Exists, self.neg.var, Not(self.neg.elem).simplify(**kwargs))
         else:
             return _coconut_tail_call(Not, self.neg.simplify(**kwargs))
+
     def contradicts(self, other, **kwargs):
         return self.neg == other
+
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, (Or, Eq)):
@@ -481,6 +557,7 @@ class Not(UnaryOp):
             return bot
         else:
             return None
+
     @_coconut_tco
     def admits_empty_universe(self):
         if isinstance(self.neg, Atom):
@@ -493,35 +570,45 @@ _coconut_call_set_names(Not)
 class Quantifier(Expr):
     """Base class for logical quantifiers."""
     __slots__ = ("var", "elem")
+
     def __repr__(self):
         return self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
+
     def __str__(self):
         return self.opstr + " " + str(self.var) + ", " + quote(self.elem, in_quantifier=True)
+
     def __len__(self):
         return len(self.elem) + len(self.var)
+
     @_coconut_tco
     def change_var(self, var):
         """Create an equivalent expression with a new quantified variable."""
         return _coconut_tail_call(self.__class__, var, self.elem.substitute({self.var: var}))
+
     @_coconut_tco
     def change_elem(self, elem):
         """Create an equivalent quantifier with a new expression."""
         return _coconut_tail_call(self.__class__, self.var, elem)
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.elem == other.change_var(self.var).elem
         else:
             return False
+
     def inner_kwargs(self, kwargs):
         inner_kwargs = kwargs.copy()
         inner_kwargs["in_" + self.__class__.__name__.lower()] = True
         return inner_kwargs
+
     @_coconut_tco
     def simplify(self, **kwargs):
         return _coconut_tail_call(self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier, **kwargs)
+
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         return _coconut_tail_call((self.change_elem), (self.elem.substitute)((rem_var)(self.var, subs), **kwargs))
+
     @_coconut_tco
     def make_free_in(self, other):
         """Makes self free in other."""
@@ -530,6 +617,7 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         return _coconut_tail_call(self.change_var, var)
+
     @_coconut_tco
     def find_unification(self, other):
         unif = self.elem.find_unification(other)
@@ -537,6 +625,7 @@ class Quantifier(Expr):
             return None
         else:
             return _coconut_tail_call((rem_var), self.var, unif)
+
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Quantifier):
@@ -555,11 +644,13 @@ class Quantifier(Expr):
         """Make a quantifier without a variable."""
         return _coconut_tail_call(cls(empty_var, elem).make_free_in, elem)
 
+
 _coconut_call_set_names(Quantifier)
 class ForAll(Quantifier):
     """Universal quantifier."""
     __slots__ = ()
     opstr = forall_sym
+
     def __init__(self, var, elem):
         assert wff(elem), elem
         if isinstance(var, str):
@@ -567,11 +658,13 @@ class ForAll(Quantifier):
         assert isvar(var), var
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
+
     @_coconut_tco
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
         inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         return _coconut_tail_call(ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify, dnf=False, **kwargs)
+
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
         if not nonempty_universe and not in_forall:
@@ -587,10 +680,12 @@ class ForAll(Quantifier):
 _coconut_call_set_names(ForAll)
 FA = ForAll
 
+
 class Exists(Quantifier):
     """Existential quantifier."""
     __slots__ = ()
     opstr = exists_sym
+
     def __init__(self, var, elem):
         assert wff(elem), elem
         if isinstance(var, str):
@@ -598,6 +693,7 @@ class Exists(Quantifier):
         assert isvar(var), var
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
+
     @_coconut_tco
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
@@ -608,6 +704,7 @@ class Exists(Quantifier):
             skolem_var = Func(self.var.name, *variables)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
         return _coconut_tail_call(Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify, dnf=False, **kwargs)
+
     def drop_quantifier(self, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         if not nonempty_universe and not in_exists:
@@ -619,16 +716,19 @@ class Exists(Quantifier):
         elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
         return self
+
     def admits_empty_universe(self):
         return False
 
 _coconut_call_set_names(Exists)
 TE = Exists
 
+
 class BinaryOp(Expr):
     """Base class for binary operators."""
     __slots__ = ("elems",)
     identity = None
+
     @_coconut_tco
     def __new__(cls, *elems):
         if not elems:
@@ -641,21 +741,27 @@ class BinaryOp(Expr):
             return elems[0]  # sometimes returns an instance of cls
         else:
             return _coconut_tail_call(super(BinaryOp, cls).__new__, cls)
+
     def __init__(self, *elems):
         if len(elems) > 1:  # __new__ should handle all other cases
             assert len(elems) >= 2, elems
             for x in elems:
                 assert wff(x), x
             self.elems = elems
+
     def __repr__(self):
         return self.__class__.__name__ + "(" + ", ".join((repr(x) for x in self.elems)) + ")"
+
     @_coconut_tco
     def __str__(self):
         return _coconut_tail_call((" " + self.opstr + " ").join, (quote(x) for x in self.elems))
+
     def __len__(self):
         return sum(map(len, self.elems)) + 1
+
     def substitute(self, subs, **kwargs):
         return (self.__class__)(*(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.elems))
+
     @_coconut_tco
     def resolve(self, **kwargs):
         elems = (map)(_coconut.operator.methodcaller("resolve", **kwargs), self.elems)
@@ -667,12 +773,14 @@ class Imp(BinaryOp):
     """Logical implication."""
     __slots__ = ()
     opstr = imp_sym
+
     @_coconut_tco
     def __rshift__(self, other):
         if isinstance(other, Imp):
             return _coconut_tail_call(Imp, self, *other.elems)
         else:
             return _coconut_tail_call(Imp, self, other)
+
     @_coconut_tco
     def __lshift__(self, other):
         return _coconut_tail_call((Imp), *(other,) + self.elems)
@@ -682,15 +790,19 @@ class Imp(BinaryOp):
     @property
     def concl(self):
         return self.elems[-1]
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.concl == other.concl and (unorderd_eq)(self.conds, other.conds)
+
     @_coconut_tco
     def to_or(self):
         ors = tuple(map(Not, self.conds)) + (self.concl,)
         return _coconut_tail_call(Or, *ors)
+
     @_coconut_tco
     def simplify(self, **kwargs):
         return _coconut_tail_call(self.to_or().simplify, **kwargs)
+
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(self.to_or().admits_empty_universe)
@@ -698,11 +810,14 @@ class Imp(BinaryOp):
 _coconut_call_set_names(Imp)
 Implies = Imp
 
+
 class BoolOp(BinaryOp):
     """Base class for Or and And."""
     __slots__ = ()
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and (unorderd_eq)(self.elems, other.elems)
+
     def simplify(self, **kwargs):
         elems = (map)(_coconut.operator.methodcaller("simplify", **kwargs), self.merge().elems)
         out = self.__class__(*elems).clean()
@@ -716,6 +831,7 @@ class BoolOp(BinaryOp):
             out = out.prenex(**kwargs)
         log_simplification(self, out, **kwargs)
         return out
+
     @_coconut_tco
     def merge(self):
         """Merges nested copies of a boolean operator."""
@@ -726,6 +842,7 @@ class BoolOp(BinaryOp):
             else:
                 elems.append(x)
         return _coconut_tail_call(self.__class__, *elems)
+
     @_coconut_tco
     def dedupe(self):
         """Removes duplicate elements from a boolean operator."""
@@ -734,10 +851,12 @@ class BoolOp(BinaryOp):
             if x not in elems:
                 elems.append(x)
         return _coconut_tail_call(self.__class__, *elems)
+
     @_coconut_tco
     def clean(self):
         """Removes copies of the identity."""
         return _coconut_tail_call((self.__class__), *(filter)(_coconut.functools.partial(_coconut.operator.ne, self.identity), self.elems))
+
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -755,12 +874,14 @@ class Or(BoolOp):
     __slots__ = ()
     opstr = or_sym
     identity = bot
+
     @_coconut_tco
     def __or__(self, other):
         return _coconut_tail_call((Or), *self.elems + (other,))
     @property
     def ors(self):
         return self.elems
+
     def distribute(self, dnf=False, **kwargs):
         """If this Or contains an And, distribute into it."""
         kwargs["dnf"] = dnf
@@ -770,6 +891,7 @@ class Or(BoolOp):
                     ands = ((Or)(*(y,) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
                     return And(*ands).simplify(**kwargs)
         return self
+
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the Or is a blatant tautology."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -783,9 +905,11 @@ class Or(BoolOp):
                     else:
                         return top
         return self
+
     def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
         return (nonempty_universe or in_forall or not isinstance(other, Exists) or not self.admits_empty_universe())
+
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Eq):
@@ -813,6 +937,7 @@ class Or(BoolOp):
                 if subs is not None:
                     return (Or)(*(map)(_coconut.operator.methodcaller("substitute", subs, **kwargs), self.ors[:i] + self.ors[i + 1:]))
         return None
+
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(any, (x.admits_empty_universe() for x in self.elems))
@@ -824,12 +949,14 @@ class And(BoolOp):
     __slots__ = ()
     opstr = and_sym
     identity = top
+
     @_coconut_tco
     def __and__(self, other):
         return _coconut_tail_call((And), *self.elems + (other,))
     @property
     def ands(self):
         return self.elems
+
     def distribute(self, dnf=False, **kwargs):
         """If this And contains an Or, distribute into it."""
         kwargs["dnf"] = dnf
@@ -839,6 +966,7 @@ class And(BoolOp):
                     ors = ((And)(*(y,) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
                     return Or(*ors).simplify(**kwargs)
         return self
+
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the And is a blatant contradiction."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -852,9 +980,11 @@ class And(BoolOp):
                     else:
                         return bot
         return self
+
     def can_prenex(self, other, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         return (nonempty_universe or in_exists or not isinstance(other, ForAll) or all((isinstance(x, ForAll) for x in self.elems)))
+
     @_coconut_tco
     def resolve(self, nonempty_universe=True, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
@@ -910,6 +1040,7 @@ class And(BoolOp):
         resolved = (reduce)(_coconut_pipe, [And(*clauses)] + quantifiers)
         log_simplification(self, resolved, **kwargs)
         return _coconut_tail_call(resolved.simplify, dnf=False, **kwargs)
+
     @_coconut_tco
     def admits_empty_universe(self):
         return _coconut_tail_call(all, (x.admits_empty_universe() for x in self.elems))
@@ -919,25 +1050,32 @@ _coconut_call_set_names(And)
 class Eq(Expr):
     """Equality operator."""
     __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         assert isinstance(a, Term), a
         assert isinstance(b, Term), b
         self.a, self.b = a, b
+
     def __repr__(self):
         return "Eq(" + repr(self.a) + ", " + repr(self.b) + ")"
+
     def __str__(self):
         return str(self.a) + "=" + str(self.b)
+
     def __eq__(self, other):
         return isinstance(other, Eq) and (self.a == other.a and self.b == other.b or self.a == other.b and self.b == other.a)
+
     def simplify(self, **kwargs):
         if self.a == self.b:
             return top
         else:
             return self
+
     @_coconut_tco
     def swap(self):
         """Swaps the order of equality."""
         return _coconut_tail_call(Eq, self.b, self.a)
+
     @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Quantifier):
@@ -957,19 +1095,23 @@ class Eq(Expr):
                     return subs
         else:
             return None
+
     @_coconut_tco
     def substitute(self, subs, **kwargs):
         return _coconut_tail_call(Eq, self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))
+
     @_coconut_tco
     def paramodulant(self, other):
         """Create a paramodulant of other."""
         return _coconut_tail_call((sub_once), other, {self.a: self.b, self.b: self.a})
+
     @_coconut_tco
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Not) and self.find_unification(other.neg) is not None:
             return bot
         else:
             return _coconut_tail_call(self.paramodulant, other)
+
     def admits_empty_universe(self):
         return self.a.admits_empty_universe() and self.b.admits_empty_universe()
 

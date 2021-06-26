@@ -28,9 +28,11 @@ def wff(expr) =
     """Determines whether expr is a well-formed formula."""
     isinstance(expr, Expr) and not isinstance(expr, Term)
 
+
 def isvar(var) =
     """Whether a term is a variable."""
     isinstance(var, (Const, Var))
+
 
 # Classes:
 
@@ -39,7 +41,7 @@ class Expr:
     __slots__ = ()
 
     def __hash__(self) -> int:
-        return str(self).__hash__()
+        return str(self) |> hash
 
     def __lt__(self, other) -> int:
         return str(self) < str(other)
@@ -58,33 +60,43 @@ class Expr:
             return other & self
         else:
             return And(self, other)
+
     def __or__(self, other):
         if isinstance(other, Or):
             return other | self
         else:
             return Or(self, other)
+
     def __rshift__(self, other):
         if isinstance(other, Imp):
             return other << self
         else:
             return Imp(self, other)
+
     def __lshift__(self, other) =
         assert wff(other), other
         other >> self
+
     def __invert__(self) =
         Not(self)
+
     def __xor__(self, other) =
         Or(And(self, Not(other)), And(Not(self), other))
+
     def __len__(self) = 1
+
     def simplify(self, **kwargs) =
         """Simplify the given expression."""
         self
+
     def substitute(self, subs, **kwargs) =
         """Substitutes a dictionary into the expression."""
         self
+
     def resolve(self, **kwargs) =
         """Performs resolution on the clauses in a CNF expression."""
         self.simplify(dnf=False, **kwargs)
+
     def find_unification(self, other):
         """Find a substitution in self that would make self into other."""
         if isinstance(other, Quantifier):
@@ -93,12 +105,14 @@ class Expr:
             return {}
         else:
             return None
+
     def contradicts(self, other, **kwargs):
         """Assuming self is simplified, determines if it contradicts other."""
         if isinstance(other, Not):
             return other.contradicts(self, **kwargs)
         else:
             return self == Not(other).simplify(**kwargs)
+
     def resolve_against(self, other, **kwargs):
         """Attempt to perform a resolution against other else None."""
         if isinstance(other, (Not, Or, Eq)):
@@ -107,50 +121,70 @@ class Expr:
             return bot
         else:
             return None
+
     def admits_empty_universe(self) =
         """Determines if self allows for the possibility of an empty universe."""
         True
 
+
 class Top(Expr):
     """True"""
     __slots__ = ()
+
     def __eq__(self, other) = isinstance(other, Top)
+
     def __repr__(self) = "top"
+
     def __str__(self) = top_sym
+
     def __bool__(self) = True
 
 top = true = Top()
 
+
 class Bot(Expr):
     """False"""
     __slots__ = ()
+
     def __eq__(self, other) = isinstance(other, Bot)
+
     def __repr__(self) = "bot"
+
     def __str__(self) = bot_sym
+
     def __bool__(self) = False
+
     def admits_empty_universe(self) = False
 
 bot = false = Bot()
 
+
 class Atom(Expr):
     """Base class for all variables."""
     __slots__ = ("name",)
+
     def __init__(self, name):
         if isinstance(name, Atom):
             name = name.name
         assert isinstance(name, str), name
         self.name = name
+
     def __repr__(self) =
         self.__class__.__name__ + '("' + self.name + '")'
+
     def __str__(self) =
         self.name
+
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name
+
     def __hash__(self) =
         (self.__class__.__name__, self.name) |> hash
+
     def substitute_elements(self, subs, **kwargs) =
         """Substitute for the elements of the Atom, not the Atom itself."""
         self
+
     def substitute(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
@@ -171,27 +205,35 @@ class Atom(Expr):
 class Prop(Atom):
     """Logical proposition that is either true or false."""
     __slots__ = ()
+
     def __call__(self, *args) =
         Pred(self.name, *args)
 
 Proposition = Prop
 
+
 class FuncAtom(Atom):
     """Base class for predicates and functions."""
     __slots__ = ("args",)
+
     def __init__(self, name, *args):
         super(FuncAtom, self).__init__(name)
         for arg in args:
             assert isinstance(arg, Term), arg
         self.args = args
+
     def __repr__(self) =
         self.__class__.__name__ + '("' + self.name + '"' + (", " if self.args else "") + ", ".join(repr(x) for x in self.args) + ")"
+
     def __str__(self) =
         self.name + "(" + ", ".join(str(x) for x in self.args) + ")"
+
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name and self.args == other.args
+
     def __hash__(self) =
         (self.__class__.__name__, self.name, self.args) |> hash
+
     def find_unification(self, other):
         if isinstance(other, Quantifier):
             return other.find_unification(self)
@@ -210,14 +252,18 @@ class FuncAtom(Atom):
             return subs
         else:
             return None
+
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.args)
+
 
 class Pred(FuncAtom):
     """Boolean function of terms."""
     __slots__ = ()
+
     def proposition(self) =
         Prop(self.name)
+
     def substitute_elements(self, subs, **kwargs):
         if not can_sub(kwargs):
             return self
@@ -234,21 +280,27 @@ class Pred(FuncAtom):
 
 Predicate = Pred
 
+
 class Term(Atom):
     """Base class for all terms."""
     __slots__ = ()
+
     def variable(self) =
         """Convert to a variable."""
         Var(self.name)
+
     def constant(self) =
         """Convert to a constant."""
         Const(self.name)
+
     def rename(self, name) =
         """Create a new term with a different name."""
         self.__class__(name)
+
     def prime(self) =
         """Rename by adding a prime."""
         self.rename(self.name + "'")
+
     def substitute(self, subs, **kwargs):
         if can_sub(kwargs):
             for var, sub in subs.items():
@@ -266,9 +318,12 @@ class Term(Atom):
 class Var(Term):
     """A variable quantified by a ForAll."""
     __slots__ = ()
+
     def variable(self) = self
+
     def __call__(self, *args) =
         Func(self.name, *args)
+
     def find_unification(self, other):
         if isinstance(other, Term):
             return {self: other}
@@ -277,28 +332,37 @@ class Var(Term):
 
 Variable = Var
 
+
 class Const(Term):
     """A variable quantified by an Exists."""
     __slots__ = ()
+
     def constant(self) = self
+
     def __call__(self, *args) =
         Func(self.name, *args)
+
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
             return super(Const, self).find_unification(other)
+
     def admits_empty_universe(self) = False
 
 Constant = Const
 
+
 class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
+
     def substitute_elements(self, subs, **kwargs) =
         self.args |> map$(.substitute(subs, **kwargs)) |*> Func$(self.name)
+
     def rename(self, name) =
         self.__class__(name, *self.args)
+
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
@@ -307,22 +371,30 @@ class Func(Term, FuncAtom):
 
 Function = Func
 
+
 class UnaryOp(Expr):
     """Base class for unary operators."""
     __slots__ = ("elem",)
+
     def __init__(self, elem):
         assert wff(elem), elem
         self.elem = elem
+
     def __repr__(self) =
         self.__class__.__name__ + "(" + repr(self.elem) + ")"
+
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elem == other.elem
+
     def __str__(self) =
         self.opstr + quote(self.elem)
+
     def __len__(self) =
         len(self.elem) + 1
+
     def substitute(self, subs, **kwargs) =
         self.__class__(self.elem.substitute(subs, **kwargs))
+
     def find_unification(self, other):
         if isinstance(other, Quantifier):
             return other.find_unification(self)
@@ -330,6 +402,7 @@ class UnaryOp(Expr):
             return self.elem.find_unification(other.elem)
         else:
             return None
+
     def resolve(self, **kwargs) =
         self.__class__(self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
 
@@ -339,7 +412,9 @@ class Not(UnaryOp):
     __slots__ = ()
     opstr = not_sym
     @property
+
     def neg(self) = self.elem
+
     def simplify(self, **kwargs):
         if top == self.neg:
             return bot
@@ -360,8 +435,10 @@ class Not(UnaryOp):
             return Exists(self.neg.var, Not(self.neg.elem).simplify(**kwargs))
         else:
             return Not(self.neg.simplify(**kwargs))
+
     def contradicts(self, other, **kwargs) =
         self.neg == other
+
     def resolve_against(self, other, **kwargs):
         if isinstance(other, (Or, Eq)):
             return other.resolve_against(self, **kwargs)
@@ -369,6 +446,7 @@ class Not(UnaryOp):
             return bot
         else:
             return None
+
     def admits_empty_universe(self):
         if isinstance(self.neg, Atom):
             return self.neg.admits_empty_universe()
@@ -379,31 +457,41 @@ class Not(UnaryOp):
 class Quantifier(Expr):
     """Base class for logical quantifiers."""
     __slots__ = ("var", "elem")
+
     def __repr__(self) =
         self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
+
     def __str__(self) =
         self.opstr + " " + str(self.var) + ", " + quote(self.elem, in_quantifier=True)
+
     def __len__(self) =
         len(self.elem) + len(self.var)
+
     def change_var(self, var):
         """Create an equivalent expression with a new quantified variable."""
         return self.__class__(var, self.elem.substitute({self.var: var}))
+
     def change_elem(self, elem):
         """Create an equivalent quantifier with a new expression."""
         return self.__class__(self.var, elem)
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.elem == other.change_var(self.var).elem
         else:
             return False
+
     def inner_kwargs(self, kwargs) =
         inner_kwargs = kwargs.copy()
         inner_kwargs["in_" + self.__class__.__name__.lower()] = True
         inner_kwargs
+
     def simplify(self, **kwargs) =
         self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier(**kwargs)
+
     def substitute(self, subs, **kwargs):
         return subs |> rem_var$(self.var) |> self.elem.substitute$(**kwargs) |> self.change_elem
+
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
@@ -411,12 +499,14 @@ class Quantifier(Expr):
         while other != other.substitute({var: newvar}):
             var, newvar = newvar, newvar.prime()
         return self.change_var(var)
+
     def find_unification(self, other):
         unif = self.elem.find_unification(other)
         if unif is None:
             return None
         else:
             return unif |> rem_var$(self.var)
+
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Quantifier):
             resolution = Not(other.elem).simplify(**kwargs) |> self.elem.resolve_against$(**kwargs)
@@ -429,14 +519,17 @@ class Quantifier(Expr):
         else:
             return super(Quantifier, self).resolve_against(other, **kwargs)
     @classmethod
+
     def blank(cls, elem) =
         """Make a quantifier without a variable."""
         cls(empty_var, elem).make_free_in(elem)
+
 
 class ForAll(Quantifier):
     """Universal quantifier."""
     __slots__ = ()
     opstr = forall_sym
+
     def __init__(self, var, elem):
         assert wff(elem), elem
         if isinstance(var, str):
@@ -444,10 +537,12 @@ class ForAll(Quantifier):
         assert isvar(var), var
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
+
     def resolve(self, **kwargs) =
         inner_kwargs = self.inner_kwargs(kwargs)
         inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
         ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
         if not nonempty_universe and not in_forall:
@@ -462,10 +557,12 @@ class ForAll(Quantifier):
 
 FA = ForAll
 
+
 class Exists(Quantifier):
     """Existential quantifier."""
     __slots__ = ()
     opstr = exists_sym
+
     def __init__(self, var, elem):
         assert wff(elem), elem
         if isinstance(var, str):
@@ -473,6 +570,7 @@ class Exists(Quantifier):
         assert isvar(var), var
         self.var = var.constant()
         self.elem = elem.substitute({var: self.var.constant()})
+
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
         variables = inner_kwargs.get("variables")
@@ -482,6 +580,7 @@ class Exists(Quantifier):
             skolem_var = Func(self.var.name, *variables)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
         return Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+
     def drop_quantifier(self, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         if not nonempty_universe and not in_exists:
@@ -493,14 +592,17 @@ class Exists(Quantifier):
         elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
             return self.elem
         return self
+
     def admits_empty_universe(self) = False
 
 TE = Exists
+
 
 class BinaryOp(Expr):
     """Base class for binary operators."""
     __slots__ = ("elems",)
     identity = None
+
     def __new__(cls, *elems):
         if not elems:
             if cls.identity is None:
@@ -512,20 +614,26 @@ class BinaryOp(Expr):
             return elems[0]  # sometimes returns an instance of cls
         else:
             return super(BinaryOp, cls).__new__(cls)
+
     def __init__(self, *elems):
         if len(elems) > 1:  # __new__ should handle all other cases
             assert len(elems) >= 2, elems
             for x in elems:
                 assert wff(x), x
             self.elems = elems
+
     def __repr__(self) =
         self.__class__.__name__ + "(" + ", ".join(repr(x) for x in self.elems) + ")"
+
     def __str__(self) =
         (" " + self.opstr + " ").join(quote(x) for x in self.elems)
+
     def __len__(self) =
         sum(map(len, self.elems)) + 1
+
     def substitute(self, subs, **kwargs):
         return self.elems |> map$(.substitute(subs, **kwargs)) |*> self.__class__
+
     def resolve(self, **kwargs) =
         elems = self.elems |> map$(.resolve(**kwargs))
         self.__class__(*elems).simplify(dnf=False, **kwargs)
@@ -535,34 +643,45 @@ class Imp(BinaryOp):
     """Logical implication."""
     __slots__ = ()
     opstr = imp_sym
+
     def __rshift__(self, other):
         if isinstance(other, Imp):
             return Imp(self, *other.elems)
         else:
             return Imp(self, other)
+
     def __lshift__(self, other) =
         (other,) + self.elems |*> Imp
     @property
+
     def conds(self) = self.elems[:-1]
     @property
+
     def concl(self) = self.elems[-1]
+
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.concl == other.concl and self.conds `unorderd_eq` other.conds
+
     def to_or(self) =
         ors = tuple(map(Not, self.conds)) + (self.concl,)
         Or(*ors)
+
     def simplify(self, **kwargs) =
         self.to_or().simplify(**kwargs)
+
     def admits_empty_universe(self) =
         self.to_or().admits_empty_universe()
 
 Implies = Imp
 
+
 class BoolOp(BinaryOp):
     """Base class for Or and And."""
     __slots__ = ()
+
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
+
     def simplify(self, **kwargs):
         elems = self.merge().elems |> map$(.simplify(**kwargs))
         out = self.__class__(*elems).clean()
@@ -576,6 +695,7 @@ class BoolOp(BinaryOp):
             out = out.prenex(**kwargs)
         log_simplification(self, out, **kwargs)
         return out
+
     def merge(self):
         """Merges nested copies of a boolean operator."""
         elems = []
@@ -585,6 +705,7 @@ class BoolOp(BinaryOp):
             else:
                 elems.append(x)
         return self.__class__(*elems)
+
     def dedupe(self):
         """Removes duplicate elements from a boolean operator."""
         elems = []
@@ -592,9 +713,11 @@ class BoolOp(BinaryOp):
             if x not in elems:
                 elems.append(x)
         return self.__class__(*elems)
+
     def clean(self) =
         """Removes copies of the identity."""
         self.elems |> filter$((!=)$(self.identity)) |*> self.__class__
+
     def prenex(self, **kwargs):
         """Pulls quantifiers out."""
         for i, x in enumerate(self.elems):
@@ -611,10 +734,13 @@ class Or(BoolOp):
     __slots__ = ()
     opstr = or_sym
     identity = bot
+
     def __or__(self, other) =
         self.elems + (other,) |*> Or
     @property
+
     def ors(self) = self.elems
+
     def distribute(self, dnf=False, **kwargs):
         """If this Or contains an And, distribute into it."""
         kwargs["dnf"] = dnf
@@ -624,6 +750,7 @@ class Or(BoolOp):
                     ands = ((y,) + self.ors[:i] + self.ors[i+1:] |*> Or for y in x.ands)
                     return And(*ands).simplify(**kwargs)
         return self
+
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the Or is a blatant tautology."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -637,12 +764,14 @@ class Or(BoolOp):
                     else:
                         return top
         return self
+
     def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs) =
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
         (nonempty_universe
             or in_forall
             or not isinstance(other, Exists)
             or not self.admits_empty_universe())
+
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Eq):
             return other.resolve_against(self)
@@ -669,6 +798,7 @@ class Or(BoolOp):
                 if subs is not None:
                     return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs, **kwargs)) |*> Or
         return None
+
     def admits_empty_universe(self) =
         any(x.admits_empty_universe() for x in self.elems)
 
@@ -678,10 +808,13 @@ class And(BoolOp):
     __slots__ = ()
     opstr = and_sym
     identity = top
+
     def __and__(self, other) =
         self.elems + (other,) |*> And
     @property
+
     def ands(self) = self.elems
+
     def distribute(self, dnf=False, **kwargs):
         """If this And contains an Or, distribute into it."""
         kwargs["dnf"] = dnf
@@ -691,6 +824,7 @@ class And(BoolOp):
                     ors = ((y,) + self.ands[:i] + self.ands[i+1:] |*> And for y in x.ors)
                     return Or(*ors).simplify(**kwargs)
         return self
+
     def inner_simplify(self, nonempty_universe=True, **kwargs):
         """Determines if the And is a blatant contradiction."""
         kwargs["nonempty_universe"] = nonempty_universe
@@ -704,12 +838,14 @@ class And(BoolOp):
                     else:
                         return bot
         return self
+
     def can_prenex(self, other, nonempty_universe=True, in_exists=False, **kwargs) =
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
         (nonempty_universe
             or in_exists
             or not isinstance(other, ForAll)
             or all(isinstance(x, ForAll) for x in self.elems))
+
     def resolve(self, nonempty_universe=True, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
         kwargs["nonempty_universe"], kwargs["debug"] = nonempty_universe, debug
@@ -764,6 +900,7 @@ class And(BoolOp):
         resolved = [And(*clauses)] + quantifiers |> reduce$(|>)
         log_simplification(self, resolved, **kwargs)
         return resolved.simplify(dnf=False, **kwargs)
+
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.elems)
 
@@ -771,24 +908,31 @@ class And(BoolOp):
 class Eq(Expr):
     """Equality operator."""
     __slots__ = ("a", "b")
+
     def __init__(self, a, b):
         assert isinstance(a, Term), a
         assert isinstance(b, Term), b
         self.a, self.b = a, b
+
     def __repr__(self) =
         "Eq(" + repr(self.a) + ", " + repr(self.b) + ")"
+
     def __str__(self) =
         str(self.a) + "=" + str(self.b)
+
     def __eq__(self, other) =
         isinstance(other, Eq) and (self.a == other.a and self.b == other.b or self.a == other.b and self.b == other.a)
+
     def simplify(self, **kwargs):
         if self.a == self.b:
             return top
         else:
             return self
+
     def swap(self) =
         """Swaps the order of equality."""
         Eq(self.b, self.a)
+
     def find_unification(self, other):
         if isinstance(other, Quantifier):
             return other.find_unification(self)
@@ -807,16 +951,20 @@ class Eq(Expr):
                     return subs
         else:
             return None
+
     def substitute(self, subs, **kwargs) =
         Eq(self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))
+
     def paramodulant(self, other) =
         """Create a paramodulant of other."""
         other `sub_once` {self.a: self.b, self.b: self.a}
+
     def resolve_against(self, other, **kwargs):
         if isinstance(other, Not) and self.find_unification(other.neg) is not None:
             return bot
         else:
             return self.paramodulant(other)
+
     def admits_empty_universe(self) =
         self.a.admits_empty_universe() and self.b.admits_empty_universe()
 
