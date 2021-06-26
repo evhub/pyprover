@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # type: ignore
 
-# Compiled with Coconut version 1.5.0-post_dev62 [Fish License]
+# Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
 """Built-in Coconut utilities."""
 
@@ -198,12 +198,14 @@ class _coconut(object):
         try:
             from backports.functools_lru_cache import lru_cache
             functools.lru_cache = lru_cache
-        except ImportError: pass
+        except ImportError:
+            class you_need_to_install_backports_functools_lru_cache(object): pass
+            functools.lru_cache = you_need_to_install_backports_functools_lru_cache()
     if _coconut_sys.version_info < (3, 4):
         try:
             import trollius as asyncio
         except ImportError:
-            class you_need_to_install_trollius: pass
+            class you_need_to_install_trollius(object): pass
             asyncio = you_need_to_install_trollius()
     else:
         import asyncio
