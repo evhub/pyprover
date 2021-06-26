@@ -7,29 +7,29 @@ from pyprover.tools import (
     terms,
 )
 
+
 # Base Class:
 
 class Vars:
     @classmethod
     def items(cls):
-        for name, var in vars(cls).items():
+        for name in dir(cls):
             if not name.startswith("_"):
+                var = getattr(cls, name)
                 yield name, var
 
     @classmethod
-    def use(cls, globs=None):
+    def add_to(cls, globs):
         """Put variables into the global namespace."""
-        if globs is None:
-            globs = globals()
         for name, var in cls.items():
             globs[name] = var
 
+    use = add_to
+
     @classmethod
     @contextmanager
-    def using(cls, globs=None):
+    def use_in(cls, globs):
         """Temporarilty put variables into the global namespace."""
-        if globs is None:
-            globs = globals()
         prevars = {}
         for name, var in cls.items():
             if name in globs:
@@ -43,6 +43,8 @@ class Vars:
                     globs[name] = prevars[name]
                 else:
                     del globs[name]
+
+    using = use_in
 
     def __hash__(self) -> int:
         return str(self) |> hash
@@ -106,6 +108,4 @@ class UppercaseVariables(Vars):
     V, W, X = terms("V W X")
     Y, Z = terms("Y Z")
 
-class StandardMath(Vars)
-for name, var in LowercaseVariables.items() :: UppercasePropositions.items():
-    setattr(StandardMath, name, var)
+class StandardMath(LowercaseVariables, UppercasePropositions)

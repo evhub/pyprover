@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x7dd4ce34
+# __coconut_hash__ = 0x1f8398f4
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -69,9 +69,11 @@ from pyprover.logic import Exists
 from pyprover.logic import ForAll
 from pyprover.logic import Eq
 
+
 ParserElement.enablePackrat()
 
 oneOf = _coconut_forward_compose(list, oneOf)
+
 
 # Utilities:
 
@@ -101,6 +103,7 @@ def tokenlist(sep, item):
 def parse(grammar, text):
     """Parses text using grammar."""
     return _coconut_tail_call(grammar.parseWithTabs().parseString, text)
+
 
 # Grammar:
 
@@ -178,6 +181,7 @@ def forall_handle(*_coconut_match_args, **_coconut_match_kwargs):
 
     return _coconut_tail_call(ForAll, const, prop(const) >> expr)
 
+
 class Grammar(_coconut.object):
 
     lparen = Literal("(").suppress()
@@ -231,6 +235,7 @@ _coconut_call_set_names(Grammar)
 for varname, val in vars(Grammar).items():
     if isinstance(val, ParserElement):
         setattr(Grammar, varname, val.setName(varname))
+
 
 # Endpoint:
 

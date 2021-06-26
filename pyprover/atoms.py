@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x5bdb72b9
+# __coconut_hash__ = 0xae892
 
 # Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
 
@@ -40,29 +40,29 @@ from contextlib import contextmanager
 from pyprover.tools import props
 from pyprover.tools import terms
 
+
 # Base Class:
 
 class Vars(_coconut.object):
     @classmethod
     def items(cls):
-        for name, var in vars(cls).items():
+        for name in dir(cls):
             if not name.startswith("_"):
+                var = getattr(cls, name)
                 yield name, var
 
     @classmethod
-    def use(cls, globs=None):
+    def add_to(cls, globs):
         """Put variables into the global namespace."""
-        if globs is None:
-            globs = globals()
         for name, var in cls.items():
             globs[name] = var
 
+    use = add_to
+
     @classmethod
     @contextmanager
-    def using(cls, globs=None):
+    def use_in(cls, globs):
         """Temporarilty put variables into the global namespace."""
-        if globs is None:
-            globs = globals()
         prevars = {}
         for name, var in cls.items():
             if name in globs:
@@ -76,6 +76,8 @@ class Vars(_coconut.object):
                     globs[name] = prevars[name]
                 else:
                     del globs[name]
+
+    using = use_in
 
     @_coconut_tco
     def __hash__(self):
@@ -150,7 +152,6 @@ class UppercaseVariables(Vars):
     Y, Z = terms("Y Z")
 
 _coconut_call_set_names(UppercaseVariables)
-class StandardMath(Vars): pass
+class StandardMath(LowercaseVariables, UppercasePropositions): pass
+
 _coconut_call_set_names(StandardMath)
-for name, var in _coconut.itertools.chain.from_iterable(_coconut_reiterable(_coconut_func() for _coconut_func in (lambda: LowercaseVariables.items(), lambda: UppercasePropositions.items()))):
-    setattr(StandardMath, name, var)

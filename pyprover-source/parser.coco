@@ -40,9 +40,11 @@ from pyprover.logic import (
     Eq,
 )
 
+
 ParserElement.enablePackrat()
 
 oneOf = oneOf .. list
+
 
 # Utilities:
 
@@ -68,6 +70,7 @@ def parse(grammar, text):
     """Parses text using grammar."""
     return grammar.parseWithTabs().parseString(text)
 
+
 # Grammar:
 
 match def exists_handle(const, expr) = Exists(const, expr)
@@ -81,6 +84,7 @@ match def forall_handle(const, expr) = ForAll(const, expr)
 @addpattern(forall_handle)
 match def forall_handle(const, prop, expr) =
     ForAll(const, prop(const) >> expr)
+
 
 class Grammar:
 
@@ -140,6 +144,7 @@ class Grammar:
 for varname, val in vars(Grammar).items():
     if isinstance(val, ParserElement):
         setattr(Grammar, varname, val.setName(varname))
+
 
 # Endpoint:
 

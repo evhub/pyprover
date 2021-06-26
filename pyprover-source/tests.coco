@@ -29,7 +29,7 @@ from pyprover.parser import expr
 
 def test_propositional_logic():
     """Runs propositional logic tests."""
-    with LowercasePropositions.using(globals()):
+    with LowercasePropositions.use_in(globals()):
 
         # constructive theorems
         assert e&f `proves` e
@@ -157,7 +157,7 @@ def test_propositional_logic():
 
 def test_predicate_logic():
     """Runs predicate logic tests."""
-    with StandardMath.using(globals()):
+    with StandardMath.use_in(globals()):
 
         # basic tests
         assert FA(x, F) |> simplify == F
@@ -254,7 +254,7 @@ def test_predicate_logic():
 
 def test_empty_universe():
     """Runs predicate logic tests in a potentially empty universe."""
-    with StandardMath.using(globals()):
+    with StandardMath.use_in(globals()):
 
         # basic tests
         assert FA(x, F) |> strict_simplify != F
@@ -346,7 +346,7 @@ def test_empty_universe():
 
 def test_parser():
     """Tests math notation parsing."""
-    with StandardMath.using(globals()):
+    with StandardMath.use_in(globals()):
         assert expr(r"A") == A
         assert expr(r"F(x)") == F(x)
         assert expr(r"F(f(x))") == F(f(x))
@@ -364,7 +364,7 @@ def test_parser():
 
 def test_sort():
     """Tests Sorting on predicates."""
-    assert sorted([expr('B'), expr('A')]) == [expr('A'), expr('B')]
+    assert [expr("B"), expr("A")] |> sorted == [expr("A"), expr("B")]
 
 
 if __name__ == "__main__":
