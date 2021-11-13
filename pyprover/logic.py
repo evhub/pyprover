@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xee9f0cbb
+# __coconut_hash__ = 0x48b6e684
 
-# Compiled with Coconut version 1.5.0-post_dev63 [Fish License]
+# Compiled with Coconut version 2.0.0-a_dev9 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -28,7 +28,7 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut, _coconut_MatchError, _coconut_igetitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable
+from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _coconut, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
@@ -223,7 +223,7 @@ bot = false = Bot()
 
 class Atom(Expr):
     """Base class for all variables."""
-    __slots__ = ("name",)
+    __slots__ = ("name", )
 
     def __init__(self, name):
         if isinstance(name, Atom):
@@ -254,11 +254,15 @@ class Atom(Expr):
             return self
         _coconut_match_to_0 = subs
         _coconut_match_check_0 = False
+        _coconut_match_set_name_sub = _coconut_sentinel
         if _coconut.isinstance(_coconut_match_to_0, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to_0.get(self, _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
-                sub = _coconut_match_temp_0
+                _coconut_match_set_name_sub = _coconut_match_temp_0
                 _coconut_match_check_0 = True
+        if _coconut_match_check_0:
+            if _coconut_match_set_name_sub is not _coconut_sentinel:
+                sub = _coconut_match_temp_0
         if _coconut_match_check_0:
             do_sub(kwargs)
             if wff(sub):
@@ -288,7 +292,7 @@ Proposition = Prop
 
 class FuncAtom(Atom):
     """Base class for predicates and functions."""
-    __slots__ = ("args",)
+    __slots__ = ("args", )
 
     def __init__(self, name, *args):
         super(FuncAtom, self).__init__(name)
@@ -349,11 +353,15 @@ class Pred(FuncAtom):
             return self
         _coconut_match_to_1 = subs
         _coconut_match_check_1 = False
+        _coconut_match_set_name_sub = _coconut_sentinel
         if _coconut.isinstance(_coconut_match_to_1, _coconut.abc.Mapping):
             _coconut_match_temp_0 = _coconut_match_to_1.get(self.proposition(), _coconut_sentinel)
             if _coconut_match_temp_0 is not _coconut_sentinel:
-                sub = _coconut_match_temp_0
+                _coconut_match_set_name_sub = _coconut_match_temp_0
                 _coconut_match_check_1 = True
+        if _coconut_match_check_1:
+            if _coconut_match_set_name_sub is not _coconut_sentinel:
+                sub = _coconut_match_temp_0
         if _coconut_match_check_1:
             assert isinstance(sub, Atom), sub
             do_sub(kwargs)
@@ -441,12 +449,11 @@ class Const(Term):
     def __call__(self, *args):
         return _coconut_tail_call(Func, self.name, *args)
 
-    @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return _coconut_tail_call(super(Const, self).find_unification, other)
+            return super(Const, self).find_unification(other)
 
     def admits_empty_universe(self):
         return False
@@ -466,12 +473,11 @@ class Func(Term, FuncAtom):
     def rename(self, name):
         return _coconut_tail_call(self.__class__, name, *self.args)
 
-    @_coconut_tco
     def find_unification(self, other):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return _coconut_tail_call(super(Func, self).find_unification, other)
+            return super(Func, self).find_unification(other)
 
 _coconut_call_set_names(Func)
 Function = Func
@@ -479,7 +485,7 @@ Function = Func
 
 class UnaryOp(Expr):
     """Base class for unary operators."""
-    __slots__ = ("elem",)
+    __slots__ = ("elem", )
 
     def __init__(self, elem):
         assert wff(elem), elem
@@ -537,7 +543,7 @@ class Not(UnaryOp):
         elif isinstance(self.neg, Or):
             return _coconut_tail_call(And(*map(Not, self.neg.ors)).simplify, **kwargs)
         elif isinstance(self.neg, Imp):
-            ands = self.neg.conds + (Not(self.neg.concl),)
+            ands = self.neg.conds + (Not(self.neg.concl), )
             return _coconut_tail_call(And(*ands).simplify, **kwargs)
         elif isinstance(self.neg, Exists):
             return _coconut_tail_call(ForAll, self.neg.var, Not(self.neg.elem).simplify(**kwargs))
@@ -637,7 +643,7 @@ class Quantifier(Expr):
             else:
                 return _coconut_tail_call((self.change_elem), (other.change_elem)(resolution))
         else:
-            return _coconut_tail_call(super(Quantifier, self).resolve_against, other, **kwargs)
+            return super(Quantifier, self).resolve_against(other, **kwargs)
     @classmethod
     @_coconut_tco
     def blank(cls, elem):
@@ -662,7 +668,7 @@ class ForAll(Quantifier):
     @_coconut_tco
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
-        inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
+        inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var, )
         return _coconut_tail_call(ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify, dnf=False, **kwargs)
 
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
@@ -726,10 +732,9 @@ TE = Exists
 
 class BinaryOp(Expr):
     """Base class for binary operators."""
-    __slots__ = ("elems",)
+    __slots__ = ("elems", )
     identity = None
 
-    @_coconut_tco
     def __new__(cls, *elems):
         if not elems:
             if cls.identity is None:
@@ -740,7 +745,7 @@ class BinaryOp(Expr):
             assert wff(elems[0]), elems[0]
             return elems[0]  # sometimes returns an instance of cls
         else:
-            return _coconut_tail_call(super(BinaryOp, cls).__new__, cls)
+            return super(BinaryOp, cls).__new__(cls)
 
     def __init__(self, *elems):
         if len(elems) > 1:  # __new__ should handle all other cases
@@ -783,7 +788,7 @@ class Imp(BinaryOp):
 
     @_coconut_tco
     def __lshift__(self, other):
-        return _coconut_tail_call((Imp), *(other,) + self.elems)
+        return _coconut_tail_call((Imp), *(other, ) + self.elems)
     @property
     def conds(self):
         return self.elems[:-1]
@@ -796,7 +801,7 @@ class Imp(BinaryOp):
 
     @_coconut_tco
     def to_or(self):
-        ors = tuple(map(Not, self.conds)) + (self.concl,)
+        ors = tuple(map(Not, self.conds)) + (self.concl, )
         return _coconut_tail_call(Or, *ors)
 
     @_coconut_tco
@@ -863,7 +868,7 @@ class BoolOp(BinaryOp):
             if isinstance(x, Quantifier) and self.can_prenex(x, **kwargs):
                 elems = self.elems[:i] + self.elems[i + 1:]
                 free_x = x.make_free_in(self.__class__(*elems))
-                elems += (free_x.elem,)
+                elems += (free_x.elem, )
                 return free_x.change_elem(self.__class__(*elems)).simplify(**kwargs)
         return self
 
@@ -877,7 +882,7 @@ class Or(BoolOp):
 
     @_coconut_tco
     def __or__(self, other):
-        return _coconut_tail_call((Or), *self.elems + (other,))
+        return _coconut_tail_call((Or), *self.elems + (other, ))
     @property
     def ors(self):
         return self.elems
@@ -888,7 +893,7 @@ class Or(BoolOp):
         if not dnf:
             for i, x in enumerate(self.ors):
                 if isinstance(x, And):
-                    ands = ((Or)(*(y,) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
+                    ands = ((Or)(*(y, ) + self.ors[:i] + self.ors[i + 1:]) for y in x.ands)
                     return And(*ands).simplify(**kwargs)
         return self
 
@@ -952,7 +957,7 @@ class And(BoolOp):
 
     @_coconut_tco
     def __and__(self, other):
-        return _coconut_tail_call((And), *self.elems + (other,))
+        return _coconut_tail_call((And), *self.elems + (other, ))
     @property
     def ands(self):
         return self.elems
@@ -963,7 +968,7 @@ class And(BoolOp):
         if dnf:
             for i, x in enumerate(self.ands):
                 if isinstance(x, Or):
-                    ors = ((And)(*(y,) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
+                    ors = ((And)(*(y, ) + self.ands[:i] + self.ands[i + 1:]) for y in x.ors)
                     return Or(*ors).simplify(**kwargs)
         return self
 
@@ -1020,11 +1025,11 @@ class And(BoolOp):
                         if isinstance(resolution, And):
                             new_clauses = resolution.ands
                         else:
-                            new_clauses = (resolution,)
+                            new_clauses = (resolution, )
                         novel = False
                         for new_clause in new_clauses:
                             if new_clause == bot:
-                                clauses = [bot]
+                                clauses = [bot, ]
                                 novel = True
                                 break
                             elif new_clause != top and new_clause not in clauses:
@@ -1033,11 +1038,11 @@ class And(BoolOp):
                         if novel:
                             quantifiers.extend(new_quantifiers)
                             kwargs = inner_kwargs
-                            if clauses == [bot]:
+                            if clauses == [bot, ]:
                                 break
-                if clauses == [bot]:
+                if clauses == [bot, ]:
                     break
-        resolved = (reduce)(_coconut_pipe, [And(*clauses)] + quantifiers)
+        resolved = (reduce)(_coconut_pipe, [And(*clauses), ] + quantifiers)
         log_simplification(self, resolved, **kwargs)
         return _coconut_tail_call(resolved.simplify, dnf=False, **kwargs)
 
