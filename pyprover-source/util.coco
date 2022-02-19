@@ -42,6 +42,11 @@ def log_simplification(old, new, debug=False, **kwargs):
         if old_str != new_str:
             print(old_str, "=>", new_str)
 
+def log_resolution(x, y, resolution, debug=False, **kwargs):
+    """Display a message of a resolution that was performed."""
+    if debug:
+        print(x, "+", y, "=>", resolution)
+
 def rem_var(var, subs) =
     """Deletes any substitutions of var in subs."""
     newsubs = subs.copy()

@@ -30,6 +30,7 @@ from pyprover.logic import (
     Proposition,
     Predicate,
     Constant,
+    Variable,
     Function,
     Not,
     Implies,
@@ -94,6 +95,7 @@ class Grammar:
     dot = Literal(".").suppress()
     equals = Literal("=").suppress()
     colon = Literal(":").suppress()
+    question = Literal("?").suppress()
 
     commalist = tokenlist$(comma)
 
@@ -107,12 +109,13 @@ class Grammar:
     top_lit = oneOf(all_top_syms) |> fixto$(top)
     bot_lit = oneOf(all_bot_syms) |> fixto$(bot)
 
-    lowercase_name = Regex("[a-z0-9_]\w*")
-    uppercase_name = Regex("[A-Z]\w*")
+    lowercase_name = Regex("[a-z0-9_]\w*'*")
+    uppercase_name = Regex("[A-Z]\w*'*")
 
     var = lowercase_name |> call$(Constant)
+    any_var = question + lowercase_name |> call$(Variable)
     func = Forward()
-    term = func | var
+    term = func | var | any_var
     terms = lparen - commalist(term) - rparen
     func <<= lowercase_name + terms |> call$(Function)
 

@@ -8,6 +8,7 @@ from pyprover.logic import (
     And,
     Or,
     Eq,
+    Const,
 )
 from pyprover.tools import (
     proves,
@@ -360,6 +361,7 @@ def test_parser():
         assert expr(r"a = b") == Eq(a, b)
         assert expr(r"forall x: A, B(x)") == FA(x, A(x) >> B(x))
         assert expr(r"exists x: A, B(x)") == TE(x, A(x) & B(x))
+        assert expr(r"Q(x, x', x'')") == Q(x, Const("x'"), Const("x''"))
 
 
 def test_sort():

@@ -15,6 +15,7 @@ from pyprover.util import (
     unorderd_eq,
     quote,
     log_simplification,
+    log_resolution,
     rem_var,
     can_sub,
     do_sub,
@@ -217,7 +218,7 @@ class FuncAtom(Atom):
     __slots__ = ("args",)
 
     def __init__(self, name, *args):
-        super(FuncAtom, self).__init__(name)
+        super().__init__(name)
         for arg in args:
             assert isinstance(arg, Term), arg
         self.args = args
@@ -319,13 +320,20 @@ class Var(Term):
     """A variable quantified by a ForAll."""
     __slots__ = ()
 
+    def __str__(self) =
+        "?" + super().__str__()
+
     def variable(self) = self
 
     def __call__(self, *args) =
         Func(self.name, *args)
 
+    def is_free_in(self, expr):
+        """Determine if self is free in expr."""
+        return expr == expr.substitute({self: self.prime()})
+
     def find_unification(self, other):
-        if isinstance(other, Term):
+        if isinstance(other, Term) and self.is_free_in(other):
             return {self: other}
         else:
             return None
@@ -346,7 +354,7 @@ class Const(Term):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return super(Const, self).find_unification(other)
+            return super().find_unification(other)
 
     def admits_empty_universe(self) = False
 
@@ -367,7 +375,7 @@ class Func(Term, FuncAtom):
         if isinstance(other, Var):
             return {other: self}
         else:
-            return super(Func, self).find_unification(other)
+            return super().find_unification(other)
 
 Function = Func
 
@@ -411,8 +419,8 @@ class Not(UnaryOp):
     """Logical not."""
     __slots__ = ()
     opstr = not_sym
-    @property
 
+    @property
     def neg(self) = self.elem
 
     def simplify(self, **kwargs):
@@ -517,7 +525,7 @@ class Quantifier(Expr):
             else:
                 return resolution |> other.change_elem |> self.change_elem
         else:
-            return super(Quantifier, self).resolve_against(other, **kwargs)
+            return super().resolve_against(other, **kwargs)
     @classmethod
 
     def blank(cls, elem) =
@@ -613,7 +621,7 @@ class BinaryOp(Expr):
             assert wff(elems[0]), elems[0]
             return elems[0]  # sometimes returns an instance of cls
         else:
-            return super(BinaryOp, cls).__new__(cls)
+            return super().__new__(cls)
 
     def __init__(self, *elems):
         if len(elems) > 1:  # __new__ should handle all other cases
@@ -652,11 +660,11 @@ class Imp(BinaryOp):
 
     def __lshift__(self, other) =
         (other,) + self.elems |*> Imp
-    @property
 
+    @property
     def conds(self) = self.elems[:-1]
-    @property
 
+    @property
     def concl(self) = self.elems[-1]
 
     def __eq__(self, other) =
@@ -737,8 +745,8 @@ class Or(BoolOp):
 
     def __or__(self, other) =
         self.elems + (other,) |*> Or
-    @property
 
+    @property
     def ors(self) = self.elems
 
     def distribute(self, dnf=False, **kwargs):
@@ -811,8 +819,8 @@ class And(BoolOp):
 
     def __and__(self, other) =
         self.elems + (other,) |*> And
-    @property
 
+    @property
     def ands(self) = self.elems
 
     def distribute(self, dnf=False, **kwargs):
@@ -849,9 +857,9 @@ class And(BoolOp):
     def resolve(self, nonempty_universe=True, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
         kwargs["nonempty_universe"], kwargs["debug"] = nonempty_universe, debug
-        resolved = super(And, self).resolve(**kwargs)
+        resolved = super().resolve(**kwargs)
+        log_simplification(self, resolved, **kwargs)
         if not isinstance(resolved, And):
-            log_simplification(self, resolved, **kwargs)
             return resolved
         clauses = resolved.ands |> list
         quantifiers = []
@@ -869,8 +877,7 @@ class And(BoolOp):
                     resolution = x.resolve_against(y)
                     if resolution is not None:
                         resolution = resolution.simplify(dnf=False, **kwargs)
-                        if debug:
-                            print(x, "+", y, "=>", resolution)
+                        log_resolution(x, y, resolution, **kwargs)
                         new_quantifiers = []
                         inner_kwargs = kwargs
                         while isinstance(resolution, Quantifier) and self.can_prenex(resolution, **kwargs):
