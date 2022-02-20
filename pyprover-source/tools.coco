@@ -23,6 +23,11 @@ def solve(expr, **kwargs) =
     expr.simplify(dnf=False, **kwargs).resolve(**kwargs)
 strict_solve = solve$(nonempty_universe=False)
 
+def skolemize(expr, **kwargs) =
+    """Converts to CNF and skolemizes all variables."""
+    solve(expr, just_skolemize=True, **kwargs)
+strict_skolemize = skolemize$(nonempty_universe=False)
+
 def no_proof_of(givens, conclusion) =
     """Finds a formula that represents the givens not implying the conclusion."""
     if wff(givens):

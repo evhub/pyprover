@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xe647ebd3
+# __coconut_hash__ = 0xd3c95373
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -403,10 +403,24 @@ def test_sort():  #367 (line num in coconut source)
 
 
 
-if __name__ == "__main__":  #372 (line num in coconut source)
-    test_propositional_logic()  #373 (line num in coconut source)
-    test_predicate_logic()  #374 (line num in coconut source)
-    test_empty_universe()  #375 (line num in coconut source)
-    test_parser()  #376 (line num in coconut source)
-    test_sort()  #377 (line num in coconut source)
-    print("<success>")  #378 (line num in coconut source)
+def test_regression():  #372 (line num in coconut source)
+    """Test hard cases to avoid regressions."""  #373 (line num in coconut source)
+    e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")  #374 (line num in coconut source)
+    e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")  #375 (line num in coconut source)
+    assert not (proves)(e1, e2)  #376 (line num in coconut source)
+    assert (proves)(e2, e1)  #377 (line num in coconut source)
+    e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")  #378 (line num in coconut source)
+    e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")  #379 (line num in coconut source)
+    assert (proves)(e3, e4)  #380 (line num in coconut source)
+    assert not (proves)(e4, e3)  #381 (line num in coconut source)
+
+
+
+if __name__ == "__main__":  #384 (line num in coconut source)
+    test_propositional_logic()  #385 (line num in coconut source)
+    test_predicate_logic()  #386 (line num in coconut source)
+    test_empty_universe()  #387 (line num in coconut source)
+    test_parser()  #388 (line num in coconut source)
+    test_sort()  #389 (line num in coconut source)
+    test_regression()  #390 (line num in coconut source)
+    print("<success>")  #391 (line num in coconut source)

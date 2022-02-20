@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x41cbeb5e
+# __coconut_hash__ = 0xd54ce7cf
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -62,65 +62,72 @@ def solve(expr, **kwargs):  #21 (line num in coconut source)
 
 strict_solve = _coconut.functools.partial(solve, nonempty_universe=False)  #24 (line num in coconut source)
 
-def no_proof_of(givens, conclusion):  #26 (line num in coconut source)
-    """Finds a formula that represents the givens not implying the conclusion."""  #27 (line num in coconut source)
-    if wff(givens):  #28 (line num in coconut source)
-        givens = (givens,)  #29 (line num in coconut source)
-    else:  #30 (line num in coconut source)
-        givens = tuple(givens)  #31 (line num in coconut source)
-    return ~Implies(*(givens + (conclusion,)))  #32 (line num in coconut source)
+@_coconut_tco  #26 (line num in coconut source)
+def skolemize(expr, **kwargs):  #26 (line num in coconut source)
+    """Converts to CNF and skolemizes all variables."""  #27 (line num in coconut source)
+    return _coconut_tail_call(solve, expr, just_skolemize=True, **kwargs)  #28 (line num in coconut source)
+
+strict_skolemize = _coconut.functools.partial(skolemize, nonempty_universe=False)  #29 (line num in coconut source)
+
+def no_proof_of(givens, conclusion):  #31 (line num in coconut source)
+    """Finds a formula that represents the givens not implying the conclusion."""  #32 (line num in coconut source)
+    if wff(givens):  #33 (line num in coconut source)
+        givens = (givens,)  #34 (line num in coconut source)
+    else:  #35 (line num in coconut source)
+        givens = tuple(givens)  #36 (line num in coconut source)
+    return ~Implies(*(givens + (conclusion,)))  #37 (line num in coconut source)
 
 
-def proves(givens, conclusion, **kwargs):  #34 (line num in coconut source)
-    """Determines if the givens prove the conclusion."""  #35 (line num in coconut source)
-    return (solve)(no_proof_of(givens, conclusion), **kwargs) == bot  #36 (line num in coconut source)
+def proves(givens, conclusion, **kwargs):  #39 (line num in coconut source)
+    """Determines if the givens prove the conclusion."""  #40 (line num in coconut source)
+    return (solve)(no_proof_of(givens, conclusion), **kwargs) == bot  #41 (line num in coconut source)
 
-strict_proves = _coconut.functools.partial(proves, nonempty_universe=False)  #37 (line num in coconut source)
+strict_proves = _coconut.functools.partial(proves, nonempty_universe=False)  #42 (line num in coconut source)
 
-def iff(a, b):  #39 (line num in coconut source)
-    """Creates a formula for a implies b and b implies a."""  #40 (line num in coconut source)
-    assert wff(a), a  #41 (line num in coconut source)
-    assert wff(b), b  #42 (line num in coconut source)
-    return a >> b & b >> a  #43 (line num in coconut source)
+def iff(a, b):  #44 (line num in coconut source)
+    """Creates a formula for a implies b and b implies a."""  #45 (line num in coconut source)
+    assert wff(a), a  #46 (line num in coconut source)
+    assert wff(b), b  #47 (line num in coconut source)
+    return a >> b & b >> a  #48 (line num in coconut source)
 
 
-def proves_and_proved_by(a, b, **kwargs):  #45 (line num in coconut source)
-    """Determines if a is true if and only if b."""  #46 (line num in coconut source)
-    a = a.simplify(dnf=False, **kwargs)  #47 (line num in coconut source)
-    b = b.simplify(dnf=False, **kwargs)  #48 (line num in coconut source)
-    return (_coconut.functools.partial(proves, **kwargs))(a, b) and (_coconut.functools.partial(proves, **kwargs))(b, a)  #49 (line num in coconut source)
+def proves_and_proved_by(a, b, **kwargs):  #50 (line num in coconut source)
+    """Determines if a is true if and only if b."""  #51 (line num in coconut source)
+    a = a.simplify(dnf=False, **kwargs)  #52 (line num in coconut source)
+    b = b.simplify(dnf=False, **kwargs)  #53 (line num in coconut source)
+    return (_coconut.functools.partial(proves, **kwargs))(a, b) and (_coconut.functools.partial(proves, **kwargs))(b, a)  #54 (line num in coconut source)
 
-strict_proves_and_proved_by = _coconut.functools.partial(proves_and_proved_by, nonempty_universe=False)  #50 (line num in coconut source)
+strict_proves_and_proved_by = _coconut.functools.partial(proves_and_proved_by, nonempty_universe=False)  #55 (line num in coconut source)
 
-@_coconut_tco  #52 (line num in coconut source)
-def simplify(expr, *exprs, **kwargs):  #52 (line num in coconut source)
-    """Simplify the given expression[s]."""  #53 (line num in coconut source)
-    if exprs:  #54 (line num in coconut source)
-        return _coconut_tail_call((tuple), (map)(lambda x: x.simplify(**kwargs), (expr,) + exprs))  #55 (line num in coconut source)
-    else:  #56 (line num in coconut source)
-        return _coconut_tail_call(expr.simplify, **kwargs)  #57 (line num in coconut source)
+@_coconut_tco  #57 (line num in coconut source)
+def simplify(expr, *exprs, **kwargs):  #57 (line num in coconut source)
+    """Simplify the given expression[s]."""  #58 (line num in coconut source)
+    if exprs:  #59 (line num in coconut source)
+        return _coconut_tail_call((tuple), (map)(lambda x: x.simplify(**kwargs), (expr,) + exprs))  #60 (line num in coconut source)
+    else:  #61 (line num in coconut source)
+        return _coconut_tail_call(expr.simplify, **kwargs)  #62 (line num in coconut source)
 
-strict_simplify = _coconut.functools.partial(simplify, nonempty_universe=False)  #58 (line num in coconut source)
+strict_simplify = _coconut.functools.partial(simplify, nonempty_universe=False)  #63 (line num in coconut source)
 
-def simplest_form(expr, **kwargs):  #60 (line num in coconut source)
-    """Finds the shortest simplification for the given expression."""  #61 (line num in coconut source)
-    cnf_expr = expr.simplify(dnf=False, **kwargs)  #62 (line num in coconut source)
-    dnf_expr = cnf_expr.simplify(dnf=True, **kwargs)  #63 (line num in coconut source)
-    if len(cnf_expr) <= len(dnf_expr):  #64 (line num in coconut source)
-        return cnf_expr  #65 (line num in coconut source)
-    else:  #66 (line num in coconut source)
-        return dnf_expr  #67 (line num in coconut source)
+def simplest_form(expr, **kwargs):  #65 (line num in coconut source)
+    """Finds the shortest simplification for the given expression."""  #66 (line num in coconut source)
+    cnf_expr = expr.simplify(dnf=False, **kwargs)  #67 (line num in coconut source)
+    dnf_expr = cnf_expr.simplify(dnf=True, **kwargs)  #68 (line num in coconut source)
+    if len(cnf_expr) <= len(dnf_expr):  #69 (line num in coconut source)
+        return cnf_expr  #70 (line num in coconut source)
+    else:  #71 (line num in coconut source)
+        return dnf_expr  #72 (line num in coconut source)
 
-strict_simplest_form = _coconut.functools.partial(simplest_form, nonempty_universe=False)  #68 (line num in coconut source)
-
-@_coconut_tco  #70 (line num in coconut source)
-def simplest_solution(expr, **kwargs):  #70 (line num in coconut source)
-    """Finds the shortest resolved simplification for the given expression."""  #71 (line num in coconut source)
-    return _coconut_tail_call((simplest_form), (solve)(expr, **kwargs), **kwargs)  #72 (line num in coconut source)
-
-strict_simplest_solution = _coconut.functools.partial(simplest_solution, nonempty_universe=False)  #73 (line num in coconut source)
+strict_simplest_form = _coconut.functools.partial(simplest_form, nonempty_universe=False)  #73 (line num in coconut source)
 
 @_coconut_tco  #75 (line num in coconut source)
-def substitute(expr, subs, **kwargs):  #75 (line num in coconut source)
-    """Substitutes expressions or booleans into the given expression."""  #76 (line num in coconut source)
-    return _coconut_tail_call(expr.substitute, subs, **kwargs)  #77 (line num in coconut source)
+def simplest_solution(expr, **kwargs):  #75 (line num in coconut source)
+    """Finds the shortest resolved simplification for the given expression."""  #76 (line num in coconut source)
+    return _coconut_tail_call((simplest_form), (solve)(expr, **kwargs), **kwargs)  #77 (line num in coconut source)
+
+strict_simplest_solution = _coconut.functools.partial(simplest_solution, nonempty_universe=False)  #78 (line num in coconut source)
+
+@_coconut_tco  #80 (line num in coconut source)
+def substitute(expr, subs, **kwargs):  #80 (line num in coconut source)
+    """Substitutes expressions or booleans into the given expression."""  #81 (line num in coconut source)
+    return _coconut_tail_call(expr.substitute, subs, **kwargs)  #82 (line num in coconut source)

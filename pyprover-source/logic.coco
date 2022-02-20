@@ -100,7 +100,7 @@ class Expr:
 
     def find_unification(self, other):
         """Find a substitution in self that would make self into other."""
-        if isinstance(other, Quantifier):
+        if isinstance(other, (Quantifier, Var)):
             return other.find_unification(self)
         elif self == other:
             return {}
@@ -236,9 +236,7 @@ class FuncAtom(Atom):
         (self.__class__.__name__, self.name, self.args) |> hash
 
     def find_unification(self, other):
-        if isinstance(other, Quantifier):
-            return other.find_unification(self)
-        elif isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
+        if isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
             subs = {}
             for i, x in enumerate(self.args):
                 y = other.args[i]
@@ -252,7 +250,7 @@ class FuncAtom(Atom):
                         return None
             return subs
         else:
-            return None
+            return super().find_unification(other)
 
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.args)
@@ -333,7 +331,7 @@ class Var(Term):
         return expr == expr.substitute({self: self.prime()})
 
     def find_unification(self, other):
-        if isinstance(other, Term) and self.is_free_in(other):
+        if isinstance(other, Term):
             return {self: other}
         else:
             return None
@@ -350,12 +348,6 @@ class Const(Term):
     def __call__(self, *args) =
         Func(self.name, *args)
 
-    def find_unification(self, other):
-        if isinstance(other, Var):
-            return {other: self}
-        else:
-            return super().find_unification(other)
-
     def admits_empty_universe(self) = False
 
 Constant = Const
@@ -370,12 +362,6 @@ class Func(Term, FuncAtom):
 
     def rename(self, name) =
         self.__class__(name, *self.args)
-
-    def find_unification(self, other):
-        if isinstance(other, Var):
-            return {other: self}
-        else:
-            return super().find_unification(other)
 
 Function = Func
 
@@ -404,12 +390,10 @@ class UnaryOp(Expr):
         self.__class__(self.elem.substitute(subs, **kwargs))
 
     def find_unification(self, other):
-        if isinstance(other, Quantifier):
-            return other.find_unification(self)
-        elif isinstance(other, self.__class__):
+        if isinstance(other, self.__class__):
             return self.elem.find_unification(other.elem)
         else:
-            return None
+            return super().find_unification(other)
 
     def resolve(self, **kwargs) =
         self.__class__(self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
@@ -581,11 +565,11 @@ class Exists(Quantifier):
 
     def resolve(self, **kwargs):
         inner_kwargs = self.inner_kwargs(kwargs)
-        variables = inner_kwargs.get("variables")
-        if variables is None:
+        skolem_args = inner_kwargs.get("variables")
+        if skolem_args is None:
             skolem_elem = self.elem
         else:
-            skolem_var = Func(self.var.name, *variables)
+            skolem_var = Func(self.var.name, *skolem_args)
             skolem_elem = self.elem.substitute({self.var: skolem_var})
         return Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
 
@@ -854,12 +838,12 @@ class And(BoolOp):
             or not isinstance(other, ForAll)
             or all(isinstance(x, ForAll) for x in self.elems))
 
-    def resolve(self, nonempty_universe=True, debug=False, **kwargs):
+    def resolve(self, nonempty_universe=True, just_skolemize=False, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
-        kwargs["nonempty_universe"], kwargs["debug"] = nonempty_universe, debug
+        kwargs["nonempty_universe"], kwargs["just_skolemize"], kwargs["debug"] = nonempty_universe, just_skolemize, debug
         resolved = super().resolve(**kwargs)
         log_simplification(self, resolved, **kwargs)
-        if not isinstance(resolved, And):
+        if not isinstance(resolved, And) or just_skolemize:
             return resolved
         clauses = resolved.ands |> list
         quantifiers = []
@@ -941,9 +925,7 @@ class Eq(Expr):
         Eq(self.b, self.a)
 
     def find_unification(self, other):
-        if isinstance(other, Quantifier):
-            return other.find_unification(self)
-        elif isinstance(other, Eq):
+        if isinstance(other, Eq):
             a_a = self.a.find_unification(other.a)
             b_b = self.b.find_unification(other.b)
             if a_a is not None and b_b is not None:
@@ -957,7 +939,7 @@ class Eq(Expr):
                 if subs is not None:
                     return subs
         else:
-            return None
+            return super().find_unification(other)
 
     def substitute(self, subs, **kwargs) =
         Eq(self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))

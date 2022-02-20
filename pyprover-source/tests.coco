@@ -369,10 +369,23 @@ def test_sort():
     assert [expr("B"), expr("A")] |> sorted == [expr("A"), expr("B")]
 
 
+def test_regression():
+    """Test hard cases to avoid regressions."""
+    e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")
+    e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")
+    assert not e1 `proves` e2
+    assert e2 `proves` e1
+    e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")
+    e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")
+    assert e3 `proves` e4
+    assert not e4 `proves` e3
+
+
 if __name__ == "__main__":
     test_propositional_logic()
     test_predicate_logic()
     test_empty_universe()
     test_parser()
     test_sort()
+    test_regression()
     print("<success>")
