@@ -18,9 +18,17 @@ def terms(names) =
     """Constructs constants from a space-seperated string of names."""
     map(Constant, names.split())
 
+def cnf(expr, **kwargs) =
+    """Converts an expression to CNF."""
+    expr.simplify(dnf=False, **kwargs)
+
+def dnf(expr, **kwargs) =
+    """Converts an expression to DNF."""
+    expr.simplify(dnf=True, **kwargs)
+
 def solve(expr, **kwargs) =
     """Converts to CNF and performs all possible resolutions."""
-    expr.simplify(dnf=False, **kwargs).resolve(**kwargs)
+    expr |> cnf$(**kwargs) |> .resolve(**kwargs)
 strict_solve = solve$(nonempty_universe=False)
 
 def skolemize(expr, **kwargs) =
@@ -49,8 +57,8 @@ def iff(a, b) =
 
 def proves_and_proved_by(a, b, **kwargs) =
     """Determines if a is true if and only if b."""
-    a = a.simplify(dnf=False, **kwargs)
-    b = b.simplify(dnf=False, **kwargs)
+    a = cnf(a, **kwargs)
+    b = cnf(b, **kwargs)
     a `proves$(**kwargs)` b and b `proves$(**kwargs)` a
 strict_proves_and_proved_by = proves_and_proved_by$(nonempty_universe=False)
 
@@ -64,8 +72,8 @@ strict_simplify = simplify$(nonempty_universe=False)
 
 def simplest_form(expr, **kwargs):
     """Finds the shortest simplification for the given expression."""
-    cnf_expr = expr.simplify(dnf=False, **kwargs)
-    dnf_expr = cnf_expr.simplify(dnf=True, **kwargs)
+    cnf_expr = cnf(expr, **kwargs)
+    dnf_expr = dnf(expr, **kwargs)
     if len(cnf_expr) <= len(dnf_expr):
         return cnf_expr
     else:

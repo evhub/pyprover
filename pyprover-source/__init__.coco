@@ -40,6 +40,8 @@ from pyprover.tools import (
     simplest_solution,
     strict_simplest_solution,
     substitute,
+    cnf,
+    dnf,
 )
 from pyprover.atoms import (
     LowercasePropositions,

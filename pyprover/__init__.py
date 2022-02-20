@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3692d50d
+# __coconut_hash__ = 0x58af5647
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -72,13 +72,15 @@ from pyprover.tools import strict_simplest_form  #23 (line num in coconut source
 from pyprover.tools import simplest_solution  #23 (line num in coconut source)
 from pyprover.tools import strict_simplest_solution  #23 (line num in coconut source)
 from pyprover.tools import substitute  #23 (line num in coconut source)
-from pyprover.atoms import LowercasePropositions  #44 (line num in coconut source)
-from pyprover.atoms import UppercasePropositions  #44 (line num in coconut source)
-from pyprover.atoms import LowercaseVariables  #44 (line num in coconut source)
-from pyprover.atoms import UppercaseVariables  #44 (line num in coconut source)
-from pyprover.atoms import StandardMath  #44 (line num in coconut source)
-from pyprover.parser import expr  #51 (line num in coconut source)
+from pyprover.tools import cnf  #23 (line num in coconut source)
+from pyprover.tools import dnf  #23 (line num in coconut source)
+from pyprover.atoms import LowercasePropositions  #46 (line num in coconut source)
+from pyprover.atoms import UppercasePropositions  #46 (line num in coconut source)
+from pyprover.atoms import LowercaseVariables  #46 (line num in coconut source)
+from pyprover.atoms import UppercaseVariables  #46 (line num in coconut source)
+from pyprover.atoms import StandardMath  #46 (line num in coconut source)
+from pyprover.parser import expr  #53 (line num in coconut source)
 
 # Main:
 
-StandardMath.use(globals())  #55 (line num in coconut source)
+StandardMath.use(globals())  #57 (line num in coconut source)

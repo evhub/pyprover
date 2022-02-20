@@ -98,10 +98,10 @@ class Expr:
         """Performs resolution on the clauses in a CNF expression."""
         self.simplify(dnf=False, **kwargs)
 
-    def find_unification(self, other):
+    def find_unification(self, other, **kwargs):
         """Find a substitution in self that would make self into other."""
         if isinstance(other, (Quantifier, Var)):
-            return other.find_unification(self)
+            return other.find_unification(self, **kwargs)
         elif self == other:
             return {}
         else:
@@ -118,7 +118,7 @@ class Expr:
         """Attempt to perform a resolution against other else None."""
         if isinstance(other, (Not, Or, Eq)):
             return other.resolve_against(self, **kwargs)
-        elif Not(other).simplify(**kwargs) |> self.find_unification is not None:
+        elif Not(other).simplify(**kwargs) |> self.find_unification$(**kwargs) is not None:
             return bot
         else:
             return None
@@ -235,22 +235,27 @@ class FuncAtom(Atom):
     def __hash__(self) =
         (self.__class__.__name__, self.name, self.args) |> hash
 
-    def find_unification(self, other):
+    def find_unification(self, other, **kwargs):
         if isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
             subs = {}
             for i, x in enumerate(self.args):
                 y = other.args[i]
-                unif = x.find_unification(y)
+                unif = x.find_unification(y, **kwargs)
                 if unif is None:
                     return None
                 for var, sub in unif.items():
-                    if var not in subs:
+                    match {=var: prev_sub, **_} in subs:
+                        mgu = prev_sub.find_unification(sub)
+                        if mgu is None:
+                            return None
+                        new_unif = self.substitute(mgu, **kwargs).find_unification(other, **kwargs)
+                        mgu.update(new_unif)
+                        return mgu
+                    else:
                         subs[var] = sub
-                    elif subs[var] != sub:
-                        return None
             return subs
         else:
-            return super().find_unification(other)
+            return super().find_unification(other, **kwargs)
 
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.args)
@@ -330,9 +335,13 @@ class Var(Term):
         """Determine if self is free in expr."""
         return expr == expr.substitute({self: self.prime()})
 
-    def find_unification(self, other):
+    def find_unification(self, other, occurs_check=True, **kwargs):
+        kwargs["occurs_check"] = occurs_check
         if isinstance(other, Term):
-            return {self: other}
+            if occurs_check and not self.is_free_in(other):
+                return None
+            else:
+                return {self: other}
         else:
             return None
 
@@ -389,11 +398,11 @@ class UnaryOp(Expr):
     def substitute(self, subs, **kwargs) =
         self.__class__(self.elem.substitute(subs, **kwargs))
 
-    def find_unification(self, other):
+    def find_unification(self, other, **kwargs):
         if isinstance(other, self.__class__):
-            return self.elem.find_unification(other.elem)
+            return self.elem.find_unification(other.elem, **kwargs)
         else:
-            return super().find_unification(other)
+            return super().find_unification(other, **kwargs)
 
     def resolve(self, **kwargs) =
         self.__class__(self.elem.resolve(**kwargs)).simplify(dnf=False, **kwargs)
@@ -434,7 +443,7 @@ class Not(UnaryOp):
     def resolve_against(self, other, **kwargs):
         if isinstance(other, (Or, Eq)):
             return other.resolve_against(self, **kwargs)
-        elif self.neg.find_unification(other) is not None:
+        elif self.neg.find_unification(other, **kwargs) is not None:
             return bot
         else:
             return None
@@ -492,8 +501,8 @@ class Quantifier(Expr):
             var, newvar = newvar, newvar.prime()
         return self.change_var(var)
 
-    def find_unification(self, other):
-        unif = self.elem.find_unification(other)
+    def find_unification(self, other, **kwargs):
+        unif = self.elem.find_unification(other, **kwargs)
         if unif is None:
             return None
         else:
@@ -778,7 +787,7 @@ class Or(BoolOp):
                         y = other.ors[j]
                         resolved_self = self |> y.paramodulant
                         return other.ors[:j] + other.ors[j+1:] + resolved_self.ors |*> Or
-                    subs = x.find_unification(y)
+                    subs = x.find_unification(y, **kwargs)
                     if subs is not None:
                         return self.ors[:i] + self.ors[i+1:] + other.ors[:j] + other.ors[j+1:] |> map$(.substitute(subs, **kwargs)) |*> Or
         else:
@@ -786,7 +795,7 @@ class Or(BoolOp):
             for i, x in enumerate(self.ors):
                 if isinstance(x, Eq):
                     return self.ors[:i] + self.ors[i+1:] |*> Or |> x.paramodulant
-                subs = x.find_unification(not_other)
+                subs = x.find_unification(not_other, **kwargs)
                 if subs is not None:
                     return self.ors[:i] + self.ors[i+1:] |> map$(.substitute(subs, **kwargs)) |*> Or
         return None
@@ -924,22 +933,22 @@ class Eq(Expr):
         """Swaps the order of equality."""
         Eq(self.b, self.a)
 
-    def find_unification(self, other):
+    def find_unification(self, other, **kwargs):
         if isinstance(other, Eq):
-            a_a = self.a.find_unification(other.a)
-            b_b = self.b.find_unification(other.b)
+            a_a = self.a.find_unification(other.a, **kwargs)
+            b_b = self.b.find_unification(other.b, **kwargs)
             if a_a is not None and b_b is not None:
                 subs = merge_dicts(a_a, b_b)
                 if subs is not None:
                     return subs
-            a_b = self.a.find_unification(other.a)
-            b_a = self.b.find_unification(other.b)
+            a_b = self.a.find_unification(other.a, **kwargs)
+            b_a = self.b.find_unification(other.b, **kwargs)
             if a_b is not None and b_a is not None:
                 subs = merge_dicts(a_b, b_a)
                 if subs is not None:
                     return subs
         else:
-            return super().find_unification(other)
+            return super().find_unification(other, **kwargs)
 
     def substitute(self, subs, **kwargs) =
         Eq(self.a.substitute(subs, **kwargs), self.b.substitute(subs, **kwargs))
@@ -949,7 +958,7 @@ class Eq(Expr):
         other `sub_once` {self.a: self.b, self.b: self.a}
 
     def resolve_against(self, other, **kwargs):
-        if isinstance(other, Not) and self.find_unification(other.neg) is not None:
+        if isinstance(other, Not) and self.find_unification(other.neg, **kwargs) is not None:
             return bot
         else:
             return self.paramodulant(other)
