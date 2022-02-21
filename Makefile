@@ -1,6 +1,6 @@
 .PHONY: install
 install: build
-	pip install --upgrade -e .
+	python -m pip install --upgrade -e .
 
 .PHONY: build
 build:
@@ -9,7 +9,7 @@ build:
 
 .PHONY: package
 package:
-	python3 setup.py sdist bdist_wheel
+	python setup.py sdist bdist_wheel
 
 .PHONY: upload
 upload: clean install package
@@ -18,8 +18,8 @@ upload: clean install package
 
 .PHONY: setup
 setup:
-	pip install --upgrade setuptools pip
-	pip install --upgrade "coconut-develop[watch]"
+	python -m pip install --upgrade setuptools pip
+	python -m pip install --upgrade "coconut-develop[watch]"
 
 .PHONY: test
 test: install
