@@ -1,56 +1,9 @@
 # Imports:
 
-from pyprover.logic import (
-    ForAll,
-    Exists,
-    FA,
-    TE,
-    top,
-    bot,
-    true,
-    false,
-    Not,
-    Imp,
-    Or,
-    And,
-    Eq,
-    Prop,
-    Pred,
-    Var,
-    Const,
-    Func,
-)
-from pyprover.tools import (
-    props,
-    terms,
-    solve,
-    strict_solve,
-    skolemize,
-    strict_skolemize,
-    no_proof_of,
-    proves,
-    strict_proves,
-    proves_and_proved_by,
-    strict_proves_and_proved_by,
-    iff,
-    simplify,
-    strict_simplify,
-    simplest_form,
-    strict_simplest_form,
-    simplest_solution,
-    strict_simplest_solution,
-    substitute,
-    cnf,
-    dnf,
-)
-from pyprover.atoms import (
-    LowercasePropositions,
-    UppercasePropositions,
-    LowercaseVariables,
-    UppercaseVariables,
-    StandardMath,
-)
-from pyprover.parser import expr
+from pyprover.logic import *
+from pyprover.tools import *
+from pyprover.atoms import *
+from pyprover.parser import *
 
 # Main:
 

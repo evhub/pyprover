@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb7981178
+# __coconut_hash__ = 0x7cd31c44
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -70,7 +70,7 @@ bot_sym = (first_encodeable)(all_bot_syms)  #39 (line num in coconut source)
 all_not_syms = "~", "\xac", "-", "not"  #41 (line num in coconut source)
 not_sym = (first_encodeable)(all_not_syms)  #42 (line num in coconut source)
 
-all_imp_syms = "->", "\u2192"  #44 (line num in coconut source)
+all_imp_syms = "->", "\u2192", ">>"  #44 (line num in coconut source)
 imp_sym = (first_encodeable)(all_imp_syms)  #45 (line num in coconut source)
 
 all_and_syms = "&", "\u2227", "/\\", "and"  #47 (line num in coconut source)
@@ -79,10 +79,10 @@ and_sym = (first_encodeable)(all_and_syms)  #48 (line num in coconut source)
 all_or_syms = "|", "\u2228", "\\/", "or"  #50 (line num in coconut source)
 or_sym = (first_encodeable)(all_or_syms)  #51 (line num in coconut source)
 
-all_forall_syms = "FA", "fa", "forall", "A", "\u2200"  #53 (line num in coconut source)
+all_forall_syms = "FA", "\u2200", "fa", "forall", "A", "Fa"  #53 (line num in coconut source)
 forall_sym = (first_encodeable)(all_forall_syms)  #54 (line num in coconut source)
 
-all_exists_syms = "TE", "te", "exists", "E", "\u2203"  #56 (line num in coconut source)
+all_exists_syms = "EX", "\u2203", "ex", "exists", "E", "Ex", "TE", "te", "Te"  #56 (line num in coconut source)
 exists_sym = (first_encodeable)(all_exists_syms)  #57 (line num in coconut source)
 
 empty_var = "_"  #59 (line num in coconut source)

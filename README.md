@@ -15,7 +15,7 @@ from pyprover import *
 ```
 which will populate the global namespace with capital letters as propositions/predicates, and lowercase letters as constants/variables/functions. When using PyProver from a Python file, however, it is recommended to only import what you need.
 
-Formulas can be constructed using the built-in Python operators on propositions and terms combined with `Exists` (or `TE`), `ForAll` (or `FA`), `Eq`, `top`, and `bot`. For example:
+Formulas can be constructed using the built-in Python operators on propositions and terms combined with `Exists` (or `EX`), `ForAll` (or `FA`), `Eq`, `top`, and `bot`. For example:
 ```python
 A & B
 A | ~B
@@ -48,6 +48,8 @@ a = b
 forall x: A, B(x)
 exists x: A, B(x)
 ```
+
+_Note that `expr` requires propositions/predicates to start with a capital letter and constants/variables/functions to start with a lowercase letter._
 
 Once a formula has been constructed, various functions are provided to work with them. Some of the most important of these are:
 

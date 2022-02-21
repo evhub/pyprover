@@ -248,9 +248,14 @@ class FuncAtom(Atom):
                         mgu = prev_sub.find_unification(sub)
                         if mgu is None:
                             return None
-                        new_unif = self.substitute(mgu, **kwargs).find_unification(other, **kwargs)
-                        mgu.update(new_unif)
-                        return mgu
+                        elif mgu:
+                            new_self = self.substitute(mgu, **kwargs)
+                            new_other = other.substitute(mgu, **kwargs)
+                            new_unif = new_self.find_unification(new_other, **kwargs)
+                            if new_unif is None:
+                                return None
+                            mgu.update(new_unif)
+                            return mgu
                     else:
                         subs[var] = sub
             return subs
@@ -305,6 +310,18 @@ class Term(Atom):
         """Rename by adding a prime."""
         self.rename(self.name + "'")
 
+    def subscript(self, i) =
+        """Rename by adding a subscript."""
+        self.rename(self.name + "_" + str(i))
+
+    def skolem(self) =
+        """Rename to a Skolem variable."""
+        Const("_" + self.name)
+
+    def is_free_in(self, expr):
+        """Determine if self is free in expr."""
+        return expr == expr.substitute({self: self.prime()})
+
     def substitute(self, subs, **kwargs):
         if can_sub(kwargs):
             for var, sub in subs.items():
@@ -331,13 +348,14 @@ class Var(Term):
     def __call__(self, *args) =
         Func(self.name, *args)
 
-    def is_free_in(self, expr):
-        """Determine if self is free in expr."""
-        return expr == expr.substitute({self: self.prime()})
-
     def find_unification(self, other, occurs_check=True, **kwargs):
         kwargs["occurs_check"] = occurs_check
-        if isinstance(other, Term):
+        if isinstance(other, Var):
+            if self.name == other.name:
+                return {}
+            else:
+                return {self: other}
+        elif isinstance(other, Term):
             if occurs_check and not self.is_free_in(other):
                 return None
             else:
@@ -417,9 +435,9 @@ class Not(UnaryOp):
     def neg(self) = self.elem
 
     def simplify(self, **kwargs):
-        if top == self.neg:
+        if self.neg == top:
             return bot
-        elif bot == self.neg:
+        elif self.neg == bot:
             return top
         elif isinstance(self.neg, Not):
             return self.neg.neg.simplify(**kwargs)
@@ -487,6 +505,9 @@ class Quantifier(Expr):
         inner_kwargs["in_" + self.__class__.__name__.lower()] = True
         inner_kwargs
 
+    def resolve(self, **kwargs) =
+        self.__class__(self.var, self.elem.resolve(**self.inner_kwargs(kwargs))).simplify(dnf=False, **kwargs)
+
     def simplify(self, **kwargs) =
         self.__class__(self.var, self.elem.simplify(**self.inner_kwargs(kwargs))).drop_quantifier(**kwargs)
 
@@ -539,10 +560,10 @@ class ForAll(Quantifier):
         self.var = var.variable()
         self.elem = elem.substitute({var: self.var.variable()})
 
-    def resolve(self, **kwargs) =
-        inner_kwargs = self.inner_kwargs(kwargs)
-        inner_kwargs["variables"] = kwargs.get("variables", ()) + (self.var,)
-        ForAll(self.var, self.elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+    def inner_kwargs(self, kwargs) =
+        inner_kwargs = super().inner_kwargs(kwargs)
+        inner_kwargs["variables"] = inner_kwargs.get("variables", ()) + (self.var,)
+        inner_kwargs
 
     def drop_quantifier(self, nonempty_universe=True, in_forall=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
@@ -552,7 +573,7 @@ class ForAll(Quantifier):
                 elem = elem.elem
             if top == elem:
                 return elem
-        elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
+        elif self.var.is_free_in(self.elem):
             return self.elem
         return self
 
@@ -573,14 +594,18 @@ class Exists(Quantifier):
         self.elem = elem.substitute({var: self.var.constant()})
 
     def resolve(self, **kwargs):
-        inner_kwargs = self.inner_kwargs(kwargs)
-        skolem_args = inner_kwargs.get("variables")
+        skolem_args = kwargs.get("variables")
         if skolem_args is None:
-            skolem_elem = self.elem
+            skolem_var = self.var.skolem()
         else:
-            skolem_var = Func(self.var.name, *skolem_args)
-            skolem_elem = self.elem.substitute({self.var: skolem_var})
-        return Exists(self.var, skolem_elem.resolve(**inner_kwargs)).simplify(dnf=False, **kwargs)
+            skolem_var = Func(self.var.skolem(), *skolem_args)
+        skolem_elem = self.elem.substitute({self.var: skolem_var})
+        return Exists(self.var, skolem_elem.resolve(**self.inner_kwargs(kwargs))).simplify(dnf=False, **kwargs)
+
+    def inner_kwargs(self, kwargs) =
+        inner_kwargs = super().inner_kwargs(kwargs)
+        inner_kwargs["nonempty_universe"] = True
+        inner_kwargs
 
     def drop_quantifier(self, nonempty_universe=True, in_exists=False, **kwargs):
         kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
@@ -590,7 +615,7 @@ class Exists(Quantifier):
                 elem = elem.elem
             if bot == elem:
                 return elem
-        elif self.elem == self.elem.substitute({self.var: self.var.prime()}):
+        elif self.var.is_free_in(self.elem):
             return self.elem
         return self
 
@@ -766,9 +791,12 @@ class Or(BoolOp):
                         return top
         return self
 
-    def can_prenex(self, other, nonempty_universe=True, in_forall=False, **kwargs) =
-        kwargs["nonempty_universe"], kwargs["in_forall"] = nonempty_universe, in_forall
-        (nonempty_universe
+    def can_prenex(self, other, nonempty_universe=True, in_forall=False, prenex_foralls=False, prenex_exists=True, **_):
+        if not prenex_foralls and isinstance(other, ForAll):
+            return False
+        if not prenex_exists and isinstance(other, Exists):
+            return False
+        return (nonempty_universe
             or in_forall
             or not isinstance(other, Exists)
             or not self.admits_empty_universe())
@@ -840,9 +868,12 @@ class And(BoolOp):
                         return bot
         return self
 
-    def can_prenex(self, other, nonempty_universe=True, in_exists=False, **kwargs) =
-        kwargs["nonempty_universe"], kwargs["in_exists"] = nonempty_universe, in_exists
-        (nonempty_universe
+    def can_prenex(self, other, nonempty_universe=True, in_exists=False, prenex_foralls=False, prenex_exists=True, **_):
+        if not prenex_foralls and isinstance(other, ForAll):
+            return False
+        if not prenex_exists and isinstance(other, Exists):
+            return False
+        return (nonempty_universe
             or in_exists
             or not isinstance(other, ForAll)
             or all(isinstance(x, ForAll) for x in self.elems))
@@ -850,16 +881,32 @@ class And(BoolOp):
     def resolve(self, nonempty_universe=True, just_skolemize=False, debug=False, **kwargs):
         """Performs all possible resolutions within the And."""
         kwargs["nonempty_universe"], kwargs["just_skolemize"], kwargs["debug"] = nonempty_universe, just_skolemize, debug
+
+        # skolemize
         resolved = super().resolve(**kwargs)
         log_simplification(self, resolved, **kwargs)
         if not isinstance(resolved, And) or just_skolemize:
             return resolved
-        clauses = resolved.ands |> list
+        self = resolved
+
+        # if we don't admit a nonempty universe, enforce that
         quantifiers = []
         if not nonempty_universe and not self.admits_empty_universe():
             blank = Exists.blank(top)
             blank.change_elem |> quantifiers.append
             kwargs |>= blank.inner_kwargs
+
+        # push foralls into clauses
+        clauses = []
+        final_subs = {}
+        for i, clause in enumerate(self.ands):
+            clause_subs = {v: v.subscript(i) for v in kwargs.get("variables", ())}
+            clause.substitute(clause_subs, **kwargs) |> clauses.append
+            final_subs.update({v.subscript(i): v for v in kwargs.get("variables", ())})
+        kwargs["variables"] = final_subs.keys() |> tuple
+        log_simplification(self, And(*clauses), **kwargs)
+
+        # main resolution loop
         prev_clause_len = 1
         while prev_clause_len < len(clauses):
             prev_clause_len = len(clauses)
@@ -897,9 +944,13 @@ class And(BoolOp):
                                 break
                 if clauses == [bot]:
                     break
-        resolved = [And(*clauses)] + quantifiers |> reduce$(|>)
+
+        # combine resolved clauses
+        resolved = [And(*clauses)] + quantifiers |> reduce$(|>) |> .substitute(final_subs, **kwargs)
         log_simplification(self, resolved, **kwargs)
-        return resolved.simplify(dnf=False, **kwargs)
+        self = resolved
+
+        return self.simplify(dnf=False, **kwargs)
 
     def admits_empty_universe(self) =
         all(x.admits_empty_universe() for x in self.elems)

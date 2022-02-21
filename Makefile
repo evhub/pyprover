@@ -7,9 +7,12 @@ build:
 	coconut setup.coco --line-numbers
 	coconut pyprover-source pyprover --jobs sys --line-numbers
 
-.PHONY: upload
-upload: clean install
+.PHONY: package
+package:
 	python3 setup.py sdist bdist_wheel
+
+.PHONY: upload
+upload: clean install package
 	pip3 install --upgrade twine
 	twine upload dist/*
 

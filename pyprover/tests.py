@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xd3c95373
+# __coconut_hash__ = 0x49ab9f7d
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -224,7 +224,7 @@ def test_predicate_logic():  #159 (line num in coconut source)
         assert (proves)(~TE(x, R(x)), FA(y, ~R(y)))  #194 (line num in coconut source)
         assert (proves)(top, TE(x, D(x)) | FA(x, ~D(x)))  #195 (line num in coconut source)
         assert (proves)(top, TE(x, ~D(x)) | FA(x, D(x)))  #196 (line num in coconut source)
-        assert (proves)(TE(x, top), TE(x, D(x) >> FA(y, D(y))))  #197 (line num in coconut source)
+        assert (proves)(top, TE(x, D(x) >> FA(y, D(y))))  #197 (line num in coconut source)
         assert (proves)(TE(x, ~~D(x)), TE(x, D(x)))  #198 (line num in coconut source)
         assert (proves)(FA(x, C(x) | D(x)), FA(x, C(x)) | TE(x, D(x)))  #199 (line num in coconut source)
 
@@ -405,22 +405,23 @@ def test_sort():  #367 (line num in coconut source)
 
 def test_regression():  #372 (line num in coconut source)
     """Test hard cases to avoid regressions."""  #373 (line num in coconut source)
-    e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")  #374 (line num in coconut source)
-    e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")  #375 (line num in coconut source)
-    assert not (proves)(e1, e2)  #376 (line num in coconut source)
-    assert (proves)(e2, e1)  #377 (line num in coconut source)
-    e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")  #378 (line num in coconut source)
-    e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")  #379 (line num in coconut source)
-    assert (proves)(e3, e4)  #380 (line num in coconut source)
-    assert not (proves)(e4, e3)  #381 (line num in coconut source)
+    assert (proves)(expr("FA x, ~P(x, x)"), expr("~FA u, FA v, P(g(f(v)), g(u))"))  #374 (line num in coconut source)
+    e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")  #375 (line num in coconut source)
+    e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")  #376 (line num in coconut source)
+    assert not (strict_proves)(e1, e2)  #377 (line num in coconut source)
+    assert (strict_proves)(e2, e1)  #378 (line num in coconut source)
+    e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")  #379 (line num in coconut source)
+    e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")  #380 (line num in coconut source)
+    assert (strict_proves)(e3, e4)  #381 (line num in coconut source)
+    assert not (strict_proves)(e4, e3)  #382 (line num in coconut source)
 
 
 
-if __name__ == "__main__":  #384 (line num in coconut source)
-    test_propositional_logic()  #385 (line num in coconut source)
-    test_predicate_logic()  #386 (line num in coconut source)
-    test_empty_universe()  #387 (line num in coconut source)
-    test_parser()  #388 (line num in coconut source)
-    test_sort()  #389 (line num in coconut source)
-    test_regression()  #390 (line num in coconut source)
-    print("<success>")  #391 (line num in coconut source)
+if __name__ == "__main__":  #385 (line num in coconut source)
+    test_propositional_logic()  #386 (line num in coconut source)
+    test_predicate_logic()  #387 (line num in coconut source)
+    test_empty_universe()  #388 (line num in coconut source)
+    test_parser()  #389 (line num in coconut source)
+    test_sort()  #390 (line num in coconut source)
+    test_regression()  #391 (line num in coconut source)
+    print("<success>")  #392 (line num in coconut source)

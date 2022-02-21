@@ -18,13 +18,24 @@ def terms(names) =
     """Constructs constants from a space-seperated string of names."""
     map(Constant, names.split())
 
+def prop_simp(expr, **kwargs) =
+    """Simplify the propositional parts of expr."""
+    expr.simplify(prenex_exists=False, prenex_foralls=False, **kwargs)
+
+def prenex(expr, **kwargs) =
+    """Convert expr to prenex normal form."""
+    expr.simplify(prenex_exists=True, prenex_foralls=False, **kwargs).simplify(prenex_exists=True, prenex_foralls=True, **kwargs)
+strict_prenex = prenex$(nonempty_universe=False)
+
 def cnf(expr, **kwargs) =
     """Converts an expression to CNF."""
-    expr.simplify(dnf=False, **kwargs)
+    prenex(expr, dnf=False, **kwargs)
+strict_cnf = cnf$(nonempty_universe=False)
 
 def dnf(expr, **kwargs) =
     """Converts an expression to DNF."""
-    expr.simplify(dnf=True, **kwargs)
+    prenex(expr, dnf=True, **kwargs)
+strict_dnf = dnf$(nonempty_universe=False)
 
 def solve(expr, **kwargs) =
     """Converts to CNF and performs all possible resolutions."""
@@ -65,9 +76,9 @@ strict_proves_and_proved_by = proves_and_proved_by$(nonempty_universe=False)
 def simplify(expr, *exprs, **kwargs):
     """Simplify the given expression[s]."""
     if exprs:
-        return (expr,) + exprs |> map$(x -> x.simplify(**kwargs)) |> tuple
+        return (expr,) + exprs |> map$(dnf$(**kwargs)) |> tuple
     else:
-        return expr.simplify(**kwargs)
+        return dnf(expr, **kwargs)
 strict_simplify = simplify$(nonempty_universe=False)
 
 def simplest_form(expr, **kwargs):

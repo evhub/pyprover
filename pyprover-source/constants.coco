@@ -41,7 +41,7 @@ bot_sym = all_bot_syms |> first_encodeable
 all_not_syms = "~", "\xac", "-", "not"
 not_sym = all_not_syms |> first_encodeable
 
-all_imp_syms = "->", "\u2192"
+all_imp_syms = "->", "\u2192", ">>"
 imp_sym = all_imp_syms |> first_encodeable
 
 all_and_syms = "&", "\u2227", "/\\", "and"
@@ -50,10 +50,10 @@ and_sym = all_and_syms |> first_encodeable
 all_or_syms = "|", "\u2228", "\\/", "or"
 or_sym = all_or_syms |> first_encodeable
 
-all_forall_syms = "FA", "fa", "forall", "A", "\u2200"
+all_forall_syms = "FA", "\u2200", "fa", "forall", "A", "Fa"
 forall_sym = all_forall_syms |> first_encodeable
 
-all_exists_syms = "TE", "te", "exists", "E", "\u2203"
+all_exists_syms = "EX", "\u2203", "ex", "exists", "E", "Ex", "TE", "te", "Te"
 exists_sym = all_exists_syms |> first_encodeable
 
 empty_var = "_"

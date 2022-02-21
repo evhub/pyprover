@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x58af5647
+# __coconut_hash__ = 0x302edf4e
 
 # Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
 
@@ -35,52 +35,11 @@ _coconut_sys.path.pop(0)
 
 # Imports:
 
-from pyprover.logic import ForAll  #3 (line num in coconut source)
-from pyprover.logic import Exists  #3 (line num in coconut source)
-from pyprover.logic import FA  #3 (line num in coconut source)
-from pyprover.logic import TE  #3 (line num in coconut source)
-from pyprover.logic import top  #3 (line num in coconut source)
-from pyprover.logic import bot  #3 (line num in coconut source)
-from pyprover.logic import true  #3 (line num in coconut source)
-from pyprover.logic import false  #3 (line num in coconut source)
-from pyprover.logic import Not  #3 (line num in coconut source)
-from pyprover.logic import Imp  #3 (line num in coconut source)
-from pyprover.logic import Or  #3 (line num in coconut source)
-from pyprover.logic import And  #3 (line num in coconut source)
-from pyprover.logic import Eq  #3 (line num in coconut source)
-from pyprover.logic import Prop  #3 (line num in coconut source)
-from pyprover.logic import Pred  #3 (line num in coconut source)
-from pyprover.logic import Var  #3 (line num in coconut source)
-from pyprover.logic import Const  #3 (line num in coconut source)
-from pyprover.logic import Func  #3 (line num in coconut source)
-from pyprover.tools import props  #23 (line num in coconut source)
-from pyprover.tools import terms  #23 (line num in coconut source)
-from pyprover.tools import solve  #23 (line num in coconut source)
-from pyprover.tools import strict_solve  #23 (line num in coconut source)
-from pyprover.tools import skolemize  #23 (line num in coconut source)
-from pyprover.tools import strict_skolemize  #23 (line num in coconut source)
-from pyprover.tools import no_proof_of  #23 (line num in coconut source)
-from pyprover.tools import proves  #23 (line num in coconut source)
-from pyprover.tools import strict_proves  #23 (line num in coconut source)
-from pyprover.tools import proves_and_proved_by  #23 (line num in coconut source)
-from pyprover.tools import strict_proves_and_proved_by  #23 (line num in coconut source)
-from pyprover.tools import iff  #23 (line num in coconut source)
-from pyprover.tools import simplify  #23 (line num in coconut source)
-from pyprover.tools import strict_simplify  #23 (line num in coconut source)
-from pyprover.tools import simplest_form  #23 (line num in coconut source)
-from pyprover.tools import strict_simplest_form  #23 (line num in coconut source)
-from pyprover.tools import simplest_solution  #23 (line num in coconut source)
-from pyprover.tools import strict_simplest_solution  #23 (line num in coconut source)
-from pyprover.tools import substitute  #23 (line num in coconut source)
-from pyprover.tools import cnf  #23 (line num in coconut source)
-from pyprover.tools import dnf  #23 (line num in coconut source)
-from pyprover.atoms import LowercasePropositions  #46 (line num in coconut source)
-from pyprover.atoms import UppercasePropositions  #46 (line num in coconut source)
-from pyprover.atoms import LowercaseVariables  #46 (line num in coconut source)
-from pyprover.atoms import UppercaseVariables  #46 (line num in coconut source)
-from pyprover.atoms import StandardMath  #46 (line num in coconut source)
-from pyprover.parser import expr  #53 (line num in coconut source)
+from pyprover.logic import *  #3 (line num in coconut source)
+from pyprover.tools import *  #4 (line num in coconut source)
+from pyprover.atoms import *  #5 (line num in coconut source)
+from pyprover.parser import *  #6 (line num in coconut source)
 
 # Main:
 
-StandardMath.use(globals())  #57 (line num in coconut source)
+StandardMath.use(globals())  #10 (line num in coconut source)

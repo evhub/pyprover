@@ -194,7 +194,7 @@ def test_predicate_logic():
         assert ~TE(x, R(x)) `proves` FA(y, ~R(y))
         assert top `proves` TE(x, D(x)) | FA(x, ~D(x))
         assert top `proves` TE(x, ~D(x)) | FA(x, D(x))
-        assert TE(x, top) `proves` TE(x, D(x) >> FA(y, D(y)))
+        assert top `proves` TE(x, D(x) >> FA(y, D(y)))
         assert TE(x, ~~D(x)) `proves` TE(x, D(x))
         assert FA(x, C(x) | D(x)) `proves` FA(x, C(x)) | TE(x, D(x))
 
@@ -371,14 +371,15 @@ def test_sort():
 
 def test_regression():
     """Test hard cases to avoid regressions."""
+    assert expr("FA x, ~P(x, x)") `proves` expr("~FA u, FA v, P(g(f(v)), g(u))")
     e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")
     e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")
-    assert not e1 `proves` e2
-    assert e2 `proves` e1
+    assert not e1 `strict_proves` e2
+    assert e2 `strict_proves` e1
     e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")
     e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")
-    assert e3 `proves` e4
-    assert not e4 `proves` e3
+    assert e3 `strict_proves` e4
+    assert not e4 `strict_proves` e3
 
 
 if __name__ == "__main__":
