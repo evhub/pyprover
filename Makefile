@@ -18,7 +18,7 @@ upload: clean install package
 
 .PHONY: setup
 setup:
-	python -m pip install --upgrade setuptools pip
+	python -m pip install --upgrade setuptools wheel pip
 	python -m pip install --upgrade "coconut-develop[watch]"
 
 .PHONY: test
