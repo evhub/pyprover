@@ -517,9 +517,8 @@ class Quantifier(Expr):
     def make_free_in(self, other):
         """Makes self free in other."""
         var = self.var
-        newvar = var.prime()
-        while other != other.substitute({var: newvar}):
-            var, newvar = newvar, newvar.prime()
+        while not var.is_free_in(other):
+            var = var.prime()
         return self.change_var(var)
 
     def find_unification(self, other, **kwargs):
@@ -597,6 +596,8 @@ class Exists(Quantifier):
         skolem_args = kwargs.get("variables")
         if skolem_args is None:
             skolem_var = self.var.skolem()
+            while not skolem_var.is_free_in(self.elem):
+                skolem_var = skolem_var.prime()
         else:
             skolem_var = Func(self.var.skolem(), *skolem_args)
         skolem_elem = self.elem.substitute({self.var: skolem_var})
