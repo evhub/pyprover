@@ -9,6 +9,7 @@ from pyprover.logic import (
     Or,
     Eq,
     Const,
+    Var,
 )
 from pyprover.tools import (
     proves,
@@ -380,6 +381,7 @@ def test_regression():
     e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")
     assert e3 `strict_proves` e4
     assert not e4 `strict_proves` e3
+    assert expr("Q(?x) & P(?y)").find_unification(expr("Q(a) & P(b)")) == {Var("x"): Const("a"), Var("y"): Const("b")}
 
 
 if __name__ == "__main__":

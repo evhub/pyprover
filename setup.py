@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xb2f68492
+# __coconut_hash__ = 0x48de7c5
 
-# Compiled with Coconut version 2.0.0-a_dev45 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-a_dev47 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -223,6 +223,10 @@ class _coconut(object):
         except ImportError:
             class you_need_to_install_backports_functools_lru_cache(object): pass
             functools.lru_cache = you_need_to_install_backports_functools_lru_cache()
+    if _coconut_sys.version_info < (3,):
+        import copy_reg as copyreg
+    else:
+        import copyreg
     if _coconut_sys.version_info < (3, 4):
         try:
             import trollius as asyncio
@@ -1365,7 +1369,16 @@ def _namedtuple_of(**kwargs):
     if _coconut_sys.version_info < (3, 6):
         raise _coconut.RuntimeError("_namedtuple_of is not available on Python < 3.6 (use anonymous namedtuple literals instead)")
     else:
-        return _coconut.collections.namedtuple("_namedtuple_of", kwargs.keys())(*kwargs.values())
+        return _coconut_mk_anon_namedtuple(kwargs.keys(), of_kwargs=kwargs)
+def _coconut_mk_anon_namedtuple(fields, types=None, of_kwargs=None):
+    if types is None:
+        NT = _coconut.collections.namedtuple("_namedtuple_of", fields)
+    else:
+        NT = _coconut.typing.NamedTuple("_namedtuple_of", [(f, t) for f, t in _coconut.zip(fields, types)])
+    _coconut.copyreg.pickle(NT, lambda nt: (_coconut_mk_anon_namedtuple, (nt._fields, types, nt._asdict())))
+    if of_kwargs is None:
+        return NT
+    return NT(**of_kwargs)
 def _coconut_ndim(arr):
     if arr.__class__.__module__ in ('numpy', 'pandas') and _coconut.isinstance(arr, _coconut.numpy.ndarray):
         return arr.ndim

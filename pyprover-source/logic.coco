@@ -35,6 +35,32 @@ def isvar(var) =
     isinstance(var, (Const, Var))
 
 
+def unify_elems(a, b, elems_getter, **kwargs):
+    """Find the most general unifier of the elements in a and b."""
+    subs = {}
+    for i, x in enumerate(elems_getter(a)):
+        y = elems_getter(b)[i]
+        unif = x.find_unification(y, **kwargs)
+        if unif is None:
+            return None
+        for var, sub in unif.items():
+            match {=var: prev_sub, **_} in subs:
+                mgu = prev_sub.find_unification(sub)
+                if mgu is None:
+                    return None
+                elif mgu:
+                    new_a = a.substitute(mgu, **kwargs)
+                    new_b = b.substitute(mgu, **kwargs)
+                    new_unif = new_a.find_unification(new_b, **kwargs)
+                    if new_unif is None:
+                        return None
+                    mgu.update(new_unif)
+                    return mgu
+            else:
+                subs[var] = sub
+    return subs
+
+
 # Classes:
 
 class Expr:
@@ -237,28 +263,7 @@ class FuncAtom(Atom):
 
     def find_unification(self, other, **kwargs):
         if isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
-            subs = {}
-            for i, x in enumerate(self.args):
-                y = other.args[i]
-                unif = x.find_unification(y, **kwargs)
-                if unif is None:
-                    return None
-                for var, sub in unif.items():
-                    match {=var: prev_sub, **_} in subs:
-                        mgu = prev_sub.find_unification(sub)
-                        if mgu is None:
-                            return None
-                        elif mgu:
-                            new_self = self.substitute(mgu, **kwargs)
-                            new_other = other.substitute(mgu, **kwargs)
-                            new_unif = new_self.find_unification(new_other, **kwargs)
-                            if new_unif is None:
-                                return None
-                            mgu.update(new_unif)
-                            return mgu
-                    else:
-                        subs[var] = sub
-            return subs
+            return unify_elems(self, other, elems_getter=.args, **kwargs)
         else:
             return super().find_unification(other, **kwargs)
 
@@ -664,6 +669,12 @@ class BinaryOp(Expr):
     def resolve(self, **kwargs) =
         elems = self.elems |> map$(.resolve(**kwargs))
         self.__class__(*elems).simplify(dnf=False, **kwargs)
+
+    def find_unification(self, other, **kwargs):
+        if isinstance(other, self.__class__) and len(self.elems) == len(other.elems):
+            return unify_elems(self, other, elems_getter=.elems, **kwargs)
+        else:
+            return super().find_unification(other, **kwargs)
 
 
 class Imp(BinaryOp):

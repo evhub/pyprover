@@ -19,7 +19,7 @@ def first_encodeable(symbols):
 
 # Installation:
 
-version = "0.6.0"
+version = "0.6.1"
 requirements = [
     "pyparsing",
 ]
