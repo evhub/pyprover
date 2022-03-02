@@ -10,13 +10,8 @@ from pyprover.constants import (
 
 # Functions:
 
-def unorderd_eq(list1, list2):
-    if len(list1) != len(list2):
-        return False
-    for x in list1:
-        if x not in list2:
-            return False
-    return True
+def unorderd_eq(list1, list2) =
+    len(list1) == len(list2) and set(list1) == set(list2)
 
 def quote(expr, in_quantifier=False):
     """Adds parentheses in the presence of Imp, And, Or, ForAll, and Exists."""
@@ -60,7 +55,7 @@ def rem_var(var, subs) =
         pass
     newsubs
 
-class counter:
+class Counter:
     def __init__(self, num=-1):
         self.num = num
     def inc(self):
@@ -71,28 +66,41 @@ class counter:
 
 def obj `sub_once` subs =
     """Performs one substitution of subs into obj."""
-    obj.substitute(subs, counter=counter(1))
+    obj.substitute(subs, counter=Counter(1))
 
 def can_sub(kwargs):
     """Determines if the counter in kwargs allows for another sub."""
-    try:
-        return not kwargs["counter"].done()
-    except KeyError:
+    match {"counter": counter, **_} in kwargs:
+        return not counter.done()
+    else:
         return True
 
 def do_sub(kwargs):
     """Increments the counter in kwargs."""
-    try:
-        kwargs["counter"].inc()
-    except KeyError:
-        pass
+    match {"counter": counter, **_} in kwargs:
+        counter.inc()
 
-def merge_dicts(dict1, dict2):
-    """Merge dictionaries if there are no conflicts, otherwise None."""
-    out = {}
-    for key, val in dict1.items() :: dict2.items():
-        if key not in out:
-            out[key] = val
-        elif out[key] != val:
+def unify_elems(a, b, elems_getter, **kwargs):
+    """Find the most general unifier of the elements in a and b."""
+    subs = {}
+    for i, x in enumerate(elems_getter(a)):
+        y = elems_getter(b)[i]
+        unif = x.find_unification(y, **kwargs)
+        if unif is None:
             return None
-    return out
+        for var, sub in unif.items():
+            match {=var: prev_sub, **_} in subs:
+                mgu = prev_sub.find_unification(sub, **kwargs)
+                if mgu is None:
+                    return None
+                elif mgu:
+                    new_a = a.substitute(mgu, **kwargs)
+                    new_b = b.substitute(mgu, **kwargs)
+                    new_unif = new_a.find_unification(new_b, **kwargs)
+                    if new_unif is None:
+                        return None
+                    mgu.update(new_unif)
+                    return mgu
+            else:
+                subs[var] = sub
+    return subs

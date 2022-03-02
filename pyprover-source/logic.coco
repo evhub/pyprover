@@ -19,8 +19,8 @@ from pyprover.util import (
     rem_var,
     can_sub,
     do_sub,
-    merge_dicts,
     sub_once,
+    unify_elems,
 )
 
 # Functions:
@@ -35,52 +35,26 @@ def isvar(var) =
     isinstance(var, (Const, Var))
 
 
-def unify_elems(a, b, elems_getter, **kwargs):
-    """Find the most general unifier of the elements in a and b."""
-    subs = {}
-    for i, x in enumerate(elems_getter(a)):
-        y = elems_getter(b)[i]
-        unif = x.find_unification(y, **kwargs)
-        if unif is None:
-            return None
-        for var, sub in unif.items():
-            match {=var: prev_sub, **_} in subs:
-                mgu = prev_sub.find_unification(sub)
-                if mgu is None:
-                    return None
-                elif mgu:
-                    new_a = a.substitute(mgu, **kwargs)
-                    new_b = b.substitute(mgu, **kwargs)
-                    new_unif = new_a.find_unification(new_b, **kwargs)
-                    if new_unif is None:
-                        return None
-                    mgu.update(new_unif)
-                    return mgu
-            else:
-                subs[var] = sub
-    return subs
-
-
 # Classes:
 
 class Expr:
     """Base class for all formulae."""
     __slots__ = ()
 
-    def __hash__(self) -> int:
-        return str(self) |> hash
+    def __hash__(self) -> int =
+        repr(self) |> hash
 
-    def __lt__(self, other) -> int:
-        return str(self) < str(other)
+    def __lt__(self, other) -> int =
+        str(self) < str(other)
 
-    def __gt__(self, other) -> int:
-        return str(self) > str(other)
+    def __gt__(self, other) -> int =
+        str(self) > str(other)
 
-    def __ge__(self, other) -> int:
-        return str(self) >= str(other)
+    def __ge__(self, other) -> int =
+        str(self) >= str(other)
 
-    def __le__(self, other) -> int:
-        return str(self) <= str(other)
+    def __le__(self, other) -> int =
+        str(self) <= str(other)
 
     def __and__(self, other):
         if isinstance(other, And):
@@ -157,6 +131,7 @@ class Expr:
 class Top(Expr):
     """True"""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def __eq__(self, other) = isinstance(other, Top)
 
@@ -172,6 +147,7 @@ top = true = Top()
 class Bot(Expr):
     """False"""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def __eq__(self, other) = isinstance(other, Bot)
 
@@ -189,6 +165,7 @@ bot = false = Bot()
 class Atom(Expr):
     """Base class for all variables."""
     __slots__ = ("name",)
+    __hash__ = Expr.__hash__
 
     def __init__(self, name):
         if isinstance(name, Atom):
@@ -204,9 +181,6 @@ class Atom(Expr):
 
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name
-
-    def __hash__(self) =
-        (self.__class__.__name__, self.name) |> hash
 
     def substitute_elements(self, subs, **kwargs) =
         """Substitute for the elements of the Atom, not the Atom itself."""
@@ -232,6 +206,7 @@ class Atom(Expr):
 class Prop(Atom):
     """Logical proposition that is either true or false."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def __call__(self, *args) =
         Pred(self.name, *args)
@@ -242,6 +217,7 @@ Proposition = Prop
 class FuncAtom(Atom):
     """Base class for predicates and functions."""
     __slots__ = ("args",)
+    __hash__ = Expr.__hash__
 
     def __init__(self, name, *args):
         super().__init__(name)
@@ -258,9 +234,6 @@ class FuncAtom(Atom):
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.name == other.name and self.args == other.args
 
-    def __hash__(self) =
-        (self.__class__.__name__, self.name, self.args) |> hash
-
     def find_unification(self, other, **kwargs):
         if isinstance(other, self.__class__) and self.name == other.name and len(self.args) == len(other.args):
             return unify_elems(self, other, elems_getter=.args, **kwargs)
@@ -274,6 +247,7 @@ class FuncAtom(Atom):
 class Pred(FuncAtom):
     """Boolean function of terms."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def proposition(self) =
         Prop(self.name)
@@ -298,6 +272,7 @@ Predicate = Pred
 class Term(Atom):
     """Base class for all terms."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def variable(self) =
         """Convert to a variable."""
@@ -344,6 +319,7 @@ class Term(Atom):
 class Var(Term):
     """A variable quantified by a ForAll."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def __str__(self) =
         "?" + super().__str__()
@@ -374,6 +350,7 @@ Variable = Var
 class Const(Term):
     """A variable quantified by an Exists."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def constant(self) = self
 
@@ -388,6 +365,7 @@ Constant = Const
 class Func(Term, FuncAtom):
     """A function on terms."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def substitute_elements(self, subs, **kwargs) =
         self.args |> map$(.substitute(subs, **kwargs)) |*> Func$(self.name)
@@ -401,6 +379,7 @@ Function = Func
 class UnaryOp(Expr):
     """Base class for unary operators."""
     __slots__ = ("elem",)
+    __hash__ = Expr.__hash__
 
     def __init__(self, elem):
         assert wff(elem), elem
@@ -434,6 +413,7 @@ class UnaryOp(Expr):
 class Not(UnaryOp):
     """Logical not."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = not_sym
 
     @property
@@ -481,6 +461,7 @@ class Not(UnaryOp):
 class Quantifier(Expr):
     """Base class for logical quantifiers."""
     __slots__ = ("var", "elem")
+    __hash__ = Expr.__hash__
 
     def __repr__(self) =
         self.__class__.__name__ + '("' + str(self.var) + '", ' + repr(self.elem) + ")"
@@ -554,6 +535,7 @@ class Quantifier(Expr):
 class ForAll(Quantifier):
     """Universal quantifier."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = forall_sym
 
     def __init__(self, var, elem):
@@ -587,6 +569,7 @@ FA = ForAll
 class Exists(Quantifier):
     """Existential quantifier."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = exists_sym
 
     def __init__(self, var, elem):
@@ -627,12 +610,13 @@ class Exists(Quantifier):
 
     def admits_empty_universe(self) = False
 
-TE = Exists
+TE = EX = Exists
 
 
 class BinaryOp(Expr):
     """Base class for binary operators."""
     __slots__ = ("elems",)
+    __hash__ = Expr.__hash__
     identity = None
 
     def __new__(cls, *elems):
@@ -680,6 +664,7 @@ class BinaryOp(Expr):
 class Imp(BinaryOp):
     """Logical implication."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = imp_sym
 
     def __rshift__(self, other):
@@ -716,6 +701,7 @@ Implies = Imp
 class BoolOp(BinaryOp):
     """Base class for Or and And."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
 
     def __eq__(self, other) =
         isinstance(other, self.__class__) and self.elems `unorderd_eq` other.elems
@@ -770,6 +756,7 @@ class BoolOp(BinaryOp):
 class Or(BoolOp):
     """Logical disjunction."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = or_sym
     identity = bot
 
@@ -847,6 +834,7 @@ class Or(BoolOp):
 class And(BoolOp):
     """Logical conjunction."""
     __slots__ = ()
+    __hash__ = Expr.__hash__
     opstr = and_sym
     identity = top
 
@@ -971,6 +959,7 @@ class And(BoolOp):
 class Eq(Expr):
     """Equality operator."""
     __slots__ = ("a", "b")
+    __hash__ = Expr.__hash__
 
     def __init__(self, a, b):
         assert isinstance(a, Term), a
@@ -998,18 +987,11 @@ class Eq(Expr):
 
     def find_unification(self, other, **kwargs):
         if isinstance(other, Eq):
-            a_a = self.a.find_unification(other.a, **kwargs)
-            b_b = self.b.find_unification(other.b, **kwargs)
-            if a_a is not None and b_b is not None:
-                subs = merge_dicts(a_a, b_b)
-                if subs is not None:
-                    return subs
-            a_b = self.a.find_unification(other.a, **kwargs)
-            b_a = self.b.find_unification(other.b, **kwargs)
-            if a_b is not None and b_a is not None:
-                subs = merge_dicts(a_b, b_a)
-                if subs is not None:
-                    return subs
+            aa_bb_unif = unify_elems(self, other, elems_getter=lift(,)(.a, .b), **kwargs)
+            if aa_bb_unif is not None:
+                return aa_bb_unif
+            ab_ba_unif = unify_elems(self, other.swap(), elems_getter=lift(,)(.a, .b), **kwargs)
+            return ab_ba_unif
         else:
             return super().find_unification(other, **kwargs)
 
