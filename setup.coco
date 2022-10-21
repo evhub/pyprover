@@ -14,6 +14,7 @@ setuptools.setup(
     name="pyprover",
     version=version,
     description="Resolution theorem proving for predicate logic in pure Python.",
+    long_description="Resolution theorem proving for predicate logic in pure Python.",
     url="https://github.com/evhub/pyprover",
     author="Evan Hubinger",
     author_email="evanjhub@gmail.com",
