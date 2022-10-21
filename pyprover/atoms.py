@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xf4acbae8
+# __coconut_hash__ = 0x7453e6ed
 
-# Compiled with Coconut version 2.0.0-a_dev47 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -28,138 +28,138 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple
+from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
 
-from contextlib import contextmanager  #3 (line num in coconut source)
+from contextlib import contextmanager  #3 (line in Coconut source)
 
-from pyprover.tools import props  #5 (line num in coconut source)
-from pyprover.tools import terms  #5 (line num in coconut source)
+from pyprover.tools import props  #5 (line in Coconut source)
+from pyprover.tools import terms  #5 (line in Coconut source)
 
 
 # Base Class:
 
-class Vars(_coconut.object):  #13 (line num in coconut source)
-    @classmethod  #14 (line num in coconut source)
-    def items(cls):  #15 (line num in coconut source)
-        for name in dir(cls):  #16 (line num in coconut source)
-            if not name.startswith("_"):  #17 (line num in coconut source)
-                var = getattr(cls, name)  #18 (line num in coconut source)
-                yield name, var  #19 (line num in coconut source)
+class Vars(_coconut.object):  #13 (line in Coconut source)
+    @classmethod  #14 (line in Coconut source)
+    def items(cls):  #15 (line in Coconut source)
+        for name in dir(cls):  #16 (line in Coconut source)
+            if not name.startswith("_"):  #17 (line in Coconut source)
+                var = getattr(cls, name)  #18 (line in Coconut source)
+                yield name, var  #19 (line in Coconut source)
 
 
-    @classmethod  #21 (line num in coconut source)
-    def add_to(cls, globs):  #22 (line num in coconut source)
-        """Put variables into the global namespace."""  #23 (line num in coconut source)
-        for name, var in cls.items():  #24 (line num in coconut source)
-            globs[name] = var  #25 (line num in coconut source)
+    @classmethod  #21 (line in Coconut source)
+    def add_to(cls, globs):  #22 (line in Coconut source)
+        """Put variables into the global namespace."""  #23 (line in Coconut source)
+        for name, var in cls.items():  #24 (line in Coconut source)
+            globs[name] = var  #25 (line in Coconut source)
 
 
-    use = add_to  #27 (line num in coconut source)
+    use = add_to  #27 (line in Coconut source)
 
-    @classmethod  #29 (line num in coconut source)
-    @contextmanager  #30 (line num in coconut source)
-    def use_in(cls, globs):  #31 (line num in coconut source)
-        """Temporarilty put variables into the global namespace."""  #32 (line num in coconut source)
-        prevars = {}  #33 (line num in coconut source)
-        for name, var in cls.items():  #34 (line num in coconut source)
-            if name in globs:  #35 (line num in coconut source)
-                prevars[name] = globs[name]  #36 (line num in coconut source)
-            globs[name] = var  #37 (line num in coconut source)
-        try:  #38 (line num in coconut source)
-            yield  #39 (line num in coconut source)
-        finally:  #40 (line num in coconut source)
-            for name, var in cls.items():  #41 (line num in coconut source)
-                if name in prevars:  #42 (line num in coconut source)
-                    globs[name] = prevars[name]  #43 (line num in coconut source)
-                else:  #44 (line num in coconut source)
-                    del globs[name]  #45 (line num in coconut source)
+    @classmethod  #29 (line in Coconut source)
+    @contextmanager  #30 (line in Coconut source)
+    def use_in(cls, globs):  #31 (line in Coconut source)
+        """Temporarilty put variables into the global namespace."""  #32 (line in Coconut source)
+        prevars = {}  #33 (line in Coconut source)
+        for name, var in cls.items():  #34 (line in Coconut source)
+            if name in globs:  #35 (line in Coconut source)
+                prevars[name] = globs[name]  #36 (line in Coconut source)
+            globs[name] = var  #37 (line in Coconut source)
+        try:  #38 (line in Coconut source)
+            yield  #39 (line in Coconut source)
+        finally:  #40 (line in Coconut source)
+            for name, var in cls.items():  #41 (line in Coconut source)
+                if name in prevars:  #42 (line in Coconut source)
+                    globs[name] = prevars[name]  #43 (line in Coconut source)
+                else:  #44 (line in Coconut source)
+                    del globs[name]  #45 (line in Coconut source)
 
 
-    using = use_in  #47 (line num in coconut source)
+    using = use_in  #47 (line in Coconut source)
 
-    @_coconut_tco  #49 (line num in coconut source)
-    def __hash__(self):  #49 (line num in coconut source)
+    @_coconut_tco  #49 (line in Coconut source)
+    def __hash__(self):  #49 (line in Coconut source)
 #type: (...) -> int
-        return _coconut_tail_call((hash), str(self))  #50 (line num in coconut source)
+        return _coconut_tail_call((hash), str(self))  #50 (line in Coconut source)
 
 
-    def __lt__(self, other):  #52 (line num in coconut source)
+    def __lt__(self, other):  #52 (line in Coconut source)
 #type: (...) -> int
-        return str(self) < str(other)  #53 (line num in coconut source)
+        return str(self) < str(other)  #53 (line in Coconut source)
 
 
-    def __gt__(self, other):  #55 (line num in coconut source)
+    def __gt__(self, other):  #55 (line in Coconut source)
 #type: (...) -> int
-        return str(self) > str(other)  #56 (line num in coconut source)
+        return str(self) > str(other)  #56 (line in Coconut source)
 
 
-    def __ge__(self, other):  #58 (line num in coconut source)
+    def __ge__(self, other):  #58 (line in Coconut source)
 #type: (...) -> int
-        return str(self) >= str(other)  #59 (line num in coconut source)
+        return str(self) >= str(other)  #59 (line in Coconut source)
 
 
-    def __le__(self, other):  #61 (line num in coconut source)
+    def __le__(self, other):  #61 (line in Coconut source)
 #type: (...) -> int
-        return str(self) <= str(other)  #62 (line num in coconut source)
+        return str(self) <= str(other)  #62 (line in Coconut source)
 
 
 # Derived Classes:
 
 
-_coconut_call_set_names(Vars)  #67 (line num in coconut source)
-class LowercasePropositions(Vars):  #67 (line num in coconut source)
-    a, b, c = props("a b c")  #68 (line num in coconut source)
-    d, e, f = props("d e f")  #69 (line num in coconut source)
-    g, h, i = props("g h i")  #70 (line num in coconut source)
-    j, k, l = props("j k l")  #71 (line num in coconut source)
-    m, n, o = props("m n o")  #72 (line num in coconut source)
-    p, q, r = props("p q r")  #73 (line num in coconut source)
-    s, t, u = props("s t u")  #74 (line num in coconut source)
-    v, w, x = props("v w x")  #75 (line num in coconut source)
-    y, z = props("y z")  #76 (line num in coconut source)
+_coconut_call_set_names(Vars)  #67 (line in Coconut source)
+class LowercasePropositions(Vars):  #67 (line in Coconut source)
+    a, b, c = props("a b c")  #68 (line in Coconut source)
+    d, e, f = props("d e f")  #69 (line in Coconut source)
+    g, h, i = props("g h i")  #70 (line in Coconut source)
+    j, k, l = props("j k l")  #71 (line in Coconut source)
+    m, n, o = props("m n o")  #72 (line in Coconut source)
+    p, q, r = props("p q r")  #73 (line in Coconut source)
+    s, t, u = props("s t u")  #74 (line in Coconut source)
+    v, w, x = props("v w x")  #75 (line in Coconut source)
+    y, z = props("y z")  #76 (line in Coconut source)
 
-_coconut_call_set_names(LowercasePropositions)  #78 (line num in coconut source)
-class UppercasePropositions(Vars):  #78 (line num in coconut source)
-    A, B, C = props("A B C")  #79 (line num in coconut source)
-    D, E, F = props("D E F")  #80 (line num in coconut source)
-    G, H, I = props("G H I")  #81 (line num in coconut source)
-    J, K, L = props("J K L")  #82 (line num in coconut source)
-    M, N, O = props("M N O")  #83 (line num in coconut source)
-    P, Q, R = props("P Q R")  #84 (line num in coconut source)
-    S, T, U = props("S T U")  #85 (line num in coconut source)
-    V, W, X = props("V W X")  #86 (line num in coconut source)
-    Y, Z = props("Y Z")  #87 (line num in coconut source)
+_coconut_call_set_names(LowercasePropositions)  #78 (line in Coconut source)
+class UppercasePropositions(Vars):  #78 (line in Coconut source)
+    A, B, C = props("A B C")  #79 (line in Coconut source)
+    D, E, F = props("D E F")  #80 (line in Coconut source)
+    G, H, I = props("G H I")  #81 (line in Coconut source)
+    J, K, L = props("J K L")  #82 (line in Coconut source)
+    M, N, O = props("M N O")  #83 (line in Coconut source)
+    P, Q, R = props("P Q R")  #84 (line in Coconut source)
+    S, T, U = props("S T U")  #85 (line in Coconut source)
+    V, W, X = props("V W X")  #86 (line in Coconut source)
+    Y, Z = props("Y Z")  #87 (line in Coconut source)
 
-_coconut_call_set_names(UppercasePropositions)  #89 (line num in coconut source)
-class LowercaseVariables(Vars):  #89 (line num in coconut source)
-    a, b, c = terms("a b c")  #90 (line num in coconut source)
-    d, e, f = terms("d e f")  #91 (line num in coconut source)
-    g, h, i = terms("g h i")  #92 (line num in coconut source)
-    j, k, l = terms("j k l")  #93 (line num in coconut source)
-    m, n, o = terms("m n o")  #94 (line num in coconut source)
-    p, q, r = terms("p q r")  #95 (line num in coconut source)
-    s, t, u = terms("s t u")  #96 (line num in coconut source)
-    v, w, x = terms("v w x")  #97 (line num in coconut source)
-    y, z = terms("y z")  #98 (line num in coconut source)
+_coconut_call_set_names(UppercasePropositions)  #89 (line in Coconut source)
+class LowercaseVariables(Vars):  #89 (line in Coconut source)
+    a, b, c = terms("a b c")  #90 (line in Coconut source)
+    d, e, f = terms("d e f")  #91 (line in Coconut source)
+    g, h, i = terms("g h i")  #92 (line in Coconut source)
+    j, k, l = terms("j k l")  #93 (line in Coconut source)
+    m, n, o = terms("m n o")  #94 (line in Coconut source)
+    p, q, r = terms("p q r")  #95 (line in Coconut source)
+    s, t, u = terms("s t u")  #96 (line in Coconut source)
+    v, w, x = terms("v w x")  #97 (line in Coconut source)
+    y, z = terms("y z")  #98 (line in Coconut source)
 
-_coconut_call_set_names(LowercaseVariables)  #100 (line num in coconut source)
-class UppercaseVariables(Vars):  #100 (line num in coconut source)
-    A, B, C = terms("A B C")  #101 (line num in coconut source)
-    D, E, F = terms("D E F")  #102 (line num in coconut source)
-    G, H, I = terms("G H I")  #103 (line num in coconut source)
-    J, K, L = terms("J K L")  #104 (line num in coconut source)
-    M, N, O = terms("M N O")  #105 (line num in coconut source)
-    P, Q, R = terms("P Q R")  #106 (line num in coconut source)
-    S, T, U = terms("S T U")  #107 (line num in coconut source)
-    V, W, X = terms("V W X")  #108 (line num in coconut source)
-    Y, Z = terms("Y Z")  #109 (line num in coconut source)
+_coconut_call_set_names(LowercaseVariables)  #100 (line in Coconut source)
+class UppercaseVariables(Vars):  #100 (line in Coconut source)
+    A, B, C = terms("A B C")  #101 (line in Coconut source)
+    D, E, F = terms("D E F")  #102 (line in Coconut source)
+    G, H, I = terms("G H I")  #103 (line in Coconut source)
+    J, K, L = terms("J K L")  #104 (line in Coconut source)
+    M, N, O = terms("M N O")  #105 (line in Coconut source)
+    P, Q, R = terms("P Q R")  #106 (line in Coconut source)
+    S, T, U = terms("S T U")  #107 (line in Coconut source)
+    V, W, X = terms("V W X")  #108 (line in Coconut source)
+    Y, Z = terms("Y Z")  #109 (line in Coconut source)
 
-_coconut_call_set_names(UppercaseVariables)  #111 (line num in coconut source)
-class StandardMath(LowercaseVariables, UppercasePropositions): pass  #111 (line num in coconut source)
+_coconut_call_set_names(UppercaseVariables)  #111 (line in Coconut source)
+class StandardMath(LowercaseVariables, UppercasePropositions): pass  #111 (line in Coconut source)
 
-_coconut_call_set_names(StandardMath)  #113 (line num in coconut source)
+_coconut_call_set_names(StandardMath)  #113 (line in Coconut source)

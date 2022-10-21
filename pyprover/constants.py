@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x3959d9bb
+# __coconut_hash__ = 0x894d6e2
 
-# Compiled with Coconut version 2.0.0-a_dev47 [How Not to Be Seen]
+# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
 
 # Coconut Header: -------------------------------------------------------------
 
@@ -28,61 +28,61 @@ if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha(
                     _coconut_v_type.__module__ = _coconut_full_module_name
     _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple
+from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
 _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
 
 # Imports:
 
-sys = _coconut_sys  #3 (line num in coconut source)
+sys = _coconut_sys  #3 (line in Coconut source)
 
 # Utilities:
 
-def first_encodeable(symbols):  #7 (line num in coconut source)
-    for sym in symbols:  #8 (line num in coconut source)
-        try:  #9 (line num in coconut source)
-            if hasattr(sys.stdout, "encoding") and sys.stdout.encoding is not None:  #10 (line num in coconut source)
-                sym.encode(sys.stdout.encoding)  #11 (line num in coconut source)
-            else:  #12 (line num in coconut source)
-                sym.encode()  #13 (line num in coconut source)
-        except UnicodeEncodeError:  #14 (line num in coconut source)
-            pass  #15 (line num in coconut source)
-        else:  #16 (line num in coconut source)
-            return sym  #17 (line num in coconut source)
-    raise ValueError("No encodable symbol in " + repr(symbols))  #18 (line num in coconut source)
+def first_encodeable(symbols):  #7 (line in Coconut source)
+    for sym in symbols:  #8 (line in Coconut source)
+        try:  #9 (line in Coconut source)
+            if hasattr(sys.stdout, "encoding") and sys.stdout.encoding is not None:  #10 (line in Coconut source)
+                sym.encode(sys.stdout.encoding)  #11 (line in Coconut source)
+            else:  #12 (line in Coconut source)
+                sym.encode()  #13 (line in Coconut source)
+        except UnicodeEncodeError:  #14 (line in Coconut source)
+            pass  #15 (line in Coconut source)
+        else:  #16 (line in Coconut source)
+            return sym  #17 (line in Coconut source)
+    raise ValueError("No encodable symbol in " + repr(symbols))  #18 (line in Coconut source)
 
 # Installation:
 
 
-version = "0.6.2"  #22 (line num in coconut source)
-requirements = ["pyparsing",]  #23 (line num in coconut source)
-classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent"]  #26 (line num in coconut source)
+version = "0.6.2"  #22 (line in Coconut source)
+requirements = ["pyparsing",]  #23 (line in Coconut source)
+classifiers = ["Development Status :: 3 - Alpha", "License :: OSI Approved :: Apache Software License", "Topic :: Software Development :: Libraries :: Python Modules", "Operating System :: OS Independent"]  #26 (line in Coconut source)
 
 # Symbols:
 
-all_top_syms = "top", "\u22a4", "\u252c", "true"  #35 (line num in coconut source)
-top_sym = (first_encodeable)(all_top_syms)  #36 (line num in coconut source)
+all_top_syms = "top", "\u22a4", "\u252c", "true"  #35 (line in Coconut source)
+top_sym = (first_encodeable)(all_top_syms)  #36 (line in Coconut source)
 
-all_bot_syms = "bot", "\u22a5", "\u2534", "_|_", "false"  #38 (line num in coconut source)
-bot_sym = (first_encodeable)(all_bot_syms)  #39 (line num in coconut source)
+all_bot_syms = "bot", "\u22a5", "\u2534", "_|_", "false"  #38 (line in Coconut source)
+bot_sym = (first_encodeable)(all_bot_syms)  #39 (line in Coconut source)
 
-all_not_syms = "~", "\xac", "-", "not"  #41 (line num in coconut source)
-not_sym = (first_encodeable)(all_not_syms)  #42 (line num in coconut source)
+all_not_syms = "~", "\xac", "-", "not"  #41 (line in Coconut source)
+not_sym = (first_encodeable)(all_not_syms)  #42 (line in Coconut source)
 
-all_imp_syms = "->", "\u2192", ">>"  #44 (line num in coconut source)
-imp_sym = (first_encodeable)(all_imp_syms)  #45 (line num in coconut source)
+all_imp_syms = "->", "\u2192", ">>"  #44 (line in Coconut source)
+imp_sym = (first_encodeable)(all_imp_syms)  #45 (line in Coconut source)
 
-all_and_syms = "&", "\u2227", "/\\", "and"  #47 (line num in coconut source)
-and_sym = (first_encodeable)(all_and_syms)  #48 (line num in coconut source)
+all_and_syms = "&", "\u2227", "/\\", "and"  #47 (line in Coconut source)
+and_sym = (first_encodeable)(all_and_syms)  #48 (line in Coconut source)
 
-all_or_syms = "|", "\u2228", "\\/", "or"  #50 (line num in coconut source)
-or_sym = (first_encodeable)(all_or_syms)  #51 (line num in coconut source)
+all_or_syms = "|", "\u2228", "\\/", "or"  #50 (line in Coconut source)
+or_sym = (first_encodeable)(all_or_syms)  #51 (line in Coconut source)
 
-all_forall_syms = "FA", "\u2200", "fa", "forall", "A", "Fa"  #53 (line num in coconut source)
-forall_sym = (first_encodeable)(all_forall_syms)  #54 (line num in coconut source)
+all_forall_syms = "FA", "\u2200", "fa", "forall", "A", "Fa"  #53 (line in Coconut source)
+forall_sym = (first_encodeable)(all_forall_syms)  #54 (line in Coconut source)
 
-all_exists_syms = "EX", "\u2203", "ex", "exists", "E", "Ex", "TE", "te", "Te"  #56 (line num in coconut source)
-exists_sym = (first_encodeable)(all_exists_syms)  #57 (line num in coconut source)
+all_exists_syms = "EX", "\u2203", "ex", "exists", "E", "Ex", "TE", "te", "Te"  #56 (line in Coconut source)
+exists_sym = (first_encodeable)(all_exists_syms)  #57 (line in Coconut source)
 
-empty_var = "_"  #59 (line num in coconut source)
+empty_var = "_"  #59 (line in Coconut source)
