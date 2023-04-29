@@ -1,35 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x957160b1
+# __coconut_hash__ = 0x42831ef
 
-# Compiled with Coconut version 2.0.0-post_dev23 [How Not to Be Seen]
+# Compiled with Coconut version 3.0.0-a_dev36
 
 # Coconut Header: -------------------------------------------------------------
 
 from __future__ import print_function, absolute_import, unicode_literals, division
-import sys as _coconut_sys, os as _coconut_os
+import sys as _coconut_sys
+_coconut_header_info = ('3.0.0-a_dev36', '', False)
+import os as _coconut_os
+_coconut_cached__coconut__ = _coconut_sys.modules.get(str('__coconut__'))
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
-_coconut_cached_module = _coconut_sys.modules.get(str("__coconut__"))
-if _coconut_cached_module is not None and _coconut_os.path.dirname(_coconut_cached_module.__file__) != _coconut_file_dir:  # type: ignore
-    del _coconut_sys.modules[str("__coconut__")]
-_coconut_sys.path.insert(0, _coconut_file_dir)
-_coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
-if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha() or c.isdigit() for c in _coconut_module_name) and "__init__.py" in _coconut_os.listdir(_coconut_file_dir):
-    _coconut_full_module_name = str(_coconut_module_name + ".__coconut__")
-    import __coconut__ as _coconut__coconut__
-    _coconut__coconut__.__name__ = _coconut_full_module_name
-    for _coconut_v in vars(_coconut__coconut__).values():
-        if getattr(_coconut_v, "__module__", None) == str("__coconut__"):
-            try:
-                _coconut_v.__module__ = _coconut_full_module_name
-            except AttributeError:
-                _coconut_v_type = type(_coconut_v)
-                if getattr(_coconut_v_type, "__module__", None) == str("__coconut__"):
-                    _coconut_v_type.__module__ = _coconut_full_module_name
-    _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
+_coconut_pop_path = False
+if _coconut_cached__coconut__ is None or getattr(_coconut_cached__coconut__, "_coconut_header_info", None) != _coconut_header_info and _coconut_os.path.dirname(_coconut_cached__coconut__.__file__ or "") != _coconut_file_dir:
+    if _coconut_cached__coconut__ is not None:
+        _coconut_sys.modules[str('_coconut_cached__coconut__')] = _coconut_cached__coconut__
+        del _coconut_sys.modules[str('__coconut__')]
+    _coconut_sys.path.insert(0, _coconut_file_dir)
+    _coconut_pop_path = True
+    _coconut_module_name = _coconut_os.path.splitext(_coconut_os.path.basename(_coconut_file_dir))[0]
+    if _coconut_module_name and _coconut_module_name[0].isalpha() and all(c.isalpha() or c.isdigit() for c in _coconut_module_name) and "__init__.py" in _coconut_os.listdir(_coconut_file_dir):
+        _coconut_full_module_name = str(_coconut_module_name + ".__coconut__")
+        import __coconut__ as _coconut__coconut__
+        _coconut__coconut__.__name__ = _coconut_full_module_name
+        for _coconut_v in vars(_coconut__coconut__).values():
+            if getattr(_coconut_v, "__module__", None) == str('__coconut__'):
+                try:
+                    _coconut_v.__module__ = _coconut_full_module_name
+                except AttributeError:
+                    _coconut_v_type = type(_coconut_v)
+                    if getattr(_coconut_v_type, "__module__", None) == str('__coconut__'):
+                        _coconut_v_type.__module__ = _coconut_full_module_name
+        _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_super, _coconut_MatchError, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul
-_coconut_sys.path.pop(0)
+from __coconut__ import _coconut_tail_call, _coconut_tco, _coconut_call_set_names, _coconut_handle_cls_kwargs, _coconut_handle_cls_stargs, _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_multi_dim_arr, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in
+if _coconut_pop_path:
+    _coconut_sys.path.pop(0)
 
 # Compiled Coconut: -----------------------------------------------------------
 
@@ -77,27 +84,27 @@ class Expr(_coconut.object):  #40 (line in Coconut source)
 
     @_coconut_tco  #44 (line in Coconut source)
     def __hash__(self):  #44 (line in Coconut source)
-#type: (...) -> int
+# type: (...) -> int
         return _coconut_tail_call((hash), repr(self))  #45 (line in Coconut source)
 
 
     def __lt__(self, other):  #47 (line in Coconut source)
-#type: (...) -> int
+# type: (...) -> int
         return str(self) < str(other)  #48 (line in Coconut source)
 
 
     def __gt__(self, other):  #50 (line in Coconut source)
-#type: (...) -> int
+# type: (...) -> int
         return str(self) > str(other)  #51 (line in Coconut source)
 
 
     def __ge__(self, other):  #53 (line in Coconut source)
-#type: (...) -> int
+# type: (...) -> int
         return str(self) >= str(other)  #54 (line in Coconut source)
 
 
     def __le__(self, other):  #56 (line in Coconut source)
-#type: (...) -> int
+# type: (...) -> int
         return str(self) <= str(other)  #57 (line in Coconut source)
 
 
@@ -166,7 +173,7 @@ class Expr(_coconut.object):  #40 (line in Coconut source)
         if isinstance(other, (Quantifier, Var)):  #103 (line in Coconut source)
             return _coconut_tail_call(other.find_unification, self, **kwargs)  #104 (line in Coconut source)
         elif self == other:  #105 (line in Coconut source)
-            return {}  #106 (line in Coconut source)
+            return _coconut_tail_call(_coconut.dict)  #106 (line in Coconut source)
         else:  #107 (line in Coconut source)
             return None  #108 (line in Coconut source)
 
@@ -455,7 +462,7 @@ class Term(Atom):  #272 (line in Coconut source)
 
     def is_free_in(self, expr):  #301 (line in Coconut source)
         """Determine if self is free in expr."""  #302 (line in Coconut source)
-        return expr == expr.substitute({self: self.prime()})  #303 (line in Coconut source)
+        return expr == expr.substitute(_coconut.dict(((self, self.prime()),)))  #303 (line in Coconut source)
 
 
     @_coconut_tco  #305 (line in Coconut source)
@@ -495,18 +502,19 @@ class Var(Term):  #319 (line in Coconut source)
         return _coconut_tail_call(Func, self.name, *args)  #330 (line in Coconut source)
 
 
+    @_coconut_tco  #332 (line in Coconut source)
     def find_unification(self, other, occurs_check=True, **kwargs):  #332 (line in Coconut source)
         kwargs["occurs_check"] = occurs_check  #333 (line in Coconut source)
         if isinstance(other, Var):  #334 (line in Coconut source)
             if self.name == other.name:  #335 (line in Coconut source)
-                return {}  #336 (line in Coconut source)
+                return _coconut_tail_call(_coconut.dict)  #336 (line in Coconut source)
             else:  #337 (line in Coconut source)
-                return {self: other}  #338 (line in Coconut source)
+                return _coconut_tail_call(_coconut.dict, ((self, other),))  #338 (line in Coconut source)
         elif isinstance(other, Term):  #339 (line in Coconut source)
             if occurs_check and not self.is_free_in(other):  #340 (line in Coconut source)
                 return None  #341 (line in Coconut source)
             else:  #342 (line in Coconut source)
-                return {self: other}  #343 (line in Coconut source)
+                return _coconut_tail_call(_coconut.dict, ((self, other),))  #343 (line in Coconut source)
         else:  #344 (line in Coconut source)
             return None  #345 (line in Coconut source)
 
@@ -682,7 +690,7 @@ class Quantifier(Expr):  #461 (line in Coconut source)
     @_coconut_tco  #475 (line in Coconut source)
     def change_var(self, var):  #475 (line in Coconut source)
         """Create an equivalent expression with a new quantified variable."""  #476 (line in Coconut source)
-        return _coconut_tail_call(self.__class__, var, self.elem.substitute({self.var: var}))  #477 (line in Coconut source)
+        return _coconut_tail_call(self.__class__, var, self.elem.substitute(_coconut.dict(((self.var, var),))))  #477 (line in Coconut source)
 
 
     @_coconut_tco  #479 (line in Coconut source)
@@ -774,7 +782,7 @@ class ForAll(Quantifier):  #535 (line in Coconut source)
             var = Const(var)  #544 (line in Coconut source)
         assert isvar(var), var  #545 (line in Coconut source)
         self.var = var.variable()  #546 (line in Coconut source)
-        self.elem = elem.substitute({var: self.var.variable()})  #547 (line in Coconut source)
+        self.elem = elem.substitute(_coconut.dict(((var, self.var.variable()),)))  #547 (line in Coconut source)
 
 
     def inner_kwargs(self, kwargs):  #549 (line in Coconut source)
@@ -814,7 +822,7 @@ class Exists(Quantifier):  #569 (line in Coconut source)
             var = Const(var)  #578 (line in Coconut source)
         assert isvar(var), var  #579 (line in Coconut source)
         self.var = var.constant()  #580 (line in Coconut source)
-        self.elem = elem.substitute({var: self.var.constant()})  #581 (line in Coconut source)
+        self.elem = elem.substitute(_coconut.dict(((var, self.var.constant()),)))  #581 (line in Coconut source)
 
 
     @_coconut_tco  #583 (line in Coconut source)
@@ -826,7 +834,7 @@ class Exists(Quantifier):  #569 (line in Coconut source)
                 skolem_var = skolem_var.prime()  #588 (line in Coconut source)
         else:  #589 (line in Coconut source)
             skolem_var = Func(self.var.skolem(), *skolem_args)  #590 (line in Coconut source)
-        skolem_elem = self.elem.substitute({self.var: skolem_var})  #591 (line in Coconut source)
+        skolem_elem = self.elem.substitute(_coconut.dict(((self.var, skolem_var),)))  #591 (line in Coconut source)
         return _coconut_tail_call(Exists(self.var, skolem_elem.resolve(**self.inner_kwargs(kwargs))).simplify, dnf=False, **kwargs)  #592 (line in Coconut source)
 
 
@@ -1203,11 +1211,11 @@ class And(BoolOp):  #834 (line in Coconut source)
 
 # push foralls into clauses
         clauses = []  #900 (line in Coconut source)
-        final_subs = {}  #901 (line in Coconut source)
+        final_subs = _coconut.dict()  #901 (line in Coconut source)
         for i, clause in enumerate(self.ands):  #902 (line in Coconut source)
-            clause_subs = dict(((v), (v.subscript(i))) for v in kwargs.get("variables", ()))  #903 (line in Coconut source)
+            clause_subs = _coconut.dict(((v), (v.subscript(i))) for v in kwargs.get("variables", ()))  #903 (line in Coconut source)
             (clauses.append)(clause.substitute(clause_subs, **kwargs))  #904 (line in Coconut source)
-            final_subs.update(dict(((v.subscript(i)), (v)) for v in kwargs.get("variables", ())))  #905 (line in Coconut source)
+            final_subs.update(_coconut.dict(((v.subscript(i)), (v)) for v in kwargs.get("variables", ())))  #905 (line in Coconut source)
         kwargs["variables"] = (tuple)(final_subs.keys())  #906 (line in Coconut source)
         log_simplification(self, And(*clauses), **kwargs)  #907 (line in Coconut source)
 
@@ -1322,7 +1330,7 @@ class Eq(Expr):  #959 (line in Coconut source)
     @_coconut_tco  #1001 (line in Coconut source)
     def paramodulant(self, other):  #1001 (line in Coconut source)
         """Create a paramodulant of other."""  #1002 (line in Coconut source)
-        return _coconut_tail_call((sub_once), other, {self.a: self.b, self.b: self.a})  #1003 (line in Coconut source)
+        return _coconut_tail_call((sub_once), other, _coconut.dict(((self.a, self.b), (self.b, self.a))))  #1003 (line in Coconut source)
 
 
     @_coconut_tco  #1005 (line in Coconut source)
