@@ -109,8 +109,8 @@ class Grammar:
     top_lit = oneOf(all_top_syms) |> fixto$(top)
     bot_lit = oneOf(all_bot_syms) |> fixto$(bot)
 
-    lowercase_name = Regex("[a-z0-9_]\w*'*")
-    uppercase_name = Regex("[A-Z]\w*'*")
+    lowercase_name = Regex(r"[a-z0-9_]\w*'*")
+    uppercase_name = Regex(r"[A-Z]\w*'*")
 
     var = lowercase_name |> call$(Constant)
     any_var = question + lowercase_name |> call$(Variable)
