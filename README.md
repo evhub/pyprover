@@ -244,7 +244,7 @@ Standard first-order logic assumes that something exists. That's why `top `prove
 ```python
 assert not top `strict_proves` TE(x, top)
 assert not FA(x, F(x)) `strict_proves` TE(x, F(x))
-assert TE(x, F(x)) `strict_proves` FA(x, G(x)) | TE(x, F(x) & ~G(x))
+assert FA(x, F(x)) & TE(x, top) `strict_proves` TE(x, F(x))
 assert strict_simplify(FA(x, F(x)) & G) == FA(x, F(x)) & G   # can't pull ∀x out of ∧
 ```
 
@@ -291,9 +291,11 @@ Everything below can be imported from `pyprover`.
 To decide whether premises prove a conclusion, PyProver:
 
 1. checks the empty universe, for `strict_` functions;
-2. puts each premise and the negated conclusion into negation normal form, replaces existential quantifiers with Skolem functions, and converts the result to clauses. To avoid exponential blowup, large subformulas are replaced with new definition predicates;
-3. looks for a small finite countermodel by encoding "is there a model of size n?" as a SAT problem for n = 1, 2, …, and solves it with a built-in DPLL solver. For function-free problems, a model exists only if there is one no bigger than the number of constants, so this decides the problem;
-4. searches for a contradiction with the given-clause algorithm. The calculus combines resolution and factoring with superposition-style equality reasoning (equality resolution, equality factoring, and demodulation, ordered by the Knuth–Bendix ordering). It deletes tautologies and subsumed clauses, and picks the next clause by a mix of smallest-first and oldest-first. The calculus is refutationally complete, so if the conclusion follows, the search finds a proof given enough time.
+2. puts each premise and the negated conclusion into negation normal form, replaces existential quantifiers with Skolem functions, and converts the result to clauses. To avoid exponential blowup, nested `↔`s and large subformulas are replaced with new definition predicates;
+3. looks for a small finite countermodel by encoding "is there a model of size n?" as a SAT problem for n = 1, 2, …, and solves it with a built-in CDCL SAT solver. For function-free problems, a model exists only if there is one no bigger than the number of constants, so this decides the problem;
+4. searches for a contradiction with the given-clause algorithm. The calculus combines resolution and factoring with superposition-style equality reasoning (superposition, equality resolution, equality factoring, and demodulation, ordered by the Knuth–Bendix ordering). It deletes tautologies and subsumed clauses, and picks the next clause by a mix of smallest-first and oldest-first. The calculus is refutationally complete, so if the conclusion follows, the search finds a proof given enough time.
+
+The test suite includes 21 of the classic [Pelletier problems](https://doi.org/10.1007/BF02432151), including Andrews' challenge (P34) and the Aunt Agatha puzzle (P55). PyProver proves each of them in a few seconds or less.
 
 ## Development
 

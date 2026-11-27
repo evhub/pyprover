@@ -36,6 +36,7 @@ from pyprover.logic import (
     Func,
     wff,
     show,
+    free_terms,
     all_names,
     unify_terms,
     unify_term_lists,
@@ -204,27 +205,36 @@ def match_term(pattern, term, subs):
     return subs if pattern == term else None
 
 def match_lit(pattern, lit, subs):
-    """Yield every extension of subs that turns literal pattern into lit."""
+    """Yield every extension of subs that turns literal pattern into lit.
+    (This is the innermost loop of subsumption, so it dispatches on one atom
+    at a time rather than matching on a tuple of both.)"""
     if is_positive(pattern) == is_positive(lit):
-        match (atom_of(pattern), atom_of(lit)):
-            case (Prop(n), Prop(==n)):
-                yield subs
-            case (Pred(f, *xs), Pred(==f, *ys)) if len(xs) == len(ys):
-                for x, y in zip(xs, ys):
+        target = atom_of(lit)
+        match atom_of(pattern):
+            case Pred(f, *xs) if isinstance(target, Pred) and target.name == f and len(target.args) == len(xs):
+                for x, y in zip(xs, target.args):
                     subs = match_term(x, y, subs)
                 if subs is not None:
                     yield subs
-            case (Eq(x1, y1), Eq(x2, y2)):
-                straight = match_term(y1, y2, match_term(x1, x2, subs))
+            case Eq(x1, y1) if isinstance(target, Eq):
+                straight = match_term(y1, target.b, match_term(x1, target.a, subs))
                 if straight is not None:
                     yield straight
-                crossed = match_term(y1, x2, match_term(x1, y2, subs))
+                crossed = match_term(y1, target.a, match_term(x1, target.b, subs))
                 if crossed is not None:
                     yield crossed
+            case Prop(n) if isinstance(target, Prop) and target.name == n:
+                yield subs
+
+@memoize(2 ** 16)
+def clause_signature(lits) -> frozenset =
+    """The signs and predicates of a clause's literals (if c subsumes d, then
+    c's signature is a subset of d's)."""
+    lits |> map$(lit => (is_positive(lit), type(atom_of(lit)).__name__, getattr(atom_of(lit), "name", None))) |> frozenset
 
 def subsumes(c, d) -> bool:
     """Whether clause c subsumes clause d (some instance of c is contained in d)."""
-    if len(c) > len(d):
+    if len(c) > len(d) or not clause_signature(c) <= clause_signature(d):
         return False
     def go(i, subs) =
         i == len(c) or any(go(i + 1, s) for lit in d for s in match_lit(c[i], lit, subs))
@@ -330,6 +340,45 @@ def kbo_greater(s, t) -> bool:
     return next((kbo_greater(a, b) for a, b in zip(_args(s), _args(t)) if a != b), False)
 
 
+# Literal ordering:
+
+true_term = Const("$true")  # the smallest term, standing in for ⊤
+
+def _atom_term(atom):
+    match atom:
+        case Pred(name, *args):
+            return Func("$" + name, *args)
+        case Prop(name):
+            return Const("$" + name)
+    return atom
+
+def lit_multiset(lit) -> list:
+    """Represent a literal as a multiset of terms for the literal ordering:
+    s = t is {s, t}, s ≠ t is {s, s, t, t}, and an atom A is A = ⊤."""
+    atom = atom_of(lit)
+    sides = list(atom_terms(atom)) if isinstance(atom, Eq) else [_atom_term(atom), true_term]
+    return sides if is_positive(lit) else sides * 2
+
+def multiset_greater(ms, ns) -> bool:
+    """The multiset extension of the Knuth-Bendix ordering."""
+    ms_rest, ns_rest = list(ms), list(ns)
+    for m in ms:
+        if m in ns_rest:
+            ns_rest.remove(m)
+            ms_rest.remove(m)
+    if not ms_rest and not ns_rest:
+        return False
+    return ns_rest |> map$(n => ms_rest |> map$(kbo_greater$(?, n)) |> any) |> all
+
+def lit_greater(lit1, lit2) -> bool =
+    """Whether lit1 is greater than lit2 in the literal ordering."""
+    multiset_greater(lit_multiset(lit1), lit_multiset(lit2))
+
+def is_maximal(lit, others, strictly=False) -> bool =
+    """Whether lit is (strictly) maximal among lit + others."""
+    not any(lit_greater(other, lit) or (strictly and other == lit) for other in others)
+
+
 # Paramodulation (restricted as in the superposition calculus):
 
 def paramodulants(c, d):
@@ -356,7 +405,14 @@ def paramodulants(c, d):
                                 continue
                             if other is not None and kbo_greater(resolve_term(other, subs), resolve_term(side, subs)):
                                 continue
-                            yield tuple(apply_subs(x, subs) for x in rest_c + rest_d + (rebuild(right),))
+                            # the equation and the rewritten literal must be maximal in their clauses
+                            new_eq, new_rest_c = apply_subs(eq_lit, subs), [apply_subs(x, subs) for x in rest_c]
+                            if not is_maximal(new_eq, new_rest_c, strictly=True):
+                                continue
+                            new_lit, new_rest_d = apply_subs(lit, subs), [apply_subs(x, subs) for x in rest_d]
+                            if not is_maximal(new_lit, new_rest_d, strictly=is_positive(lit)):
+                                continue
+                            yield tuple(new_rest_c + new_rest_d + [apply_subs(rebuild(right), subs)])
 
 def equality_factors(c):
     """Equality factoring: from C ∨ s = t ∨ s' = t' where s and s' unify,
@@ -416,6 +472,49 @@ def demodulate(lits, rules):
 
 
 # Clausification:
+
+def contains_iff(expr) -> bool:
+    match expr:
+        case Iff(_, _):
+            return True
+        case Not(elem) | ForAll(_, elem) | Exists(_, elem):
+            return contains_iff(elem)
+        case And(*elems) | Or(*elems):
+            return any(map(contains_iff, elems))
+        case Imp(a, b):
+            return contains_iff(a) or contains_iff(b)
+    return False
+
+def name_nested_iffs(expr, new_definition):
+    """Replace each operand of a ↔ that itself contains a ↔ with a new
+    definition predicate D(x, ...) (of the variables bound around it), so
+    that converting to negation normal form doesn't blow up exponentially.
+    Returns (new formula, definitions), where each definition is a closed
+    formula ∀x, ..., D(x, ...) ↔ operand."""
+    definitions = []
+    def name(sub, bound):
+        if not contains_iff(sub):
+            return go(sub, bound)
+        args = sorted(free_terms(sub) & bound)
+        atom = new_definition(args)
+        definitions.append(reduce((body, var) => ForAll(var, body), reversed(args), Iff(atom, go(sub, frozenset(args)))))
+        return atom
+    def go(expr, bound):
+        match expr:
+            case Iff(a, b):
+                return Iff(name(a, bound), name(b, bound))
+            case Not(elem):
+                return Not(go(elem, bound))
+            case And(*elems):
+                return And(*(go(x, bound) for x in elems))
+            case Or(*elems):
+                return Or(*(go(x, bound) for x in elems))
+            case Imp(a, b):
+                return Imp(go(a, bound), go(b, bound))
+            case ForAll(var, elem) | Exists(var, elem):
+                return type(expr)(var, go(elem, bound | {var}))
+        return expr
+    return go(expr, frozenset()), definitions
 
 max_distribution = 32
 
@@ -710,6 +809,7 @@ def saturate(initial, timeout, max_clauses):
     in_passive = set()
     processed = []
     rules = []  # oriented unit equations used for demodulation
+    processed_units = []
 
     def add(lits, rule, parents):
         """Add a clause to the passive set; return its id if it is empty."""
@@ -719,7 +819,9 @@ def saturate(initial, timeout, max_clauses):
         lits = normalize_clause(lits)
         if is_tautology(lits) or lits in seen:
             return None
-        if lits and any(subsumes(info[p][0], lits) for p in processed):
+        # (full forward subsumption happens lazily when a clause is selected;
+        #  here we only check against unit clauses, which is cheap)
+        if lits and any(subsumes(info[p][0], lits) for p in processed_units):
             return None
         seen.add(lits)
         cid = len(info) + 1
@@ -764,6 +866,7 @@ def saturate(initial, timeout, max_clauses):
             continue
         processed = [p for p in processed if not subsumes(given_lits, info[p][0])]
         processed.append(given)
+        processed_units = [p for p in processed if len(info[p][0]) == 1]
 
         inferences = [(lits, "factoring", (given,)) for lits in factors(given_lits)]
         inferences += [(lits, "equality factoring", (given,)) for lits in equality_factors(given_lits)]
@@ -861,8 +964,10 @@ def prove(givens, conclusion, nonempty_universe=True, timeout=default_timeout, m
     labeled = [(p, f"premise {i}") for i, p in enumerate(closed_premises, 1)] + [(Not(closed_conclusion), "negated conclusion")]
     initial = []
     for formula, label in labeled:
-        skolemized = skolemize_formula(formula, used)
-        initial.extend((clause, label) for clause in clausify(skolemized, new_definition))
+        formula, definitions = name_nested_iffs(formula, new_definition)
+        for part in [formula] + definitions:
+            skolemized = skolemize_formula(part, used)
+            initial.extend((clause, label) for clause in clausify(skolemized, new_definition))
     clauses = [c for c, _ in initial]
 
     # look for a small countermodel; for function-free problems, a model

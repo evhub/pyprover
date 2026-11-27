@@ -30,13 +30,13 @@ from pyprover.normal import (
 # Command line:
 
 transformations = {
-    "simplify": simplify,
-    "simplest": simplest_form,
-    "nnf": nnf,
-    "prenex": prenex,
-    "cnf": cnf,
-    "dnf": dnf,
-    "skolemize": skolemize,
+    "simplify": (simplify, "simplify a formula (to prenex form with a DNF matrix)"),
+    "simplest": (simplest_form, "find the smaller of a formula's CNF and DNF"),
+    "nnf": (nnf, "convert a formula to negation normal form"),
+    "prenex": (prenex, "convert a formula to prenex normal form"),
+    "cnf": (cnf, "convert a formula to prenex conjunctive normal form"),
+    "dnf": (dnf, "convert a formula to prenex disjunctive normal form"),
+    "skolemize": (skolemize, "convert a formula to Skolem normal form"),
 }
 
 examples = r"""examples:
@@ -64,8 +64,8 @@ def make_parser() =
     style.add_argument("--dot", action="store_true", help="print the proof as a Graphviz DOT graph")
     style.add_argument("--quiet", "-q", action="store_true", help="only print the result")
 
-    for name, func in transformations.items():
-        sub = commands.add_parser(name, help=func.__doc__.splitlines()[0].rstrip("."))
+    for name, (_, help_text) in transformations.items():
+        sub = commands.add_parser(name, help=help_text)
         sub.add_argument("formula")
         sub.add_argument("--strict", action="store_true", help="don't assume that something exists")
     parser
@@ -92,7 +92,8 @@ def main(args=None) -> int:
                 return {"proved": 0, "disproved": 1}.get(result.status, 2)
             case name:
                 kwargs = {} if name in ("nnf", "skolemize") else {"nonempty_universe": not opts.strict}
-                print(transformations[name](expr(opts.formula), **kwargs))
+                transform, _ = transformations[name]
+                print(transform(expr(opts.formula), **kwargs))
                 return 0
     except ParseError as err:
         print("pyprover: error: could not parse formula: " + str(err), file=sys.stderr)

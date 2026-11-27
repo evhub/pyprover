@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x836062fa
+# __coconut_hash__ = 0xc7ccf219
 
 # Compiled with Coconut version 3.2.0-post_dev19
 # This file was compiled from tests.coco by the Coconut compiler; edit that file rather than this one.
@@ -732,3 +732,17 @@ def test_random_propositional():  #644 (line in Coconut source)
         assert valid(Iff(simplify(premise), premise))  #673 (line in Coconut source)
         assert valid(Iff(cnf(premise), premise))  #674 (line in Coconut source)
         assert (satisfying_assignment(premise) is not None) == satisfiable(premise)  #675 (line in Coconut source)
+
+
+# Problems from Pelletier, "Seventy-five problems for testing automatic
+#  theorem provers" (1986), as (premises, conclusion) pairs.
+
+PELLETIER = _coconut.dict(((1, ([], "(P -> Q) <-> (~Q -> ~P)")), (9, ([], "((P | Q) & (~P | Q) & (P | ~Q)) -> ~(~P | ~Q)")), (12, ([], "((P <-> Q) <-> R) <-> (P <-> (Q <-> R))")), (17, ([], "((P & (Q -> R)) -> S) <-> ((~P | Q | S) & (~P | ~R | S))")), (18, ([], "E y. A x. F(y) -> F(x)")), (19, ([], "E x. A y. A z. (P(y) -> Q(z)) -> (P(x) -> Q(x))")), (20, ([], "(A x. A y. E z. A w. (P(x) & Q(y) -> R(z) & S(w))) -> ((E x. E y. P(x) & Q(y)) -> E z. R(z))")), (21, (["E x. P -> F(x)", "E x. F(x) -> P"], "E x. P <-> F(x)")), (26, (["(E x. P(x)) <-> (E x. Q(x))", "A x. A y. P(x) & Q(y) -> (R(x) <-> S(y))"], "(A x. P(x) -> R(x)) <-> (A x. Q(x) -> S(x))")), (29, (["(E x. F(x)) & (E x. G(x))",], "((A x. F(x) -> H(x)) & (A x. G(x) -> J(x))) <-> (A x. A y. F(x) & G(y) -> H(x) & J(y))")), (34, ([], "((E x. A y. P(x) <-> P(y)) <-> ((E x. Q(x)) <-> (A y. Q(y)))) <-> ((E x. A y. Q(x) <-> Q(y)) <-> ((E x. P(x)) <-> (A y. P(y))))")), (35, ([], "E x. E y. P(x, y) -> (A x. A y. P(x, y))")), (39, ([], "~(E x. A y. F(y, x) <-> ~F(y, y))")), (43, (["A x. A y. Q(x, y) <-> (A z. F(z, x) <-> F(z, y))",], "A x. A y. Q(x, y) <-> Q(y, x)")), (46, (["A x. F(x) & (A y. F(y) & H(y, x) -> G(y)) -> G(x)", "(E x. F(x) & ~G(x)) -> (E x. F(x) & ~G(x) & (A y. F(y) & ~G(y) -> J(x, y)))", "A x. A y. F(x) & F(y) & H(x, y) -> ~J(y, x)"], "A x. F(x) -> G(x)")), (48, (["a = b | c = d", "a = c | b = d"], "a = d | b = c")), (49, (["E x. E y. A z. z = x | z = y", "P(a) & P(b)", "a != b"], "A x. P(x)")), (51, (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E z. A x. (E w. A y. F(x, y) <-> y = w) <-> x = z")), (52, (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E w. A y. (E z. A x. F(x, y) <-> x = z) <-> y = w")), (55, (["E x. L(x) & K(x, agatha)", "L(agatha) & L(butler) & L(charles)", "A x. L(x) -> x = agatha | x = butler | x = charles", "A x. A y. K(x, y) -> H(x, y)", "A x. A y. K(x, y) -> ~R(x, y)", "A x. H(agatha, x) -> ~H(charles, x)", "A x. x != butler -> H(agatha, x)", "A x. ~R(x, agatha) -> H(butler, x)", "A x. H(agatha, x) -> H(butler, x)", "A x. E y. ~H(x, y)", "agatha != butler"], "K(agatha, agatha)")), (61, (["A x. A y. A z. f(x, f(y, z)) = f(f(x, y), z)",], "A x. A y. A z. A w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)"))))  #680 (line in Coconut source)
+
+@pytest.mark.parametrize("number", list(PELLETIER))  #704 (line in Coconut source)
+def test_pelletier(number):  #705 (line in Coconut source)
+    """Tests that the prover proves classic benchmark problems."""  #706 (line in Coconut source)
+    premises, conclusion = PELLETIER[number]  #707 (line in Coconut source)
+    result = prove((list)((map)(expr, premises)), expr(conclusion), timeout=60)  #708 (line in Coconut source)
+    assert result.status == "proved", _coconut_assert_msg('result.status == "proved"', 'result.status', result.status)  #709 (line in Coconut source)
+    assert result.steps[-1].formula == bot, _coconut_assert_msg('result.steps[-1].formula == bot', 'result.steps[-1].formula', result.steps[-1].formula, 'bot', bot)  #710 (line in Coconut source)

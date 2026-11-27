@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x36b43e1e
+# __coconut_hash__ = 0x15659ec5
 
 # Compiled with Coconut version 3.2.0-post_dev19
 # This file was compiled from __main__.coco by the Coconut compiler; edit that file rather than this one.
@@ -83,7 +83,7 @@ from pyprover.normal import skolemize  #19 (line in Coconut source)
 
 # Command line:
 
-transformations = _coconut.dict((("simplify", simplify), ("simplest", simplest_form), ("nnf", nnf), ("prenex", prenex), ("cnf", cnf), ("dnf", dnf), ("skolemize", skolemize)))  #32 (line in Coconut source)
+transformations = _coconut.dict((("simplify", (simplify, "simplify a formula (to prenex form with a DNF matrix)")), ("simplest", (simplest_form, "find the smaller of a formula's CNF and DNF")), ("nnf", (nnf, "convert a formula to negation normal form")), ("prenex", (prenex, "convert a formula to prenex normal form")), ("cnf", (cnf, "convert a formula to prenex conjunctive normal form")), ("dnf", (dnf, "convert a formula to prenex disjunctive normal form")), ("skolemize", (skolemize, "convert a formula to Skolem normal form"))))  #32 (line in Coconut source)
 
 examples = r"""examples:
   pyprover prove 'A x. F(x) -> G(x)' 'F(a)' 'G(a)'
@@ -105,8 +105,8 @@ def make_parser():  #47 (line in Coconut source)
     style.add_argument("--dot", action="store_true", help="print the proof as a Graphviz DOT graph")  #64 (line in Coconut source)
     style.add_argument("--quiet", "-q", action="store_true", help="only print the result")  #65 (line in Coconut source)
 
-    for name, func in transformations.items():  #67 (line in Coconut source)
-        sub = commands.add_parser(name, help=func.__doc__.splitlines()[0].rstrip("."))  #68 (line in Coconut source)
+    for name, (_, help_text) in transformations.items():  #67 (line in Coconut source)
+        sub = commands.add_parser(name, help=help_text)  #68 (line in Coconut source)
         sub.add_argument("formula")  #69 (line in Coconut source)
         sub.add_argument("--strict", action="store_true", help="don't assume that something exists")  #70 (line in Coconut source)
     return parser  #71 (line in Coconut source)
@@ -144,14 +144,15 @@ def main(args=None) -> 'int':  #73 (line in Coconut source)
                     name = _coconut_match_set_name_name  #93 (line in Coconut source)
             if _coconut_case_match_check_0:  #93 (line in Coconut source)
                 kwargs = _coconut.dict() if name in ("nnf", "skolemize") else _coconut.dict((("nonempty_universe", not opts.strict),))  #94 (line in Coconut source)
-                print(transformations[name](expr(opts.formula), **kwargs))  #95 (line in Coconut source)
-                return 0  #96 (line in Coconut source)
-    except ParseError as err:  #97 (line in Coconut source)
-        print("pyprover: error: could not parse formula: " + str(err), file=sys.stderr)  #98 (line in Coconut source)
-        return 3  #99 (line in Coconut source)
-    finally:  #100 (line in Coconut source)
-        symbols.update(saved_symbols)  #101 (line in Coconut source)
+                transform, _ = transformations[name]  #95 (line in Coconut source)
+                print(transform(expr(opts.formula), **kwargs))  #96 (line in Coconut source)
+                return 0  #97 (line in Coconut source)
+    except ParseError as err:  #98 (line in Coconut source)
+        print("pyprover: error: could not parse formula: " + str(err), file=sys.stderr)  #99 (line in Coconut source)
+        return 3  #100 (line in Coconut source)
+    finally:  #101 (line in Coconut source)
+        symbols.update(saved_symbols)  #102 (line in Coconut source)
 
 
-if __name__ == "__main__":  #103 (line in Coconut source)
-    sys.exit(main())  #104 (line in Coconut source)
+if __name__ == "__main__":  #104 (line in Coconut source)
+    sys.exit(main())  #105 (line in Coconut source)
