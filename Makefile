@@ -5,7 +5,7 @@ COCONUT_FLAGS = --target 3.9 --strict --no-tco --jobs sys
 .PHONY: setup
 setup:
 	python -m pip install --upgrade pip
-	python -m pip install --upgrade "coconut-develop==3.2.0.post0.dev19" pytest
+	python -m pip install --upgrade "coconut-develop==3.2.0.post0.dev20" pytest
 
 .PHONY: build
 build:
