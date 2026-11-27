@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc7ccf219
+# __coconut_hash__ = 0x3396d935
 
 # Compiled with Coconut version 3.2.0-post_dev19
 # This file was compiled from tests.coco by the Coconut compiler; edit that file rather than this one.
@@ -10,9 +10,10 @@
 
 # Coconut Header: -------------------------------------------------------------
 
+from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev19', '3', True)
+_coconut_header_info = ('3.2.0-post_dev19', '39', True)
 _coconut_cached__coconut__ = _coconut_sys.modules.get('__coconut__')
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_pop_path = False
@@ -37,7 +38,7 @@ if _coconut_cached__coconut__ is None or getattr(_coconut_cached__coconut__, "_c
                         _coconut_v_type.__module__ = _coconut_full_module_name
         _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
+from __coconut__ import _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
 if _coconut_pop_path:
     _coconut_sys.path.pop(0)
 try:
@@ -241,8 +242,8 @@ def test_propositional_logic():  #65 (line in Coconut source)
     assert simplify(a & a, b & b) == (a, b)  #185 (line in Coconut source)
     assert (simplest_form)(a ^ b) == (b | a) & (~a | ~b)  #186 (line in Coconut source)
     assert (simplest_form)((s & h | ~s & ~h) & ~(s & h) | (s & ~h | ~s & h) & (s & h)) == ~s & ~h  #187 (line in Coconut source)
-    assert (simplify)((substitute)(a ^ b, _coconut.dict(((a, True), (b, False))))) == top  #188 (line in Coconut source)
-    assert (simplify)((substitute)(a ^ b, _coconut.dict(((a, top), (b, top))))) == bot  #189 (line in Coconut source)
+    assert (simplify)((substitute)(a ^ b, {a: True, b: False})) == top  #188 (line in Coconut source)
+    assert (simplify)((substitute)(a ^ b, {a: top, b: top})) == bot  #189 (line in Coconut source)
     assert e << f == f >> e  #190 (line in Coconut source)
 
 
@@ -472,7 +473,7 @@ def test_regression():  #403 (line in Coconut source)
     e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")  #411 (line in Coconut source)
     assert (strict_proves)(e3, e4)  #412 (line in Coconut source)
     assert not (strict_proves)(e4, e3)  #413 (line in Coconut source)
-    assert expr("Q(?x) & P(?y)").find_unification(expr("Q(a) & P(b)")) == _coconut.dict(((Var("x"), Const("a")), (Var("y"), Const("b"))))  #414 (line in Coconut source)
+    assert expr("Q(?x) & P(?y)").find_unification(expr("Q(a) & P(b)")) == {Var("x"): Const("a"), Var("y"): Const("b")}  #414 (line in Coconut source)
 
 
 
@@ -569,7 +570,7 @@ def test_tools():  #498 (line in Coconut source)
     assert (proves_and_proved_by)(Iff(A, B), (A >> B) & (B >> A))  #506 (line in Coconut source)
     assert proves(Iff(A, B), Iff(B, A))  #507 (line in Coconut source)
     assert proves((Iff(A, B), A), B)  #508 (line in Coconut source)
-    assert unify(F(Var("x"), b), F(a, Var("y"))) == _coconut.dict(((Var("x"), a), (Var("y"), b)))  #509 (line in Coconut source)
+    assert unify(F(Var("x"), b), F(a, Var("y"))) == {Var("x"): a, Var("y"): b}  #509 (line in Coconut source)
     assert unify(F(Var("x")), F(f(Var("x")))) is None  #510 (line in Coconut source)
     assert nnf(~(A >> B)) == A & ~B  #511 (line in Coconut source)
     assert nnf(~FA(x, F(x))) == TE(x, ~F(x))  #512 (line in Coconut source)
@@ -579,7 +580,7 @@ def test_tools():  #498 (line in Coconut source)
     assert simplify(FA(x, F(x)) & FA(y, G(y))) == FA(x, F(x) & G(x))  #516 (line in Coconut source)
     assert simplify(TE(x, F(x)) | TE(y, G(y))) == TE(x, F(x) | G(x))  #517 (line in Coconut source)
     assert skolemize(FA(x, TE(y, F(x, y)))) == F(Var("x"), Func("sk1", Var("x")))  #518 (line in Coconut source)
-    assert substitute(FA(x, F(x, y)), _coconut.dict(((y, x),))) == FA(z, F(z, x))  #519 (line in Coconut source)
+    assert substitute(FA(x, F(x, y)), {y: x}) == FA(z, F(z, x))  #519 (line in Coconut source)
     assert (proves_and_proved_by)(A ^ B, (A | B) & ~(A & B))  #520 (line in Coconut source)
 
 
@@ -737,7 +738,7 @@ def test_random_propositional():  #644 (line in Coconut source)
 # Problems from Pelletier, "Seventy-five problems for testing automatic
 #  theorem provers" (1986), as (premises, conclusion) pairs.
 
-PELLETIER = _coconut.dict(((1, ([], "(P -> Q) <-> (~Q -> ~P)")), (9, ([], "((P | Q) & (~P | Q) & (P | ~Q)) -> ~(~P | ~Q)")), (12, ([], "((P <-> Q) <-> R) <-> (P <-> (Q <-> R))")), (17, ([], "((P & (Q -> R)) -> S) <-> ((~P | Q | S) & (~P | ~R | S))")), (18, ([], "E y. A x. F(y) -> F(x)")), (19, ([], "E x. A y. A z. (P(y) -> Q(z)) -> (P(x) -> Q(x))")), (20, ([], "(A x. A y. E z. A w. (P(x) & Q(y) -> R(z) & S(w))) -> ((E x. E y. P(x) & Q(y)) -> E z. R(z))")), (21, (["E x. P -> F(x)", "E x. F(x) -> P"], "E x. P <-> F(x)")), (26, (["(E x. P(x)) <-> (E x. Q(x))", "A x. A y. P(x) & Q(y) -> (R(x) <-> S(y))"], "(A x. P(x) -> R(x)) <-> (A x. Q(x) -> S(x))")), (29, (["(E x. F(x)) & (E x. G(x))",], "((A x. F(x) -> H(x)) & (A x. G(x) -> J(x))) <-> (A x. A y. F(x) & G(y) -> H(x) & J(y))")), (34, ([], "((E x. A y. P(x) <-> P(y)) <-> ((E x. Q(x)) <-> (A y. Q(y)))) <-> ((E x. A y. Q(x) <-> Q(y)) <-> ((E x. P(x)) <-> (A y. P(y))))")), (35, ([], "E x. E y. P(x, y) -> (A x. A y. P(x, y))")), (39, ([], "~(E x. A y. F(y, x) <-> ~F(y, y))")), (43, (["A x. A y. Q(x, y) <-> (A z. F(z, x) <-> F(z, y))",], "A x. A y. Q(x, y) <-> Q(y, x)")), (46, (["A x. F(x) & (A y. F(y) & H(y, x) -> G(y)) -> G(x)", "(E x. F(x) & ~G(x)) -> (E x. F(x) & ~G(x) & (A y. F(y) & ~G(y) -> J(x, y)))", "A x. A y. F(x) & F(y) & H(x, y) -> ~J(y, x)"], "A x. F(x) -> G(x)")), (48, (["a = b | c = d", "a = c | b = d"], "a = d | b = c")), (49, (["E x. E y. A z. z = x | z = y", "P(a) & P(b)", "a != b"], "A x. P(x)")), (51, (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E z. A x. (E w. A y. F(x, y) <-> y = w) <-> x = z")), (52, (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E w. A y. (E z. A x. F(x, y) <-> x = z) <-> y = w")), (55, (["E x. L(x) & K(x, agatha)", "L(agatha) & L(butler) & L(charles)", "A x. L(x) -> x = agatha | x = butler | x = charles", "A x. A y. K(x, y) -> H(x, y)", "A x. A y. K(x, y) -> ~R(x, y)", "A x. H(agatha, x) -> ~H(charles, x)", "A x. x != butler -> H(agatha, x)", "A x. ~R(x, agatha) -> H(butler, x)", "A x. H(agatha, x) -> H(butler, x)", "A x. E y. ~H(x, y)", "agatha != butler"], "K(agatha, agatha)")), (61, (["A x. A y. A z. f(x, f(y, z)) = f(f(x, y), z)",], "A x. A y. A z. A w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)"))))  #680 (line in Coconut source)
+PELLETIER = {1: ([], "(P -> Q) <-> (~Q -> ~P)"), 9: ([], "((P | Q) & (~P | Q) & (P | ~Q)) -> ~(~P | ~Q)"), 12: ([], "((P <-> Q) <-> R) <-> (P <-> (Q <-> R))"), 17: ([], "((P & (Q -> R)) -> S) <-> ((~P | Q | S) & (~P | ~R | S))"), 18: ([], "E y. A x. F(y) -> F(x)"), 19: ([], "E x. A y. A z. (P(y) -> Q(z)) -> (P(x) -> Q(x))"), 20: ([], "(A x. A y. E z. A w. (P(x) & Q(y) -> R(z) & S(w))) -> ((E x. E y. P(x) & Q(y)) -> E z. R(z))"), 21: (["E x. P -> F(x)", "E x. F(x) -> P"], "E x. P <-> F(x)"), 26: (["(E x. P(x)) <-> (E x. Q(x))", "A x. A y. P(x) & Q(y) -> (R(x) <-> S(y))"], "(A x. P(x) -> R(x)) <-> (A x. Q(x) -> S(x))"), 29: (["(E x. F(x)) & (E x. G(x))",], "((A x. F(x) -> H(x)) & (A x. G(x) -> J(x))) <-> (A x. A y. F(x) & G(y) -> H(x) & J(y))"), 34: ([], "((E x. A y. P(x) <-> P(y)) <-> ((E x. Q(x)) <-> (A y. Q(y)))) <-> ((E x. A y. Q(x) <-> Q(y)) <-> ((E x. P(x)) <-> (A y. P(y))))"), 35: ([], "E x. E y. P(x, y) -> (A x. A y. P(x, y))"), 39: ([], "~(E x. A y. F(y, x) <-> ~F(y, y))"), 43: (["A x. A y. Q(x, y) <-> (A z. F(z, x) <-> F(z, y))",], "A x. A y. Q(x, y) <-> Q(y, x)"), 46: (["A x. F(x) & (A y. F(y) & H(y, x) -> G(y)) -> G(x)", "(E x. F(x) & ~G(x)) -> (E x. F(x) & ~G(x) & (A y. F(y) & ~G(y) -> J(x, y)))", "A x. A y. F(x) & F(y) & H(x, y) -> ~J(y, x)"], "A x. F(x) -> G(x)"), 48: (["a = b | c = d", "a = c | b = d"], "a = d | b = c"), 49: (["E x. E y. A z. z = x | z = y", "P(a) & P(b)", "a != b"], "A x. P(x)"), 51: (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E z. A x. (E w. A y. F(x, y) <-> y = w) <-> x = z"), 52: (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w",], "E w. A y. (E z. A x. F(x, y) <-> x = z) <-> y = w"), 55: (["E x. L(x) & K(x, agatha)", "L(agatha) & L(butler) & L(charles)", "A x. L(x) -> x = agatha | x = butler | x = charles", "A x. A y. K(x, y) -> H(x, y)", "A x. A y. K(x, y) -> ~R(x, y)", "A x. H(agatha, x) -> ~H(charles, x)", "A x. x != butler -> H(agatha, x)", "A x. ~R(x, agatha) -> H(butler, x)", "A x. H(agatha, x) -> H(butler, x)", "A x. E y. ~H(x, y)", "agatha != butler"], "K(agatha, agatha)"), 61: (["A x. A y. A z. f(x, f(y, z)) = f(f(x, y), z)",], "A x. A y. A z. A w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)")}  #680 (line in Coconut source)
 
 @pytest.mark.parametrize("number", list(PELLETIER))  #704 (line in Coconut source)
 def test_pelletier(number):  #705 (line in Coconut source)

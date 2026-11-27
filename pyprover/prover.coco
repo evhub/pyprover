@@ -75,32 +75,26 @@ def map_lit_terms(f, lit) = with_sign(is_positive(lit), map_terms(f, atom_of(lit
 
 def apply_subs(lit, subs) = map_lit_terms(resolve_term$(subs=subs), lit)
 
-def atom_terms(atom) -> tuple:
-    match atom:
-        case Pred(_, *args):
-            return args
-        case Eq(a, b):
-            return (a, b)
-    return ()
+case def atom_terms:
+    """The top-level terms of an atom."""
+    case(Pred(_, *args)) = args
+    case(Eq(a, b)) = (a, b)
+    case(_) = ()
 
-def term_vars(term) -> list:
-    """The ?variables in term, in order of appearance."""
-    match term:
-        case Var(_):
-            return [term]
-        case Func(_, *args):
-            return [v for arg in args for v in term_vars(arg)]
-    return []
+case def term_vars:
+    """The ?variables in a term, in order of appearance."""
+    case(Var(_) as term) = [term]
+    case(Func(_, *args)) = [v for arg in args for v in term_vars(arg)]
+    case(_) = []
 
 def clause_vars(lits) -> list =
     """The ?variables in a clause, in order of appearance."""
     lits |> map$(atom_of ..> atom_terms) |> flatten |> map$(term_vars) |> flatten |> dict.fromkeys |> list
 
-def term_size(term) -> int:
-    match term:
-        case Func(_, *args):
-            return 1 + sum(map(term_size, args))
-    return 1
+case def term_size:
+    """The number of symbols in a term."""
+    case(Func(_, *args)) = 1 + sum(map(term_size, args))
+    case(_) = 1
 
 def unify_atoms(a, b, subs):
     """Yield every most general unifier of atoms a and b extending subs
@@ -344,13 +338,10 @@ def kbo_greater(s, t) -> bool:
 
 true_term = Const("$true")  # the smallest term, standing in for ⊤
 
-def _atom_term(atom):
-    match atom:
-        case Pred(name, *args):
-            return Func("$" + name, *args)
-        case Prop(name):
-            return Const("$" + name)
-    return atom
+case def _atom_term:
+    case(Pred(name, *args)) = Func("$" + name, *args)
+    case(Prop(name)) = Const("$" + name)
+    case(atom) = atom
 
 def lit_multiset(lit) -> list:
     """Represent a literal as a multiset of terms for the literal ordering:
@@ -473,17 +464,13 @@ def demodulate(lits, rules):
 
 # Clausification:
 
-def contains_iff(expr) -> bool:
-    match expr:
-        case Iff(_, _):
-            return True
-        case Not(elem) | ForAll(_, elem) | Exists(_, elem):
-            return contains_iff(elem)
-        case And(*elems) | Or(*elems):
-            return any(map(contains_iff, elems))
-        case Imp(a, b):
-            return contains_iff(a) or contains_iff(b)
-    return False
+case def contains_iff:
+    """Whether a formula contains a ↔."""
+    case(Iff(_, _)) = True
+    case(Not(elem) | ForAll(_, elem) | Exists(_, elem)) = contains_iff(elem)
+    case(And(*elems) | Or(*elems)) = any(map(contains_iff, elems))
+    case(Imp(a, b)) = contains_iff(a) or contains_iff(b)
+    case(_) = False
 
 def name_nested_iffs(expr, new_definition):
     """Replace each operand of a ↔ that itself contains a ↔ with a new

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x83adbf4e
+# __coconut_hash__ = 0xd53e2be5
 
 # Compiled with Coconut version 3.2.0-post_dev19
 # This file was compiled from sat.coco by the Coconut compiler; edit that file rather than this one.
@@ -12,9 +12,10 @@ propositional reasoning and for finite model search."""
 
 # Coconut Header: -------------------------------------------------------------
 
+from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev19', '3', True)
+_coconut_header_info = ('3.2.0-post_dev19', '39', True)
 _coconut_cached__coconut__ = _coconut_sys.modules.get('__coconut__')
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_pop_path = False
@@ -39,7 +40,7 @@ if _coconut_cached__coconut__ is None or getattr(_coconut_cached__coconut__, "_c
                         _coconut_v_type.__module__ = _coconut_full_module_name
         _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
+from __coconut__ import _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
 if _coconut_pop_path:
     _coconut_sys.path.pop(0)
 try:
@@ -88,15 +89,15 @@ class Solver():  #22 (line in Coconut source)
     def __init__(self, clauses):  #26 (line in Coconut source)
         self.clauses = []  #27 (line in Coconut source)
         self.watches = defaultdict(list)  #28 (line in Coconut source)
-        self.value = _coconut.dict()  # var -> bool  #29 (line in Coconut source)
-        self.level = _coconut.dict()  # var -> decision level  #30 (line in Coconut source)
-        self.reason = _coconut.dict()  # var -> index of the clause that implied it (or None)  #31 (line in Coconut source)
+        self.value = {}  # var -> bool  #29 (line in Coconut source)
+        self.level = {}  # var -> decision level  #30 (line in Coconut source)
+        self.reason = {}  # var -> index of the clause that implied it (or None)  #31 (line in Coconut source)
         self.trail = []  #32 (line in Coconut source)
         self.trail_lim = []  #33 (line in Coconut source)
         self.qhead = 0  #34 (line in Coconut source)
         self.activity = Counter()  #35 (line in Coconut source)
         self.bump_amount = 1.0  #36 (line in Coconut source)
-        self.phase = _coconut.dict()  #37 (line in Coconut source)
+        self.phase = {}  #37 (line in Coconut source)
         self.ok = True  #38 (line in Coconut source)
 
         units = []  #40 (line in Coconut source)
@@ -122,7 +123,7 @@ class Solver():  #22 (line in Coconut source)
                 return  #60 (line in Coconut source)
 
 
-    def add_clause(self, lits) -> 'int':  #62 (line in Coconut source)
+    def add_clause(self, lits) -> int:  #62 (line in Coconut source)
         index = len(self.clauses)  #63 (line in Coconut source)
         self.clauses.append(lits)  #64 (line in Coconut source)
         self.watches[lits[0]].append(index)  #65 (line in Coconut source)
@@ -137,7 +138,7 @@ class Solver():  #22 (line in Coconut source)
         return val if lit > 0 else not val  #73 (line in Coconut source)
 
 
-    def enqueue(self, lit, reason) -> 'bool':  #75 (line in Coconut source)
+    def enqueue(self, lit, reason) -> bool:  #75 (line in Coconut source)
         """Make lit true; return False if it is already false."""  #76 (line in Coconut source)
         val = self.lit_value(lit)  #77 (line in Coconut source)
         if val is not None:  #78 (line in Coconut source)
@@ -290,6 +291,3 @@ class Solver():  #22 (line in Coconut source)
                     return dict(self.value)  #219 (line in Coconut source)
                 self.trail_lim.append(len(self.trail))  #220 (line in Coconut source)
                 self.enqueue(var if self.phase.get(var, True) else -var, None)  #221 (line in Coconut source)
-
-
-_coconut_call_set_names(Solver)  #223 (line in Coconut source)

@@ -415,15 +415,11 @@ def disjuncts(expr) =
 
 def paren(s, cond) = "(" + s + ")" if cond else s
 
-def show_term(term) -> str:
+case def show_term:
     """Render a term in standard mathematical notation."""
-    match term:
-        case Var(name):
-            return "?" + name
-        case Func(name, *args):
-            return name + "(" + ", ".join(map(show_term, args)) + ")"
-        case _:
-            return term.name
+    case(Var(name)) = "?" + name
+    case(Func(name, *args)) = name + "(" + ", ".join(map(show_term, args)) + ")"
+    case(term) = term.name
 
 def show(expr, prec=0) -> str:
     """Render a formula in standard mathematical notation (that expr can parse).
@@ -512,14 +508,11 @@ def pyrepr(expr) -> str:
 
 # Traversal:
 
-def term_leaves(term) -> set:
-    """The constants and variables appearing in term."""
-    match term:
-        case Func(_, *args):
-            return args |> map$(term_leaves) |> reduce$((|), ?, set())
-        case Const(_) | Var(_):
-            return {term}
-    return set()
+case def term_leaves:
+    """The constants and variables appearing in a term."""
+    case(Func(_, *args)) = args |> map$(term_leaves) |> reduce$((|), ?, set())
+    case(Const(_) | Var(_) as term) = {term}
+    case(_) = set()
 
 def free_terms(expr, bound=frozenset()) -> set:
     """The constants and variables that appear free in expr (i.e. that are not
@@ -583,19 +576,13 @@ def fresh_name(base, used) -> str:
         name += "'"
     return name
 
-def size(expr) -> int:
-    """The number of symbols in expr (used to compare the complexity of formulas)."""
-    match expr:
-        case Not(elem):
-            return size(elem) + 1
-        case And(*elems) | Or(*elems):
-            return elems |> map$(size) |> sum |> (+)$(1)
-        case Imp(a, b) | Iff(a, b):
-            return size(a) + size(b) + 1
-        case ForAll(_, elem) | Exists(_, elem):
-            return size(elem) + 1
-    return 1
-
+case def size:
+    """The number of symbols in a formula (used to compare the complexity of formulas)."""
+    case(Not(elem)) = size(elem) + 1
+    case(And(*elems) | Or(*elems)) = elems |> map$(size) |> sum |> (+)$(1)
+    case(Imp(a, b) | Iff(a, b)) = size(a) + size(b) + 1
+    case(ForAll(_, elem) | Exists(_, elem)) = size(elem) + 1
+    case(_) = 1
 
 # Substitution:
 

@@ -8,9 +8,10 @@
 
 # Coconut Header: -------------------------------------------------------------
 
+from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev19', '3', True)
+_coconut_header_info = ('3.2.0-post_dev19', '39', True)
 try:
     __file__ = _coconut_os.path.abspath(__file__) if __file__ else __file__
 except NameError:
@@ -57,95 +58,7 @@ class _coconut_partial(_coconut_functools.partial):
         return _coconut.inspect.signature(_coconut_functools.partial(self.func, *self.args, **self.keywords))
     def __repr__(self):
         return "functools.partial({0})".format(", ".join([_coconut.repr(self.func)] + [_coconut.repr(a) for a in self.args] + ["{0}={1}".format(k, _coconut.repr(v)) for k, v in self.keywords.items()]))
-if _coconut_sys.version_info >= (3, 7):
-    py_breakpoint = breakpoint
-if _coconut_sys.version_info < (3, 4):
-    def min(*args, **kwargs):
-        if len(args) == 1 and "default" in kwargs:
-            obj = tuple(args[0])
-            default = kwargs.pop("default")
-            if len(obj):
-                return _coconut_py_min(obj, **kwargs)
-            else:
-                return default
-        else:
-            return _coconut_py_min(*args, **kwargs)
-    def max(*args, **kwargs):
-        if len(args) == 1 and "default" in kwargs:
-            obj = tuple(args[0])
-            default = kwargs.pop("default")
-            if len(obj):
-                return _coconut_py_max(obj, **kwargs)
-            else:
-                return default
-        else:
-            return _coconut_py_max(*args, **kwargs)
-if _coconut_sys.version_info < (3, 7):
-    from collections import OrderedDict as _coconut_OrderedDict
-    def _coconut_default_breakpointhook(*args, **kwargs):
-        hookname = _coconut.os.getenv("PYTHONBREAKPOINT")
-        if hookname != "0":
-            if not hookname:
-                hookname = "pdb.set_trace"
-            modname, dot, funcname = hookname.rpartition(".")
-            if not dot:
-                modname = "builtins" if _coconut_sys.version_info >= (3,) else "__builtin__"
-            if _coconut_sys.version_info >= (2, 7):
-                import importlib
-                module = importlib.import_module(modname)
-            else:
-                import imp
-                module = imp.load_module(modname, *imp.find_module(modname))
-            hook = _coconut.getattr(module, funcname)
-            return hook(*args, **kwargs)
-    if not hasattr(_coconut_sys, "__breakpointhook__"):
-        _coconut_sys.__breakpointhook__ = _coconut_default_breakpointhook
-    def breakpoint(*args, **kwargs):
-        return _coconut.getattr(_coconut_sys, "breakpointhook", _coconut_default_breakpointhook)(*args, **kwargs)
-    class _coconut_dict_base(_coconut_OrderedDict):
-        __slots__ = ()
-        __doc__ = getattr(_coconut_OrderedDict, "__doc__", "<see help(py_dict)>")
-        __eq__ = _coconut_py_dict.__eq__
-        def __repr__(self):
-            return "{" + ", ".join("{k!r}: {v!r}".format(k=k, v=v) for k, v in self.items()) + "}"
-        def __or__(self, other):
-            out = self.copy()
-            out.update(other)
-            return out
-        def __ror__(self, other):
-            out = self.__class__(other)
-            out.update(self)
-            return out
-        def __ior__(self, other):
-            self.update(other)
-            return self
-    class _coconut_dict_meta(type):
-        def __instancecheck__(cls, inst):
-            return _coconut.isinstance(inst, _coconut_py_dict)
-        def __subclasscheck__(cls, subcls):
-            return _coconut.issubclass(subcls, _coconut_py_dict)
-    dict = _coconut_dict_meta(py_str("dict"), _coconut_dict_base.__bases__, _coconut_dict_base.__dict__.copy())
-elif _coconut_sys.version_info < (3, 9):
-    class _coconut_dict_base(_coconut_py_dict):
-        __slots__ = ()
-        __doc__ = getattr(_coconut_py_dict, "__doc__", "<see help(py_dict)>")
-        def __or__(self, other):
-            out = self.copy()
-            out.update(other)
-            return out
-        def __ror__(self, other):
-            out = self.__class__(other)
-            out.update(self)
-            return out
-        def __ior__(self, other):
-            self.update(other)
-            return self
-    class _coconut_dict_meta(type):
-        def __instancecheck__(cls, inst):
-            return _coconut.isinstance(inst, _coconut_py_dict)
-        def __subclasscheck__(cls, subcls):
-            return _coconut.issubclass(subcls, _coconut_py_dict)
-    dict = _coconut_dict_meta(py_str("dict"), _coconut_dict_base.__bases__, _coconut_dict_base.__dict__.copy())
+py_breakpoint = breakpoint
 if _coconut_sys.version_info < (3, 11):
     try:
         from exceptiongroup import ExceptionGroup, BaseExceptionGroup
@@ -225,29 +138,13 @@ class _coconut:
     import collections, copy, functools, types, itertools, operator, threading, os, warnings, contextlib, traceback, weakref, multiprocessing, inspect
     from multiprocessing import dummy as multiprocessing_dummy
     import copyreg
-    if _coconut_sys.version_info < (3, 4):
-        asyncio = _coconut_lazy_module("trollius")
-        def _coconut_trollius_coroutine(func):
-            try:
-                import trollius
-                return trollius.coroutine(func)
-            except ImportError as err:
-                def raise_import_error(*args, **kwargs):
-                    raise err
-                return raise_import_error
-        types.ModuleType.__setattr__(asyncio, "coroutine", _coconut_trollius_coroutine)
-        asyncio_Return = _coconut_lazy_module("trollius", attr="Return")
-    else:
-        import asyncio
-        asyncio_Return = StopIteration
+    import asyncio
+    asyncio_Return = StopIteration
     async_generator = _coconut_lazy_module("async_generator")
     tstr = _coconut_lazy_module("tstr")
     import pickle
     OrderedDict = collections.OrderedDict
-    if _coconut_sys.version_info < (3, 3):
-        abc = collections
-    else:
-        import collections.abc as abc
+    import collections.abc as abc
     typing = types.ModuleType('typing')
     try:
         import typing_extensions
@@ -258,48 +155,10 @@ class _coconut:
             if not _name.startswith("__"):
                 setattr(typing, _name, getattr(typing_extensions, _name))
     typing.__doc__ = "Coconut version of typing that makes use of typing.typing_extensions when possible.\n\n" + (getattr(typing, "__doc__") or "The typing module is not available at runtime in Python 3.4 or earlier; try hiding your typedefs behind an 'if TYPE_CHECKING:' block.")
-    if _coconut_sys.version_info < (3, 5):
-        if not hasattr(typing, "TYPE_CHECKING"):
-            typing.TYPE_CHECKING = False
-        if not hasattr(typing, "Any"):
-            typing.Any = Ellipsis
-        if not hasattr(typing, "cast"):
-            def cast(t, x):
-                """typing.cast[T](t: Type[T], x: Any) -> T = x"""
-                return x
-            typing.cast = cast
-            cast = staticmethod(cast)
-        if not hasattr(typing, "TypeVar"):
-            def TypeVar(name, *args, **kwargs):
-                """Runtime mock of typing.TypeVar for Python 3.4 and earlier."""
-                return name
-            typing.TypeVar = TypeVar
-            TypeVar = staticmethod(TypeVar)
-        if not hasattr(typing, "Generic"):
-            class Generic_mock:
-                """Runtime mock of typing.Generic for Python 3.4 and earlier."""
-                __slots__ = ()
-                def __getitem__(self, vars):
-                    return _coconut.object
-            typing.Generic = Generic_mock()
-    else:
-        import typing as _typing
-        for _name in dir(_typing):
-            if not hasattr(typing, _name):
-                setattr(typing, _name, getattr(_typing, _name))
-    if _coconut_sys.version_info < (3, 6):
-        if not hasattr(typing, "NamedTuple"):
-            def NamedTuple(name, fields):
-                return _coconut.collections.namedtuple(name, [x for x, t in fields])
-            typing.NamedTuple = NamedTuple
-            NamedTuple = staticmethod(NamedTuple)
-    if _coconut_sys.version_info < (3, 8):
-        if not hasattr(typing, "Protocol"):
-            class YouNeedToInstallTypingExtensions:
-                __slots__ = ()
-                def __init__(self):
-                    raise _coconut.TypeError('Protocols cannot be instantiated')
-            typing.Protocol = YouNeedToInstallTypingExtensions
+    import typing as _typing
+    for _name in dir(_typing):
+        if not hasattr(typing, _name):
+            setattr(typing, _name, getattr(_typing, _name))
     if _coconut_sys.version_info < (3, 10):
         if not hasattr(typing, "ParamSpec"):
             def ParamSpec(name, *args, **kwargs):
@@ -715,24 +574,13 @@ class _coconut_base_compose(_coconut_compostion_baseclass):
         return _coconut.repr(self._coconut_func) + " " + " ".join(".." + "?"*none_aware + "*"*stars + "> " + _coconut.repr(f) for f, stars, none_aware in self._coconut_func_infos)
 class _coconut_async_compose(_coconut_compostion_baseclass):
     __slots__ = ()
-    if _coconut_sys.version_info < (3, 5):
-        if _coconut_sys.version_info < (3, 4):
-            @_coconut.asyncio.coroutine
-            def __call__(self, *args, **kwargs):
-                arg = yield _coconut.asyncio.From(self._coconut_func(*args, **kwargs))
-                for f, await_f in self._coconut_func_infos:
-                    arg = f(arg)
-                    if await_f:
-                        arg = yield _coconut.asyncio.From(arg)
-                raise _coconut.asyncio_Return(arg)
-        else:
-            _coconut___call___ns = {"_coconut": _coconut}
-            _coconut_exec('def __call__(self, *args, **kwargs):\n    arg = yield from self._coconut_func(*args, **kwargs)\n    for f, await_f in self._coconut_func_infos:\n        arg = f(arg)\n        if await_f:\n            arg = yield from arg\n    raise _coconut.StopIteration(arg)', _coconut___call___ns)
-            __call__ = _coconut.asyncio.coroutine(_coconut___call___ns["__call__"])
-    else:
-        _coconut___call___ns = {"_coconut": _coconut}
-        _coconut_exec('async def __call__(self, *args, **kwargs):\n    arg = await self._coconut_func(*args, **kwargs)\n    for f, await_f in self._coconut_func_infos:\n        arg = f(arg)\n        if await_f:\n            arg = await arg\n    return arg', _coconut___call___ns)
-        __call__ = _coconut___call___ns["__call__"]
+    async def __call__(self, *args, **kwargs):
+        arg = await self._coconut_func(*args, **kwargs)
+        for f, await_f in self._coconut_func_infos:
+            arg = f(arg)
+            if await_f:
+                arg = await arg
+        return arg
     def __repr__(self):
         return _coconut.repr(self._coconut_func) + " " + " ".join("`and_then" + "_await"*await_f + "` " + _coconut.repr(f) for f, await_f in self._coconut_func_infos)
 def and_then(first_async_func, second_func):
@@ -911,42 +759,7 @@ def _coconut_comma_op(*args):
 def _coconut_if_op(cond, if_true, if_false):
     """If operator (if). Equivalent to (cond, if_true, if_false) => if_true if cond else if_false."""
     return if_true if cond else if_false
-if _coconut_sys.version_info < (3, 5):
-    def _coconut_matmul(a, b, **kwargs):
-        """Matrix multiplication operator (@). Implements operator.matmul on any Python version."""
-        in_place = kwargs.pop("in_place", False)
-        if kwargs:
-            raise _coconut.TypeError("_coconut_matmul() got unexpected keyword arguments " + _coconut.repr(kwargs))
-        if in_place and _coconut.hasattr(a, "__imatmul__"):
-            try:
-                result = a.__imatmul__(b)
-            except _coconut.NotImplementedError:
-                pass
-            else:
-                if result is not _coconut.NotImplemented:
-                    return result
-        if _coconut.hasattr(a, "__matmul__"):
-            try:
-                result = a.__matmul__(b)
-            except _coconut.NotImplementedError:
-                pass
-            else:
-                if result is not _coconut.NotImplemented:
-                    return result
-        if _coconut.hasattr(b, "__rmatmul__"):
-            try:
-                result = b.__rmatmul__(a)
-            except _coconut.NotImplementedError:
-                pass
-            else:
-                if result is not _coconut.NotImplemented:
-                    return result
-        if "numpy" in (_coconut_get_base_module(a), _coconut_get_base_module(b)):
-            from numpy import matmul
-            return matmul(a, b)
-        raise _coconut.TypeError("unsupported operand type(s) for @: " + _coconut.repr(_coconut_type(a)) + " and " + _coconut.repr(_coconut_type(b)))
-else:
-    _coconut_matmul = _coconut.operator.matmul
+_coconut_matmul = _coconut.operator.matmul
 class scan(_coconut_has_iter):
     """Reduce func over iterable, yielding intermediate results,
     optionally starting from initial."""
@@ -1685,7 +1498,7 @@ class recursive_generator(_coconut_base_callable):
     __slots__ = ("func", "reit_store")
     def __init__(self, func):
         self.func = func
-        self.reit_store = _coconut.dict()
+        self.reit_store = {}
     def __call__(self, *args, **kwargs):
         key = (0, args, _coconut.frozenset(kwargs.items()))
         try:
@@ -1731,12 +1544,11 @@ def _coconut_get_function_match_error():
 class _coconut_base_pattern_func(_coconut_base_callable):
     _coconut_is_match = True
     def __init__(self, *funcs):
-        self.FunctionMatchError = _coconut_type('MatchError', (MatchError,), _coconut_py_dict())
+        self.FunctionMatchError = _coconut_type('MatchError', (MatchError,), {})
         self.patterns = []
         self.__doc__ = None
         self.__name__ = None
-        if _coconut_sys.version_info >= (3, 7):
-            self.__qualname__ = None
+        self.__qualname__ = None
         for func in funcs:
             self.add_pattern(func)
     def add_pattern(self, func):
@@ -1746,8 +1558,7 @@ class _coconut_base_pattern_func(_coconut_base_callable):
             self.patterns.append(func)
         self.__doc__ = _coconut.getattr(func, "__doc__", self.__doc__)
         self.__name__ = _coconut.getattr(func, "__name__", self.__name__)
-        if _coconut_sys.version_info >= (3, 7):
-            self.__qualname__ = _coconut.getattr(func, "__qualname__", self.__qualname__)
+        self.__qualname__ = _coconut.getattr(func, "__qualname__", self.__qualname__)
     def __call__(self, *args, **kwargs):
         for func in self.patterns[:-1]:
             try:
@@ -1994,28 +1805,19 @@ def makedata(data_type, *args, **kwargs):
     if kwargs:
         raise _coconut.TypeError("makedata() got unexpected keyword arguments " + _coconut.repr(kwargs))
     return _coconut_base_makedata(data_type, args, fallback_to_init=fallback_to_init)
-if _coconut_sys.version_info < (3, 3):
-    _coconut_amap = None
-else:
-    class _coconut_amap(_coconut_baseclass):
-        __slots__ = ("func", "aiter")
-        def __init__(self, func, aiter):
-            self.func = func
-            self.aiter = aiter
-        def __reduce__(self):
-            return (self.__class__, (self.func, self.aiter))
-        def __repr__(self):
-            return "fmap(" + _coconut.repr(self.func) + ", " + _coconut.repr(self.aiter) + ")"
-        def __aiter__(self):
-            return self
-        if _coconut_sys.version_info < (3, 5):
-            _coconut___anext___ns = {"_coconut": _coconut}
-            _coconut_exec('def __anext__(self):\n    result = yield from self.aiter.__anext__()\n    return self.func(result)', _coconut___anext___ns)
-            __anext__ = _coconut.asyncio.coroutine(_coconut___anext___ns["__anext__"])
-        else:
-            _coconut___anext___ns = {"_coconut": _coconut}
-            _coconut_exec('async def __anext__(self):\n    return self.func(await self.aiter.__anext__())', _coconut___anext___ns)
-            __anext__ = _coconut___anext___ns["__anext__"]
+class _coconut_amap(_coconut_baseclass):
+    __slots__ = ("func", "aiter")
+    def __init__(self, func, aiter):
+        self.func = func
+        self.aiter = aiter
+    def __reduce__(self):
+        return (self.__class__, (self.func, self.aiter))
+    def __repr__(self):
+        return "fmap(" + _coconut.repr(self.func) + ", " + _coconut.repr(self.aiter) + ")"
+    def __aiter__(self):
+        return self
+    async def __anext__(self):
+        return self.func(await self.aiter.__anext__())
 def fmap(func, obj, **kwargs):
     """fmap(func, obj) creates a copy of obj with func applied to its contents.
 
@@ -2082,7 +1884,7 @@ def _coconut_memoize_helper(maxsize=None, typed=False):
         def memoizer(func):
             """memoize(...)"""
             inside = [False]
-            cache = _coconut.dict()
+            cache = {}
             @_coconut_wraps(func)
             def memoized_func(*args, **kwargs):
                 if typed:
@@ -2108,12 +1910,7 @@ def _coconut_memoize_helper(maxsize=None, typed=False):
         return memoizer
     else:
         return _coconut.functools.lru_cache(maxsize, typed)
-def _coconut_call_set_names(cls):
-    if _coconut_sys.version_info < (3, 6):
-        for k, v in _coconut.vars(cls).items():
-            set_name = _coconut.getattr(v, "__set_name__", None)
-            if set_name is not None:
-                set_name(cls, k)
+def _coconut_call_set_names(cls): pass
 class override(_coconut_baseclass):
     """Declare a method in a subclass as an override of a parent class method.
     Enforces at runtime that the parent class has such a method to be overwritten."""
@@ -2146,7 +1943,7 @@ def reveal_locals():
 def _coconut_dict_merge(*dicts, **kwargs):
     for_func = kwargs.pop("for_func", False)
     assert not kwargs, "error with internal Coconut function _coconut_dict_merge (you should report this at https://github.com/evhub/coconut/issues/new)"
-    newdict = _coconut.dict()
+    newdict = {}
     prevlen = 0
     for d in dicts:
         newdict.update(d)
@@ -2165,7 +1962,7 @@ def ident(x, **kwargs):
         side_effect(x)
     return x
 if _coconut_sys.version_info < (3, 11):
-    def call(_coconut_f, *args, **kwargs):
+    def call(_coconut_f, /, *args, **kwargs):
         """Function application operator function.
 
         Equivalent to:
@@ -2174,7 +1971,7 @@ if _coconut_sys.version_info < (3, 11):
         return _coconut_f(*args, **kwargs)
 else:
     call = _coconut.operator.call
-def safe_call(_coconut_f, *args, **kwargs):
+def safe_call(_coconut_f, /, *args, **kwargs):
     """safe_call is a version of call that catches any Exceptions and
     returns an Expected containing either the result or the error.
 
@@ -2448,7 +2245,7 @@ def mapreduce(key_value_func, iterable, **kwargs):
     map_using = kwargs.pop("map_using", _coconut.map)
     if kwargs:
         raise _coconut.TypeError("mapreduce()/collectby() got unexpected keyword arguments " + _coconut.repr(kwargs))
-    collection = collect_in if collect_in is not None else _coconut.collections.defaultdict(_coconut.list) if reduce_func is None else _coconut.dict()
+    collection = collect_in if collect_in is not None else _coconut.collections.defaultdict(_coconut.list) if reduce_func is None else {}
     for key, val in map_using(key_value_func, iterable):
         if reduce_func is None:
             collection[key].append(val)
@@ -2479,16 +2276,13 @@ def collectby(key_func, iterable, value_func=None, **kwargs):
     If map_using is passed, calculate key_func and value_func by mapping them over
     the iterable using map_using as map. Useful with process_map/thread_map.
     """
-    return mapreduce(_coconut_lifted(False, _coconut_comma_op, (key_func, ident if value_func is None else value_func), _coconut.dict()), iterable, **kwargs)
+    return mapreduce(_coconut_lifted(False, _coconut_comma_op, (key_func, ident if value_func is None else value_func), {}), iterable, **kwargs)
 collectby.using_processes = _coconut_partial(_coconut_parallel_mapreduce, collectby, process_map)
 collectby.using_threads = _coconut_partial(_coconut_parallel_mapreduce, collectby, thread_map)
 def _namedtuple_of(**kwargs):
     """Construct an anonymous namedtuple of the given keyword arguments."""
-    if _coconut_sys.version_info < (3, 6):
-        raise _coconut.RuntimeError("_namedtuple_of is not available on Python < 3.6 (use anonymous namedtuple literals instead)")
-    else:
-        return _coconut_mk_anon_namedtuple(kwargs.keys(), of_kwargs=kwargs)
-def _coconut_mk_anon_namedtuple(fields, types=None, of_kwargs=_coconut.dict(), of_args=()):
+    return _coconut_mk_anon_namedtuple(kwargs.keys(), of_kwargs=kwargs)
+def _coconut_mk_anon_namedtuple(fields, types=None, of_kwargs={}, of_args=()):
     if types is None:
         NT = _coconut.collections.namedtuple("_namedtuple_of", fields)
     else:
@@ -2708,14 +2502,18 @@ class dropwhile(_coconut.itertools.dropwhile):
     __doc__ = _coconut.itertools.dropwhile.__doc__
     def __new__(cls, predicate, iterable):
         return _coconut.itertools.dropwhile.__new__(cls, predicate, iterable)
-if _coconut_sys.version_info < (3, 5):
-    def async_map(*args, **kwargs):
-        """async_map not available on Python < 3.5"""
-        raise _coconut.NameError("async_map not available on Python < 3.5")
-else:
-    _coconut_async_map_ns = {"_coconut": _coconut, 'zip': zip}
-    _coconut_exec('async def async_map(async_func, *iters, strict=False):\n    """Map async_func over iters asynchronously using anyio."""\n    import anyio\n    results = []\n    async def store_func_in_of(i, args):\n        got = await async_func(*args)\n        results.extend([None] * (1 + i - _coconut.len(results)))\n        results[i] = got\n    async with anyio.create_task_group() as nursery:\n        for i, args in _coconut.enumerate(zip(*iters, strict=strict)):\n            nursery.start_soon(store_func_in_of, i, args)\n    return results', _coconut_async_map_ns)
-    async_map = _coconut_async_map_ns["async_map"]
+async def async_map(async_func, *iters, strict=False):
+    """Map async_func over iters asynchronously using anyio."""
+    import anyio
+    results = []
+    async def store_func_in_of(i, args):
+        got = await async_func(*args)
+        results.extend([None] * (1 + i - _coconut.len(results)))
+        results[i] = got
+    async with anyio.create_task_group() as nursery:
+        for i, args in _coconut.enumerate(zip(*iters, strict=strict)):
+            nursery.start_soon(store_func_in_of, i, args)
+    return results
 def prepattern(*args, **kwargs):
     """Deprecated Coconut built-in 'prepattern' disabled by --strict compilation; use 'addpattern' instead."""
     raise _coconut.NameError("deprecated Coconut built-in 'prepattern' disabled by --strict compilation; use 'addpattern' instead")

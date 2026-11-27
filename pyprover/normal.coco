@@ -180,27 +180,19 @@ def prop_valid(expr) -> bool =
 
 # The empty universe:
 
-def empty_value(expr):
+case def empty_value:
     """The value of a formula with no free terms in the empty universe, in
     which every ∀ is vacuously true and every ∃ is false."""
-    match expr:
-        case ForAll(_, _):
-            return top
-        case Exists(_, _):
-            return bot
-        case Not(elem):
-            return Not(empty_value(elem))
-        case And(*elems):
-            return And(*map(empty_value, elems))
-        case Or(*elems):
-            return Or(*map(empty_value, elems))
-        case Imp(a, b):
-            return Imp(empty_value(a), empty_value(b))
-        case Iff(a, b):
-            return Iff(empty_value(a), empty_value(b))
-        case Pred(_, *_) | Eq(_, _):
-            raise ValueError(f"free terms have no value in the empty universe: {expr}")
-    return expr
+    case(ForAll(_, _)) = top
+    case(Exists(_, _)) = bot
+    case(Not(elem)) = Not(empty_value(elem))
+    case(And(*elems)) = And(*map(empty_value, elems))
+    case(Or(*elems)) = Or(*map(empty_value, elems))
+    case(Imp(a, b)) = Imp(empty_value(a), empty_value(b))
+    case(Iff(a, b)) = Iff(empty_value(a), empty_value(b))
+    case(Pred(_, *_) | Eq(_, _) as expr):
+        raise ValueError(f"free terms have no value in the empty universe: {expr}")
+    case(expr) = expr
 
 def admits_empty_universe(expr) -> bool =
     """Determine whether expr makes sense in (i.e. has no free terms that

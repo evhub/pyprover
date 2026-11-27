@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0xc723277a
+# __coconut_hash__ = 0x8462840b
 
 # Compiled with Coconut version 3.2.0-post_dev19
 # This file was compiled from parser.coco by the Coconut compiler; edit that file rather than this one.
@@ -10,9 +10,10 @@
 
 # Coconut Header: -------------------------------------------------------------
 
+from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev19', '3', True)
+_coconut_header_info = ('3.2.0-post_dev19', '39', True)
 _coconut_cached__coconut__ = _coconut_sys.modules.get('__coconut__')
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_pop_path = False
@@ -37,7 +38,7 @@ if _coconut_cached__coconut__ is None or getattr(_coconut_cached__coconut__, "_c
                         _coconut_v_type.__module__ = _coconut_full_module_name
         _coconut_sys.modules[_coconut_full_module_name] = _coconut__coconut__
 from __coconut__ import *
-from __coconut__ import _coconut_call_set_names, _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
+from __coconut__ import _namedtuple_of, _coconut, _coconut_Expected, _coconut_MatchError, _coconut_SupportsAdd, _coconut_SupportsMinus, _coconut_SupportsMul, _coconut_SupportsPow, _coconut_SupportsTruediv, _coconut_SupportsFloordiv, _coconut_SupportsMod, _coconut_SupportsAnd, _coconut_SupportsXor, _coconut_SupportsOr, _coconut_SupportsLshift, _coconut_SupportsRshift, _coconut_SupportsMatmul, _coconut_SupportsInv, _coconut_iter_getitem, _coconut_base_compose, _coconut_forward_compose, _coconut_back_compose, _coconut_forward_star_compose, _coconut_back_star_compose, _coconut_forward_dubstar_compose, _coconut_back_dubstar_compose, _coconut_pipe, _coconut_star_pipe, _coconut_dubstar_pipe, _coconut_back_pipe, _coconut_back_star_pipe, _coconut_back_dubstar_pipe, _coconut_none_pipe, _coconut_none_star_pipe, _coconut_none_dubstar_pipe, _coconut_bool_and, _coconut_bool_or, _coconut_none_coalesce, _coconut_minus, _coconut_map, _coconut_partial, _coconut_complex_partial, _coconut_get_function_match_error, _coconut_base_pattern_func, _coconut_addpattern, _coconut_sentinel, _coconut_assert, _coconut_raise, _coconut_mark_as_match, _coconut_reiterable, _coconut_self_match_types, _coconut_dict_merge, _coconut_exec, _coconut_comma_op, _coconut_arr_concat_op, _coconut_mk_anon_namedtuple, _coconut_matmul, _coconut_py_str, _coconut_flatten, _coconut_multiset, _coconut_back_none_pipe, _coconut_back_none_star_pipe, _coconut_back_none_dubstar_pipe, _coconut_forward_none_compose, _coconut_back_none_compose, _coconut_forward_none_star_compose, _coconut_back_none_star_compose, _coconut_forward_none_dubstar_compose, _coconut_back_none_dubstar_compose, _coconut_call_or_coefficient, _coconut_in, _coconut_not_in, _coconut_attritemgetter, _coconut_if_op, _coconut_CoconutWarning, _coconut_lazy_module, _coconut_lazy_get, _coconut_type, _coconut_assert_msg
 if _coconut_pop_path:
     _coconut_sys.path.pop(0)
 try:
@@ -97,7 +98,6 @@ from pyprover.logic import Func  #20 (line in Coconut source)
 class ParseError(ValueError):  #41 (line in Coconut source)
     """Raised when a formula can't be parsed."""  #42 (line in Coconut source)
 
-_coconut_call_set_names(ParseError)  #44 (line in Coconut source)
 class Token(_coconut.typing.NamedTuple("Token", [("kind", 'str'), ("text", 'str'), ("pos", 'int')])):  #44 (line in Coconut source)
     __slots__ = ()  #44 (line in Coconut source)
     _coconut_is_data = True  #44 (line in Coconut source)
@@ -112,19 +112,18 @@ class Token(_coconut.typing.NamedTuple("Token", [("kind", 'str'), ("text", 'str'
         return _coconut.tuple.__hash__(self) ^ _coconut.hash(self.__class__)  #44 (line in Coconut source)
 
 
-_coconut_call_set_names(Token)  #46 (line in Coconut source)
 punctuation = "(", ")", ",", ".", ":", "?"  #46 (line in Coconut source)
 
 # every symbol that isn't a word, longest first so that e.g. "->" beats "-"
 operator_syms = (sorted)((filter)(lambda s: not re.fullmatch(r"\w+", s), (all_top_syms + all_bot_syms + all_not_syms + all_imp_syms + all_iff_syms + all_and_syms + all_or_syms + all_eq_syms + all_neq_syms + punctuation + ("∀", "∃"))), key=len, reverse=True)  #49 (line in Coconut source)
 
-word_ops = _coconut.dict(((sym), (kind)) for kind, syms in [("top", all_top_syms), ("bot", all_bot_syms), ("not", all_not_syms), ("imp", all_imp_syms), ("iff", all_iff_syms), ("and", all_and_syms), ("or", all_or_syms)] for sym in syms if re.fullmatch(r"\w+", sym))  #55 (line in Coconut source)
+word_ops = {sym: kind for kind, syms in [("top", all_top_syms), ("bot", all_bot_syms), ("not", all_not_syms), ("imp", all_imp_syms), ("iff", all_iff_syms), ("and", all_and_syms), ("or", all_or_syms)] for sym in syms if re.fullmatch(r"\w+", sym)}  #55 (line in Coconut source)
 
-sym_kinds = _coconut.dict(((sym), (kind)) for kind, syms in [("top", all_top_syms), ("bot", all_bot_syms), ("not", all_not_syms), ("imp", all_imp_syms), ("iff", all_iff_syms), ("and", all_and_syms), ("or", all_or_syms), ("eq", all_eq_syms), ("neq", all_neq_syms), ("forall", ("∀",)), ("exists", ("∃",))] for sym in syms) | _coconut.dict(((p), (p)) for p in punctuation)  #70 (line in Coconut source)
+sym_kinds = {sym: kind for kind, syms in [("top", all_top_syms), ("bot", all_bot_syms), ("not", all_not_syms), ("imp", all_imp_syms), ("iff", all_iff_syms), ("and", all_and_syms), ("or", all_or_syms), ("eq", all_eq_syms), ("neq", all_neq_syms), ("forall", ("∀",)), ("exists", ("∃",))] for sym in syms} | {p: p for p in punctuation}  #70 (line in Coconut source)
 
 token_regex = re.compile(r"\s*(?:(?P<op>" + "|".join(map(re.escape, operator_syms)) + r")|(?P<name>\w+'*))")  #88 (line in Coconut source)
 
-def tokenize(text) -> 'list':  #92 (line in Coconut source)
+def tokenize(text) -> list:  #92 (line in Coconut source)
     """Split text into tokens."""  #93 (line in Coconut source)
     tokens = []  #94 (line in Coconut source)
     pos = 0  #95 (line in Coconut source)
@@ -143,7 +142,7 @@ def tokenize(text) -> 'list':  #92 (line in Coconut source)
     return tokens  #108 (line in Coconut source)
 
 
-def error_message(text, pos, msg) -> 'str':  #110 (line in Coconut source)
+def error_message(text, pos, msg) -> str:  #110 (line in Coconut source)
     return "{_coconut_format_0} at position {_coconut_format_1}:\n  {_coconut_format_2}\n  {_coconut_format_3}^".format(_coconut_format_0=(msg), _coconut_format_1=(pos), _coconut_format_2=(text), _coconut_format_3=(' ' * pos))  #111 (line in Coconut source)
 
 
@@ -550,7 +549,7 @@ class Parser():  #121 (line in Coconut source)
         self.error("expected a formula")  #236 (line in Coconut source)
 
 
-    def arguments(self) -> 'list':  #238 (line in Coconut source)
+    def arguments(self) -> list:  #238 (line in Coconut source)
         self.expect("(")  #239 (line in Coconut source)
         args = [self.term(),]  #240 (line in Coconut source)
         while self.peek().kind == ",":  #241 (line in Coconut source)
@@ -693,8 +692,7 @@ class Parser():  #121 (line in Coconut source)
 # Endpoint:
 
 
-_coconut_call_set_names(Parser)  #291 (line in Coconut source)
-def expr(formula: 'str'):  #291 (line in Coconut source)
+def expr(formula: str):  #291 (line in Coconut source)
     """Parse a formula written in standard mathematical notation, such as
     "∀x, F(x) → G(x)" or "A x. F(x) -> G(x)". Propositions and predicates
     must start with an uppercase letter; constants, variables, and functions
