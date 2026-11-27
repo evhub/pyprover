@@ -1,26 +1,42 @@
 name: PyProver Test Suite
-on: [push]
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['2.7', '3.6', '3.7', '3.8', '3.9']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
       fail-fast: false
     name: Python ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
       - run: make setup
-      - run: make test
-      - run: make package
+      - name: Check that the compiled Python is up to date
+        if: matrix.python-version == '3.13'
+        run: |
+          make build
+          git diff --exit-code -- pyprover
+      - run: make test-installed
+
+  publish:
+    needs: test
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --upgrade build
+      - run: python -m build
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-        continue-on-error: true

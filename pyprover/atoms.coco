@@ -1,0 +1,76 @@
+"""Namespaces of single-letter propositions and terms."""
+
+# Imports:
+
+from contextlib import contextmanager
+
+from pyprover.tools import (
+    props,
+    terms,
+)
+
+
+# Base class:
+
+class Vars:
+    """A namespace of propositions or terms that can be put into globals()."""
+
+    @classmethod
+    def items(cls):
+        for name in dir(cls):
+            if not name.startswith("_") and name not in ("items", "add_to", "use", "use_in", "using"):
+                yield name, getattr(cls, name)
+
+    @classmethod
+    def add_to(cls, globs):
+        """Put the variables into the given namespace (e.g. globals())."""
+        for name, var in cls.items():
+            globs[name] = var
+
+    use = add_to
+
+    @classmethod
+    @contextmanager
+    def use_in(cls, globs):
+        """Temporarily put the variables into the given namespace (e.g. globals())."""
+        prevars = {}
+        for name, var in cls.items():
+            if name in globs:
+                prevars[name] = globs[name]
+            globs[name] = var
+        try:
+            yield
+        finally:
+            for name, _ in cls.items():
+                if name in prevars:
+                    globs[name] = prevars[name]
+                else:
+                    del globs[name]
+
+    using = use_in
+
+
+lowercase = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+uppercase = lowercase.upper()
+
+
+# Derived classes:
+
+class LowercasePropositions(Vars):
+    """Propositions named a through z."""
+    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = props(lowercase)
+
+class UppercasePropositions(Vars):
+    """Propositions named A through Z."""
+    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = props(uppercase)
+
+class LowercaseVariables(Vars):
+    """Constants (which can be quantified over or called as functions) named a through z."""
+    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = terms(lowercase)
+
+class UppercaseVariables(Vars):
+    """Constants (which can be quantified over or called as functions) named A through Z."""
+    A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = terms(uppercase)
+
+class StandardMath(LowercaseVariables, UppercasePropositions):
+    """Uppercase propositions/predicates and lowercase constants/variables/functions."""

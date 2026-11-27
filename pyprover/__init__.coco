@@ -1,0 +1,115 @@
+"""PyProver: a theorem prover for first-order logic with equality.
+
+`from pyprover import *` imports everything below along with the uppercase
+letters A-Z as propositions/predicates and the lowercase letters a-z as
+constants/variables/functions."""
+
+# Imports:
+
+from pyprover.constants import (  # NOQA
+    version as __version__,
+    use_unicode,
+    use_ascii,
+)
+from pyprover.logic import (  # NOQA
+    Expr,
+    Term,
+    Top,
+    Bot,
+    top,
+    bot,
+    true,
+    false,
+    Prop,
+    Proposition,
+    Pred,
+    Predicate,
+    Eq,
+    Equals,
+    Not,
+    And,
+    Or,
+    Imp,
+    Implies,
+    Iff,
+    Quantifier,
+    ForAll,
+    FA,
+    Exists,
+    TE,
+    EX,
+    Const,
+    Constant,
+    Var,
+    Variable,
+    Func,
+    Function,
+    wff,
+    isvar,
+    substitute,
+    unify,
+    free_terms,
+    free_consts,
+    free_vars,
+    size,
+)
+from pyprover.normal import (  # NOQA
+    nnf,
+    prop_simp,
+    prenex,
+    strict_prenex,
+    cnf,
+    strict_cnf,
+    dnf,
+    strict_dnf,
+    simplify,
+    strict_simplify,
+    simplest_form,
+    strict_simplest_form,
+    skolemize,
+    strict_skolemize,
+    universal_closure,
+)
+from pyprover.prover import (  # NOQA
+    Proof,
+    ProofStep,
+    Countermodel,
+    prove,
+    strict_prove,
+    proves,
+    strict_proves,
+)
+from pyprover.tools import (  # NOQA
+    props,
+    terms,
+    variables,
+    iff,
+    no_proof_of,
+    proves_and_proved_by,
+    strict_proves_and_proved_by,
+    equivalent,
+    valid,
+    satisfiable,
+    countermodel,
+    solve,
+    strict_solve,
+    simplest_solution,
+    strict_simplest_solution,
+)
+from pyprover.atoms import (  # NOQA
+    Vars,
+    LowercasePropositions,
+    UppercasePropositions,
+    LowercaseVariables,
+    UppercaseVariables,
+    StandardMath,
+)
+from pyprover.parser import (  # NOQA
+    ParseError,
+    expr,
+    parse,
+)
+
+# Main:
+
+StandardMath.use(globals())

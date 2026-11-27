@@ -1,0 +1,221 @@
+"""A small CDCL SAT solver (conflict-driven clause learning with two watched
+literals, VSIDS-style branching, phase saving, and restarts) used for
+propositional reasoning and for finite model search."""
+
+# Imports:
+
+import heapq
+from collections import defaultdict, Counter
+
+
+# Solver:
+
+def solve_sat(clauses):
+    """Find a satisfying assignment for the given clauses, where each clause
+    is an iterable of nonzero ints (negative ints are negated variables).
+
+    Returns a dict mapping each variable to a bool, or None if the clauses
+    are unsatisfiable."""
+    return Solver(clauses).solve()
+
+
+class Solver:
+    """A CDCL SAT solver. The hot loops are written imperatively (and avoid
+    Coconut's enhanced builtins) for speed."""
+
+    def __init__(self, clauses):
+        self.clauses = []
+        self.watches = defaultdict(list)
+        self.value = {}  # var -> bool
+        self.level = {}  # var -> decision level
+        self.reason = {}  # var -> index of the clause that implied it (or None)
+        self.trail = []
+        self.trail_lim = []
+        self.qhead = 0
+        self.activity = Counter()
+        self.bump_amount = 1.0
+        self.phase = {}
+        self.ok = True
+
+        units = []
+        for clause in clauses:
+            lits = list(dict.fromkeys(clause))
+            if any(-lit in lits for lit in lits):
+                continue
+            if not lits:
+                self.ok = False
+                return
+            for lit in lits:
+                self.activity[abs(lit)] += 1
+                self.phase.setdefault(abs(lit), lit > 0)
+            if len(lits) == 1:
+                units.append(lits[0])
+            else:
+                self.add_clause(lits)
+        self.heap = [(-act, var) for var, act in self.activity.items()]
+        heapq.heapify(self.heap)
+        for lit in units:
+            if not self.enqueue(lit, None):
+                self.ok = False
+                return
+
+    def add_clause(self, lits) -> int:
+        index = len(self.clauses)
+        self.clauses.append(lits)
+        self.watches[lits[0]].append(index)
+        self.watches[lits[1]].append(index)
+        return index
+
+    def lit_value(self, lit):
+        val = self.value.get(lit if lit > 0 else -lit)
+        if val is None:
+            return None
+        return val if lit > 0 else not val
+
+    def enqueue(self, lit, reason) -> bool:
+        """Make lit true; return False if it is already false."""
+        val = self.lit_value(lit)
+        if val is not None:
+            return val
+        var = lit if lit > 0 else -lit
+        self.value[var] = lit > 0
+        self.level[var] = len(self.trail_lim)
+        self.reason[var] = reason
+        self.trail.append(lit)
+        return True
+
+    def propagate(self):
+        """Unit propagate; return the index of a conflicting clause or None."""
+        clauses, watches, lit_value = self.clauses, self.watches, self.lit_value
+        while self.qhead < len(self.trail):
+            false_lit = -self.trail[self.qhead]
+            self.qhead += 1
+            watching = watches[false_lit]
+            kept = []
+            n = 0
+            while n < len(watching):
+                i = watching[n]
+                n += 1
+                lits = clauses[i]
+                if lits[0] == false_lit:
+                    lits[0], lits[1] = lits[1], lits[0]
+                if lit_value(lits[0]) is True:
+                    kept.append(i)
+                    continue
+                k = 2
+                found = False
+                while k < len(lits):
+                    if lit_value(lits[k]) is not False:
+                        lits[1], lits[k] = lits[k], lits[1]
+                        watches[lits[1]].append(i)
+                        found = True
+                        break
+                    k += 1
+                if found:
+                    continue
+                kept.append(i)
+                if not self.enqueue(lits[0], i):
+                    kept.extend(watching[n:])
+                    watches[false_lit] = kept
+                    return i
+            watches[false_lit] = kept
+        return None
+
+    def bump(self, var):
+        self.activity[var] += self.bump_amount
+        heapq.heappush(self.heap, (-self.activity[var], var))
+
+    def analyze(self, conflict):
+        """Derive a learned clause by the first unique implication point
+        scheme. Returns (learned clause, level to backtrack to)."""
+        current = len(self.trail_lim)
+        learned = [0]
+        seen = set()
+        counter = 0
+        lit = None
+        index = len(self.trail) - 1
+        clause = self.clauses[conflict]
+        while True:
+            for q in clause:
+                var = q if q > 0 else -q
+                if lit is not None and var == (lit if lit > 0 else -lit):
+                    continue
+                if var not in seen and self.level[var] > 0:
+                    seen.add(var)
+                    self.bump(var)
+                    if self.level[var] == current:
+                        counter += 1
+                    else:
+                        learned.append(q)
+            while abs(self.trail[index]) not in seen:
+                index -= 1
+            lit = self.trail[index]
+            index -= 1
+            seen.discard(abs(lit))
+            counter -= 1
+            if counter == 0:
+                break
+            clause = self.clauses[self.reason[abs(lit)]]
+        learned[0] = -lit
+        if len(learned) == 1:
+            return learned, 0
+        # watch the literal from the highest remaining level second
+        best = max(range(1, len(learned)), key=(=> self.level[abs(learned[_])]))
+        learned[1], learned[best] = learned[best], learned[1]
+        return learned, self.level[abs(learned[1])]
+
+    def backtrack(self, level):
+        if len(self.trail_lim) <= level:
+            return
+        start = self.trail_lim[level]
+        for lit in self.trail[start:]:
+            var = abs(lit)
+            self.phase[var] = self.value.pop(var)
+            del self.level[var]
+            del self.reason[var]
+            heapq.heappush(self.heap, (-self.activity[var], var))
+        del self.trail[start:]
+        del self.trail_lim[level:]
+        self.qhead = start
+
+    def pick_branch(self):
+        while self.heap:
+            _, var = heapq.heappop(self.heap)
+            if var not in self.value:
+                return var
+        return None
+
+    def solve(self):
+        if not self.ok:
+            return None
+        conflicts = 0
+        restart_limit = 100
+        while True:
+            conflict = self.propagate()
+            if conflict is not None:
+                if not self.trail_lim:
+                    return None
+                conflicts += 1
+                learned, level = self.analyze(conflict)
+                self.backtrack(level)
+                if len(learned) == 1:
+                    self.enqueue(learned[0], None)
+                else:
+                    self.enqueue(learned[0], self.add_clause(learned))
+                self.bump_amount /= 0.95
+                if self.bump_amount > 1e100:
+                    for var in self.activity:
+                        self.activity[var] *= 1e-100
+                    self.bump_amount *= 1e-100
+                    self.heap = [(-act, var) for var, act in self.activity.items()]
+                    heapq.heapify(self.heap)
+                if conflicts >= restart_limit:
+                    conflicts = 0
+                    restart_limit = int(restart_limit * 1.5)
+                    self.backtrack(0)
+            else:
+                var = self.pick_branch()
+                if var is None:
+                    return dict(self.value)
+                self.trail_lim.append(len(self.trail))
+                self.enqueue(var if self.phase.get(var, True) else -var, None)

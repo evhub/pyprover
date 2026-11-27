@@ -1,0 +1,453 @@
+"""Normal forms (negation, prenex, conjunctive, disjunctive, and Skolem normal
+form) and simplification."""
+
+# Imports:
+
+from pyprover.logic import (
+    Top,
+    Bot,
+    top,
+    bot,
+    Pred,
+    Eq,
+    Not,
+    And,
+    Or,
+    Imp,
+    Iff,
+    ForAll,
+    Exists,
+    Const,
+    Var,
+    Func,
+    conjuncts,
+    disjuncts,
+    substitute,
+    free_terms,
+    all_names,
+    fresh_name,
+    size,
+)
+from pyprover.sat import solve_sat
+from pyprover.constants import skolem_prefix
+
+
+# Smart constructors:
+
+def complement(lit) =
+    """The negation of a literal (or of any formula, by adding or removing a ¬)."""
+    lit.elem if isinstance(lit, Not) else Not(lit)
+
+def _combine(cls, elems):
+    """Build And or Or from elems, flattening, folding ⊤/⊥, removing
+    duplicates, and detecting complementary pairs."""
+    absorbing, identity = (bot, top) if cls is And else (top, bot)
+    split = conjuncts if cls is And else disjuncts
+    out = []
+    seen = set()
+    for elem in elems:
+        for x in split(elem):
+            if x == absorbing:
+                return absorbing
+            if x == identity or x in seen:
+                continue
+            if complement(x) in seen:
+                return absorbing
+            seen.add(x)
+            out.append(x)
+    return cls(*out)
+
+mk_and = _combine$(And)
+mk_or = _combine$(Or)
+
+
+# Negation normal form:
+
+def nnf(expr, negate=False):
+    """Convert expr to negation normal form: eliminate → and ↔, push ¬ down
+    to atoms, and fold away ⊤ and ⊥ (and trivial equalities t = t)."""
+    match expr:
+        case Top():
+            return bot if negate else top
+        case Bot():
+            return top if negate else bot
+        case Not(elem):
+            return nnf(elem, not negate)
+        case And(*elems):
+            return elems |> map$(nnf$(negate=negate)) |> (mk_or if negate else mk_and)
+        case Or(*elems):
+            return elems |> map$(nnf$(negate=negate)) |> (mk_and if negate else mk_or)
+        case Imp(cond, concl):
+            return nnf(Or(Not(cond), concl), negate)
+        case Iff(a, b) if not negate:
+            return mk_and([mk_or([nnf(a, True), nnf(b)]), mk_or([nnf(a), nnf(b, True)])])
+        case Iff(a, b):
+            return mk_or([mk_and([nnf(a), nnf(b, True)]), mk_and([nnf(a, True), nnf(b)])])
+        case ForAll(var, elem):
+            body = nnf(elem, negate)
+            quant = Exists if negate else ForAll
+            if body == top and quant is ForAll:
+                return top
+            if body == bot and quant is Exists:
+                return bot
+            return quant(var, body)
+        case Exists(var, elem):
+            return nnf(ForAll(var, Not(elem)), not negate)
+        case Eq(a, b) if a == b:
+            return bot if negate else top
+    return Not(expr) if negate else expr
+
+prop_simp = nnf
+
+
+# Merging quantifiers:
+
+def merge_quantifiers(expr):
+    """Merge universal quantifiers in conjunctions and existential quantifiers
+    in disjunctions: (∀x, F(x)) ∧ (∀y, G(y)) becomes ∀x, F(x) ∧ G(x). Expects
+    a formula in negation normal form."""
+    match expr:
+        case ForAll(var, elem) | Exists(var, elem):
+            return type(expr)(var, merge_quantifiers(elem))
+        case And(*elems) | Or(*elems):
+            cls = type(expr)
+            combine = mk_and if cls is And else mk_or
+            quant = ForAll if cls is And else Exists
+            elems = list(map(merge_quantifiers, elems))
+            quants = [x for x in elems if isinstance(x, quant)]
+            if len(quants) < 2:
+                return combine(elems)
+            used = quants |> map$(free_terms) |> reduce$((|)) |> map$(.name) |> set
+            var = Const(fresh_name(quants[0].var.name, used))
+            body = quants |> map$(q => substitute(q.elem, {q.var: var})) |> combine |> merge_quantifiers
+            return combine([x for x in elems if not isinstance(x, quant)] + [quant(var, body)])
+    return expr
+
+
+# Renaming bound variables apart:
+
+def standardize(expr, used=None):
+    """Rename bound variables so that every quantifier binds a distinct
+    variable that is also distinct from every free constant."""
+    if used is None:
+        used = {t.name for t in free_terms(expr)}
+    match expr:
+        case ForAll(var, elem) | Exists(var, elem):
+            name = fresh_name(var.name, used)
+            used.add(name)
+            if name != var.name:
+                elem = substitute(elem, {var: Const(name)})
+            return type(expr)(Const(name), standardize(elem, used))
+        case Not(elem):
+            return Not(standardize(elem, used))
+        case And(*elems):
+            return And(*(standardize(x, used) for x in elems))
+        case Or(*elems):
+            return Or(*(standardize(x, used) for x in elems))
+        case Imp(a, b):
+            return Imp(standardize(a, used), standardize(b, used))
+        case Iff(a, b):
+            return Iff(standardize(a, used), standardize(b, used))
+    return expr
+
+
+# Propositional reasoning:
+
+def _atom_index(atoms, atom):
+    if atom not in atoms:
+        atoms[atom] = len(atoms) + 1
+    return atoms[atom]
+
+def satisfying_assignment(expr):
+    """Find an assignment of truth values to the atoms of expr (treating
+    quantified subformulas as opaque) that makes it true, or None."""
+    atoms = {}
+    lit_index = lit => -_atom_index(atoms, lit.elem) if isinstance(lit, Not) else _atom_index(atoms, lit)
+    int_clauses = cnf_clauses(nnf(expr)) |> map$(map$(lit_index) ..> list) |> list
+    model = solve_sat(int_clauses)
+    if model is None:
+        return None
+    return {atom: model.get(i, False) for atom, i in atoms.items()}
+
+def prop_satisfiable(expr) -> bool =
+    """Determine whether expr is satisfiable treating it propositionally."""
+    satisfying_assignment(expr) is not None
+
+def prop_valid(expr) -> bool =
+    """Determine whether expr is a tautology treating it propositionally."""
+    not prop_satisfiable(Not(expr))
+
+
+# The empty universe:
+
+def empty_value(expr):
+    """The value of a formula with no free terms in the empty universe, in
+    which every ∀ is vacuously true and every ∃ is false."""
+    match expr:
+        case ForAll(_, _):
+            return top
+        case Exists(_, _):
+            return bot
+        case Not(elem):
+            return Not(empty_value(elem))
+        case And(*elems):
+            return And(*map(empty_value, elems))
+        case Or(*elems):
+            return Or(*map(empty_value, elems))
+        case Imp(a, b):
+            return Imp(empty_value(a), empty_value(b))
+        case Iff(a, b):
+            return Iff(empty_value(a), empty_value(b))
+        case Pred(_, *_) | Eq(_, _):
+            raise ValueError(f"free terms have no value in the empty universe: {expr}")
+    return expr
+
+def admits_empty_universe(expr) -> bool =
+    """Determine whether expr makes sense in (i.e. has no free terms that
+    would need to refer to something in) the empty universe."""
+    not free_terms(expr)
+
+
+# Clause forms:
+
+def cnf_clauses(expr) -> list:
+    """Convert a quantifier-free formula in negation normal form into a list
+    of clauses (tuples of literals) by distribution. Quantified subformulas
+    are treated as literals."""
+    match expr:
+        case Top():
+            return []
+        case Bot():
+            return [()]
+        case And(*elems):
+            return [clause for x in elems for clause in cnf_clauses(x)]
+        case Or(*elems):
+            clauses = [()]
+            for x in elems:
+                clauses = [c + d for c in clauses for d in cnf_clauses(x)]
+            return clauses
+    return [(expr,)]
+
+def dnf_terms(expr) -> list:
+    """Convert a quantifier-free formula in negation normal form into a list
+    of terms (tuples of literals), the dual of cnf_clauses."""
+    match expr:
+        case Top():
+            return [()]
+        case Bot():
+            return []
+        case Or(*elems):
+            return [term for x in elems for term in dnf_terms(x)]
+        case And(*elems):
+            terms = [()]
+            for x in elems:
+                terms = [c + d for c in terms for d in dnf_terms(x)]
+            return terms
+    return [(expr,)]
+
+def _is_trivial(lits, dnf):
+    """Whether a clause is a tautology (for CNF) or a term a contradiction (for DNF)."""
+    seen = set(lits)
+    for lit in lits:
+        if complement(lit) in seen:
+            return True
+        match lit:
+            case Eq(a, b) if a == b and not dnf:
+                return True
+            case Not(Eq(a, b)) if a == b and dnf:
+                return True
+    return False
+
+def _lit_key(lit) = (str(complement(lit) if isinstance(lit, Not) else lit), isinstance(lit, Not))
+
+def _clause_key(clause) = (len(clause), list(map(_lit_key, clause)))
+
+def _unit_simplify(clauses):
+    """Remove the complement of every unit clause from every other clause
+    (valid for both CNF clauses and DNF terms). Returns None if this produces
+    an empty clause (making the whole CNF ⊥ or the whole DNF ⊤)."""
+    while True:
+        units = {c[0] for c in clauses if len(c) == 1}
+        remove_units = c => c if len(c) == 1 else c |> filter$(complement ..> (not in)$(?, units)) |> tuple
+        simplified = clauses |> map$(remove_units) |> list
+        if any(not c for c in simplified) or any(complement(u) in units for u in units):
+            return None
+        if simplified == clauses:
+            return clauses
+        clauses = simplified
+
+def reduce_clauses(clauses, dnf=False) -> list:
+    """Simplify a list of CNF clauses (or DNF terms): remove duplicate
+    literals, trivial clauses, the complements of unit clauses, and subsumed
+    clauses, and put everything in a canonical order."""
+    clauses = [c |> dict.fromkeys |> sorted$(key=_lit_key) |> tuple for c in clauses]
+    clauses = [c for c in clauses if not _is_trivial(c, dnf)]
+    if () in clauses:
+        return [()]
+    clauses = _unit_simplify(clauses)
+    if clauses is None:
+        return [()]
+    kept = []
+    for clause in sorted(dict.fromkeys(clauses), key=_clause_key):
+        clause_set = frozenset(clause)
+        if not any(other <= clause_set for other, _ in kept):
+            kept.append((clause_set, clause))
+    return [c for _, c in kept]
+
+def _rebuild_matrix(clauses, dnf) =
+    outer, inner = (Or, And) if dnf else (And, Or)
+    outer(*(inner(*c) for c in clauses))
+
+def to_normal(matrix, dnf) =
+    """Put a quantifier-free formula in negation normal form into CNF or DNF."""
+    (dnf_terms if dnf else cnf_clauses)(matrix) |> reduce_clauses$(dnf=dnf) |> _rebuild_matrix$(dnf=dnf)
+
+
+# Prenex normal form:
+
+def _rebuild(prefix, matrix, strict=False):
+    """Put the quantifiers in prefix in front of matrix, dropping any that
+    don't bind anything. In strict mode (where the universe may be empty),
+    outermost vacuous quantifiers are only dropped when that is safe."""
+    kept = []
+    for i, (quant, var) in enumerate(prefix):
+        rest = _wrap(prefix[i + 1:], matrix)
+        if var in free_terms(rest):
+            kept.append((quant, var))
+        elif strict and not kept:
+            empty_rest = empty_value(rest)
+            safe = prop_valid(empty_rest) if quant is ForAll else not prop_satisfiable(empty_rest)
+            if not safe:
+                kept.append((quant, var))
+    return _wrap(kept, matrix)
+
+def _wrap(prefix, matrix) =
+    reduce((body, qv) => qv[0](qv[1], body), reversed(prefix), matrix)
+
+def _prenex_parts(expr, strict, normalize):
+    """Pull quantifiers out of a standardized formula in negation normal form,
+    returning (prefix, matrix)."""
+    match expr:
+        case ForAll(var, elem) | Exists(var, elem):
+            prefix, matrix = _prenex_parts(elem, False, normalize)
+            return [(type(expr), var)] + prefix, matrix
+        case And(*elems) | Or(*elems):
+            cls = type(expr)
+            parts = [_prenex_parts(x, strict, normalize) for x in elems]
+            combine = mk_and if cls is And else mk_or
+            if not strict or not any(prefix for prefix, _ in parts):
+                prefix = [qv for p, _ in parts for qv in p]
+                return prefix, combine(m for _, m in parts)
+            # in a possibly empty universe, we can only pull a quantifier out
+            #  to the top level if the formula keeps its meaning there
+            originals = [_wrap(p, m) for p, m in parts]
+            free_quant, other_quant = (Exists, ForAll) if cls is And else (ForAll, Exists)
+            for i, (prefix, _) in enumerate(parts):
+                if not prefix:
+                    continue
+                if prefix[0][0] is other_quant:
+                    others = empty_value(combine(originals[:i] + originals[i + 1:]))
+                    if not (prop_valid(others) if cls is And else not prop_satisfiable(others)):
+                        continue
+                first = parts[i]
+                rest = parts[:i] + parts[i + 1:]
+                prefix = first[0] + [qv for p, _ in rest for qv in p]
+                return prefix, combine([first[1]] + [m for _, m in rest])
+            return [], combine(_rebuild(p, normalize(m), strict=True) for p, m in parts)
+    return [], expr
+
+def _is_strict(expr, nonempty_universe) =
+    not nonempty_universe and admits_empty_universe(expr)
+
+def prenex(expr, nonempty_universe=True, dnf=None):
+    """Convert expr to prenex normal form, with all quantifiers at the front.
+    If dnf is True or False, the matrix is put in DNF or CNF respectively.
+
+    When nonempty_universe is False, quantifiers are only moved when that is
+    valid even in an empty universe, so the result may not be fully prenex."""
+    strict = _is_strict(expr, nonempty_universe)
+    normalize = to_normal$(dnf=dnf) if dnf is not None else ident
+    prefix, matrix = expr |> nnf |> merge_quantifiers |> standardize |> _prenex_parts$(strict=strict, normalize=normalize)
+    return _rebuild(prefix, normalize(matrix), strict=strict)
+
+def strict_prenex(expr, **kwargs) = prenex(expr, nonempty_universe=False, **kwargs)
+
+def cnf(expr, nonempty_universe=True) =
+    """Convert expr to prenex conjunctive normal form."""
+    prenex(expr, nonempty_universe=nonempty_universe, dnf=False)
+
+def strict_cnf(expr) = cnf(expr, nonempty_universe=False)
+
+def dnf(expr, nonempty_universe=True) =
+    """Convert expr to prenex disjunctive normal form."""
+    prenex(expr, nonempty_universe=nonempty_universe, dnf=True)
+
+def strict_dnf(expr) = dnf(expr, nonempty_universe=False)
+
+
+# Simplification:
+
+def simplify(expr, *exprs, nonempty_universe=True):
+    """Find an equivalent, standardized version of the given formula[s]: a
+    prenex formula whose matrix is a simplified disjunctive normal form.
+    Assumes something exists unless nonempty_universe=False."""
+    if exprs:
+        return (expr,) + exprs |> map$(dnf$(nonempty_universe=nonempty_universe)) |> tuple
+    return dnf(expr, nonempty_universe=nonempty_universe)
+
+def strict_simplify(expr, *exprs) =
+    """Same as simplify, but doesn't assume that something exists."""
+    simplify(expr, *exprs, nonempty_universe=False)
+
+def simplest_form(expr, nonempty_universe=True):
+    """Find whichever of the CNF and DNF of expr is smaller."""
+    cnf_expr = cnf(expr, nonempty_universe=nonempty_universe)
+    dnf_expr = dnf(expr, nonempty_universe=nonempty_universe)
+    return cnf_expr if size(cnf_expr) <= size(dnf_expr) else dnf_expr
+
+def strict_simplest_form(expr) = simplest_form(expr, nonempty_universe=False)
+
+
+# Skolemization:
+
+def universal_closure(expr):
+    """Universally quantify the free ?variables in expr."""
+    free_vars = sorted(t for t in free_terms(expr) if isinstance(t, Var))
+    return reduce((body, var) => ForAll(var, body), reversed(free_vars), expr)
+
+def skolemize_formula(expr, used):
+    """Skolemize a closed formula: return an equisatisfiable quantifier-free
+    formula in negation normal form in which universally quantified variables
+    have become ?variables and existentially quantified variables have become
+    Skolem functions of the universally quantified variables they depend on.
+    used is the set of names to avoid (it is updated with the new names)."""
+    expr = expr |> nnf |> standardize
+    used |= all_names(expr)
+
+    def go(expr, universals, subs):
+        match expr:
+            case ForAll(var, elem):
+                new_var = Var(var.name)
+                return go(elem, universals + (new_var,), {**subs, var: new_var})
+            case Exists(var, elem):
+                body_vars = free_terms(substitute(elem, subs))
+                name = next(skolem_prefix + str(n) for n in count(1) if skolem_prefix + str(n) not in used)
+                used.add(name)
+                skolem = Func(name, *(v for v in universals if v in body_vars))
+                return go(elem, universals, {**subs, var: skolem})
+            case And(*elems):
+                return mk_and(go(x, universals, subs) for x in elems)
+            case Or(*elems):
+                return mk_or(go(x, universals, subs) for x in elems)
+        return substitute(expr, subs)
+
+    return go(expr, (), {})
+
+def skolemize(expr, nonempty_universe=True):
+    """Convert expr to Skolem normal form: an equisatisfiable formula in CNF
+    in which ?variables are universally quantified and existentially
+    quantified variables have been replaced by Skolem functions."""
+    closed = universal_closure(expr)
+    return closed |> skolemize_formula$(used=all_names(closed)) |> to_normal$(dnf=False)
+
+def strict_skolemize(expr) = skolemize(expr, nonempty_universe=False)

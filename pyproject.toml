@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyprover"
+dynamic = ["version"]
+description = "A theorem prover for first-order logic with equality, written in Coconut."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE.txt"}
+authors = [{name = "Evan Hubinger"}]
+keywords = ["logic", "theorem prover", "first-order logic", "resolution", "automated reasoning"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Other",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["coconut-develop", "pytest"]
+
+[project.scripts]
+pyprover = "pyprover.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/evhub/pyprover"
+Issues = "https://github.com/evhub/pyprover/issues"
+
+[tool.setuptools]
+packages = ["pyprover"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyprover.constants.version"}
+
+[tool.setuptools.package-data]
+pyprover = ["*.coco"]
+
+[tool.pytest.ini_options]
+testpaths = ["pyprover/tests.py"]

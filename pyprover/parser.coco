@@ -1,0 +1,300 @@
+"""A parser for formulas written in standard mathematical notation."""
+
+# Imports:
+
+import re
+
+from pyprover.constants import (
+    all_top_syms,
+    all_bot_syms,
+    all_not_syms,
+    all_imp_syms,
+    all_iff_syms,
+    all_and_syms,
+    all_or_syms,
+    all_eq_syms,
+    all_neq_syms,
+    all_forall_syms,
+    all_exists_syms,
+)
+from pyprover.logic import (
+    top,
+    bot,
+    Prop,
+    Pred,
+    Eq,
+    Not,
+    And,
+    Or,
+    Imp,
+    Iff,
+    ForAll,
+    Exists,
+    Const,
+    Var,
+    Func,
+)
+
+
+# Tokens:
+
+class ParseError(ValueError):
+    """Raised when a formula can't be parsed."""
+
+data Token(kind: str, text: str, pos: int)
+
+punctuation = "(", ")", ",", ".", ":", "?"
+
+# every symbol that isn't a word, longest first so that e.g. "->" beats "-"
+operator_syms = (
+    all_top_syms + all_bot_syms + all_not_syms + all_imp_syms + all_iff_syms
+    + all_and_syms + all_or_syms + all_eq_syms + all_neq_syms + punctuation
+    + ("∀", "∃")
+) |> filter$(s => not re.fullmatch(r"\w+", s)) |> sorted$(key=len, reverse=True)
+
+word_ops = {
+    sym: kind
+    for kind, syms in [
+        ("top", all_top_syms),
+        ("bot", all_bot_syms),
+        ("not", all_not_syms),
+        ("imp", all_imp_syms),
+        ("iff", all_iff_syms),
+        ("and", all_and_syms),
+        ("or", all_or_syms),
+    ]
+    for sym in syms
+    if re.fullmatch(r"\w+", sym)
+}
+
+sym_kinds = {
+    sym: kind
+    for kind, syms in [
+        ("top", all_top_syms),
+        ("bot", all_bot_syms),
+        ("not", all_not_syms),
+        ("imp", all_imp_syms),
+        ("iff", all_iff_syms),
+        ("and", all_and_syms),
+        ("or", all_or_syms),
+        ("eq", all_eq_syms),
+        ("neq", all_neq_syms),
+        ("forall", ("∀",)),
+        ("exists", ("∃",)),
+    ]
+    for sym in syms
+} | {p: p for p in punctuation}
+
+token_regex = re.compile(
+    r"\s*(?:(?P<op>" + "|".join(map(re.escape, operator_syms)) + r")|(?P<name>\w+'*))"
+)
+
+def tokenize(text) -> list:
+    """Split text into tokens."""
+    tokens = []
+    pos = 0
+    text = text.rstrip()
+    while pos < len(text):
+        match_ = token_regex.match(text, pos)
+        if not match_:
+            raise ParseError(error_message(text, pos + len(text[pos:]) - len(text[pos:].lstrip()), "unexpected character"))
+        start = match_.start(match_.lastgroup)
+        if match_.lastgroup == "op":
+            tokens.append(Token(sym_kinds[match_.group("op")], match_.group("op"), start))
+        else:
+            name = match_.group("name")
+            tokens.append(Token(word_ops.get(name, "name"), name, start))
+        pos = match_.end()
+    return tokens
+
+def error_message(text, pos, msg) -> str =
+    f"{msg} at position {pos}:\n  {text}\n  {' ' * pos}^"
+
+
+# Parser:
+
+forall_words = {s for s in all_forall_syms if re.fullmatch(r"\w+", s)}
+exists_words = {s for s in all_exists_syms if re.fullmatch(r"\w+", s)}
+
+def is_upper(name) = name[0].isupper()
+
+class Parser:
+    """A recursive descent parser for formulas. Precedence, from loosest to
+    tightest: quantifiers (which extend as far right as possible), ↔, →
+    (right associative), ∨, ∧, ¬, then atoms."""
+
+    def __init__(self, text):
+        self.text = text
+        self.tokens = tokenize(text)
+        self.index = 0
+
+    def peek(self, offset=0):
+        i = self.index + offset
+        return self.tokens[i] if i < len(self.tokens) else Token("end", "", len(self.text))
+
+    def advance(self):
+        token = self.peek()
+        self.index += 1
+        return token
+
+    def error(self, msg, token=None):
+        token = token ?? self.peek()
+        found = repr(token.text) if token.kind != "end" else "end of input"
+        raise ParseError(error_message(self.text, token.pos, f"{msg} (found {found})"))
+
+    def expect(self, *kinds):
+        if self.peek().kind not in kinds:
+            self.error("expected " + " or ".join(map(repr, kinds)))
+        return self.advance()
+
+    def parse(self):
+        result = self.formula()
+        if self.peek().kind != "end":
+            self.error("unexpected token")
+        return result
+
+    def quantifier_kind(self):
+        """If a quantifier starts here, return ForAll or Exists, else None."""
+        token = self.peek()
+        match token:
+            case Token("forall", _, _):
+                return ForAll
+            case Token("exists", _, _):
+                return Exists
+            case Token("name", word, _) if self.peek(1).kind == "name" and not is_upper(self.peek(1).text):
+                if word in forall_words:
+                    return ForAll
+                if word in exists_words:
+                    return Exists
+        return None
+
+    def operand(self, level):
+        """Parse a quantifier (which extends as far as possible) or else level."""
+        return self.quantifier() if self.quantifier_kind() else level()
+
+    def formula(self):
+        left = self.operand(self.implication)
+        if self.peek().kind == "iff":
+            self.advance()
+            return Iff(left, self.formula())
+        return left
+
+    def implication(self):
+        left = self.disjunction()
+        if self.peek().kind == "imp":
+            self.advance()
+            return Imp(left, self.operand(self.implication))
+        return left
+
+    def disjunction(self):
+        elems = [self.conjunction()]
+        while self.peek().kind == "or":
+            self.advance()
+            elems.append(self.operand(self.conjunction))
+        return Or(*elems)
+
+    def conjunction(self):
+        elems = [self.negation()]
+        while self.peek().kind == "and":
+            self.advance()
+            elems.append(self.operand(self.negation))
+        return And(*elems)
+
+    def negation(self):
+        if self.peek().kind == "not":
+            self.advance()
+            return Not(self.operand(self.negation))
+        return self.primary()
+
+    def primary(self):
+        token = self.peek()
+        match token.kind:
+            case "top":
+                self.advance()
+                return top
+            case "bot":
+                self.advance()
+                return bot
+            case "(":
+                self.advance()
+                result = self.formula()
+                self.expect(")")
+                return result
+        if self.quantifier_kind():
+            return self.quantifier()
+        match token:
+            case Token("name", name, _) if is_upper(name):
+                self.advance()
+                if self.peek().kind == "(":
+                    return Pred(name, *self.arguments())
+                return Prop(name)
+            case Token("name", _, _) | Token("?", _, _):
+                left = self.term()
+                op = self.expect("eq", "neq")
+                right = self.term()
+                return Eq(left, right) if op.kind == "eq" else Not(Eq(left, right))
+        self.error("expected a formula")
+
+    def arguments(self) -> list:
+        self.expect("(")
+        args = [self.term()]
+        while self.peek().kind == ",":
+            self.advance()
+            args.append(self.term())
+        self.expect(")")
+        return args
+
+    def term(self):
+        token = self.peek()
+        match token:
+            case Token("?", _, _):
+                self.advance()
+                return Var(self.lowercase_name())
+            case Token("name", name, _) if not is_upper(name):
+                self.advance()
+                if self.peek().kind == "(":
+                    return Func(name, *self.arguments())
+                return Const(name)
+        self.error("expected a term (terms must start with a lowercase letter, digit, or underscore)")
+
+    def lowercase_name(self):
+        token = self.expect("name")
+        if is_upper(token.text):
+            self.error("expected a lowercase variable name", token)
+        return token.text
+
+    def quantifier(self):
+        quant = self.quantifier_kind()
+        self.advance()
+        variables = [self.lowercase_name()]
+        while self.peek().kind == "name" and not is_upper(self.peek().text):
+            variables.append(self.lowercase_name())
+        restriction = None
+        if self.peek().kind == ":":
+            self.advance()
+            token = self.expect("name")
+            if not is_upper(token.text):
+                self.error("expected a proposition name", token)
+            restriction = Prop(token.text)
+        self.expect(".", ",")
+        body = self.formula()
+        for name in reversed(variables):
+            var = Const(name)
+            if restriction is not None:
+                body = Imp(restriction(var), body) if quant is ForAll else And(restriction(var), body)
+            body = quant(var, body)
+        return body
+
+
+# Endpoint:
+
+def expr(formula: str):
+    """Parse a formula written in standard mathematical notation, such as
+    "∀x, F(x) → G(x)" or "A x. F(x) -> G(x)". Propositions and predicates
+    must start with an uppercase letter; constants, variables, and functions
+    must start with a lowercase letter (or a digit or underscore)."""
+    if not isinstance(formula, str):
+        raise TypeError(f"expr expects a string but got {formula!r}")
+    return Parser(formula).parse()
+
+parse = expr

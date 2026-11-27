@@ -1,0 +1,72 @@
+"""Constants and printing symbols used throughout PyProver."""
+
+# Installation:
+
+version = "1.0.0"
+
+
+# Parsing symbols (every spelling accepted by the parser):
+
+all_top_syms = "⊤", "top", "true", "┬"
+all_bot_syms = "⊥", "bot", "false", "┴", "_|_"
+all_not_syms = "¬", "~", "-", "!", "not"
+all_imp_syms = "→", "->", ">>", "=>", "implies"
+all_iff_syms = "↔", "<->", "<=>", "iff"
+all_and_syms = "∧", "&", "/\\", "and"
+all_or_syms = "∨", "|", "\\/", "or"
+all_eq_syms = "=",
+all_neq_syms = "≠", "!=", "/="
+all_forall_syms = "∀", "FA", "A", "forall", "fa", "Fa", "ForAll"
+all_exists_syms = "∃", "TE", "EX", "E", "exists", "ex", "Ex", "Te", "te", "Exists"
+
+
+# Printing symbols:
+
+unicode_symbols = {
+    "top": "⊤",
+    "bot": "⊥",
+    "not": "¬",
+    "imp": " → ",
+    "iff": " ↔ ",
+    "and": " ∧ ",
+    "or": " ∨ ",
+    "eq": " = ",
+    "neq": " ≠ ",
+    "forall": "∀",
+    "exists": "∃",
+}
+
+ascii_symbols = {
+    "top": "top",
+    "bot": "bot",
+    "not": "~",
+    "imp": " -> ",
+    "iff": " <-> ",
+    "and": " & ",
+    "or": " | ",
+    "eq": " = ",
+    "neq": " != ",
+    "forall": "FA ",
+    "exists": "TE ",
+}
+
+symbols = unicode_symbols.copy()
+
+
+def use_unicode() -> None:
+    """Print formulas using unicode logic symbols (the default)."""
+    symbols.update(unicode_symbols)
+
+def use_ascii() -> None:
+    """Print formulas using only ASCII characters."""
+    symbols.update(ascii_symbols)
+
+
+# Prover defaults:
+
+default_timeout = 10.0  # seconds
+default_max_clauses = 20000
+max_ground_clauses = 50000
+max_model_size = 6
+skolem_prefix = "sk"
+definition_prefix = "Def"

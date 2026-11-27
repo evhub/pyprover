@@ -1,0 +1,911 @@
+"""The theorem prover: clausification, resolution with paramodulation,
+ground instantiation for function-free problems, and proof objects."""
+
+# Imports:
+
+import heapq
+import time
+import warnings
+from collections import deque, Counter
+from itertools import product
+
+from pyprover.constants import (
+    default_timeout,
+    default_max_clauses,
+    max_ground_clauses,
+    max_model_size,
+    definition_prefix,
+)
+from pyprover.logic import (
+    Top,
+    Bot,
+    top,
+    bot,
+    Prop,
+    Pred,
+    Eq,
+    Not,
+    And,
+    Or,
+    Imp,
+    Iff,
+    ForAll,
+    Exists,
+    Const,
+    Var,
+    Func,
+    wff,
+    show,
+    all_names,
+    unify_terms,
+    unify_term_lists,
+    resolve_term,
+    subst_term,
+)
+from pyprover.normal import (
+    complement,
+    empty_value,
+    prop_valid,
+    universal_closure,
+    skolemize_formula,
+    admits_empty_universe,
+)
+from pyprover.sat import solve_sat
+
+
+# Literals:
+
+def atom_of(lit) = lit.elem if isinstance(lit, Not) else lit
+
+def is_positive(lit) = not isinstance(lit, Not)
+
+def with_sign(positive, atom) = atom if positive else Not(atom)
+
+def map_terms(f, atom):
+    """Apply f to every top-level term of an atom."""
+    match atom:
+        case Pred(name, *args):
+            return Pred(name, *map(f, args))
+        case Eq(a, b):
+            return Eq(f(a), f(b))
+    return atom
+
+def map_lit_terms(f, lit) = with_sign(is_positive(lit), map_terms(f, atom_of(lit)))
+
+def apply_subs(lit, subs) = map_lit_terms(resolve_term$(subs=subs), lit)
+
+def atom_terms(atom) -> tuple:
+    match atom:
+        case Pred(_, *args):
+            return args
+        case Eq(a, b):
+            return (a, b)
+    return ()
+
+def term_vars(term) -> list:
+    """The ?variables in term, in order of appearance."""
+    match term:
+        case Var(_):
+            return [term]
+        case Func(_, *args):
+            return [v for arg in args for v in term_vars(arg)]
+    return []
+
+def clause_vars(lits) -> list =
+    """The ?variables in a clause, in order of appearance."""
+    lits |> map$(atom_of ..> atom_terms) |> flatten |> map$(term_vars) |> flatten |> dict.fromkeys |> list
+
+def term_size(term) -> int:
+    match term:
+        case Func(_, *args):
+            return 1 + sum(map(term_size, args))
+    return 1
+
+def unify_atoms(a, b, subs):
+    """Yield every most general unifier of atoms a and b extending subs
+    (there can be two for equations, which can be matched either way)."""
+    match (a, b):
+        case (Prop(n), Prop(==n)):
+            yield subs
+        case (Pred(f, *xs), Pred(==f, *ys)):
+            result = unify_term_lists(xs, ys, subs)
+            if result is not None:
+                yield result
+        case (Eq(x1, y1), Eq(x2, y2)):
+            straight = unify_term_lists((x1, y1), (x2, y2), subs)
+            if straight is not None:
+                yield straight
+            crossed = unify_term_lists((x1, y1), (y2, x2), subs)
+            if crossed is not None and crossed != straight:
+                yield crossed
+
+
+# Clauses:
+
+var_names = "x y z w v u".split()
+
+def _mask_vars(term):
+    match term:
+        case Var(_):
+            return "?"
+        case Func(name, *args):
+            return name + "(" + ",".join(map(_mask_vars, args)) + ")"
+    return term.name
+
+def _lit_key(lit) =
+    (not is_positive(lit), str(type(atom_of(lit)).__name__), getattr(atom_of(lit), "name", "="), tuple(map(_mask_vars, atom_terms(atom_of(lit)))))
+
+def normalize_clause(lits) -> tuple:
+    """Put a clause in a canonical form: remove duplicate literals, sort the
+    literals, and rename the ?variables in order of appearance."""
+    lits = sorted(dict.fromkeys(lits), key=_lit_key)
+    renaming = {}
+    for lit in lits:
+        for term in atom_terms(atom_of(lit)):
+            for var in term_vars(term):
+                if var not in renaming:
+                    n = len(renaming)
+                    renaming[var] = Var(var_names[n] if n < len(var_names) else "x" + str(n))
+    if not renaming:
+        return tuple(lits)
+    return tuple(dict.fromkeys(map_lit_terms(subst_term$(subs=renaming), lit) for lit in lits))
+
+def rename_apart(lits) =
+    """Rename the ?variables in a clause so they don't clash with those of a
+    normalized clause."""
+    tuple(map_lit_terms(_prime_vars, lit) for lit in lits)
+
+def _prime_vars(term):
+    match term:
+        case Var(name):
+            return Var(name + "'")
+        case Func(name, *args):
+            return Func(name, *map(_prime_vars, args))
+    return term
+
+def is_tautology(lits) -> bool:
+    """A clause is a tautology if it contains complementary literals or t = t."""
+    seen = set(lits)
+    for lit in lits:
+        if complement(lit) in seen:
+            return True
+        match lit:
+            case Eq(a, b) if a == b:
+                return True
+    return False
+
+def clause_weight(lits) =
+    sum(1 + sum(map(term_size, atom_terms(atom_of(lit)))) for lit in lits)
+
+def clause_formula(lits) =
+    """Convert a clause into a formula."""
+    Or(*lits) if lits else bot
+
+
+# Subsumption:
+
+def match_term(pattern, term, subs):
+    """Extend subs to a substitution for the ?variables of pattern (only)
+    that turns pattern into term, or return None."""
+    if subs is None:
+        return None
+    match pattern:
+        case Var(_):
+            if pattern in subs:
+                return subs if subs[pattern] == term else None
+            return {**subs, pattern: term}
+        case Func(f, *xs):
+            match term:
+                case Func(==f, *ys) if len(xs) == len(ys):
+                    for x, y in zip(xs, ys):
+                        subs = match_term(x, y, subs)
+                    return subs
+            return None
+    return subs if pattern == term else None
+
+def match_lit(pattern, lit, subs):
+    """Yield every extension of subs that turns literal pattern into lit."""
+    if is_positive(pattern) == is_positive(lit):
+        match (atom_of(pattern), atom_of(lit)):
+            case (Prop(n), Prop(==n)):
+                yield subs
+            case (Pred(f, *xs), Pred(==f, *ys)) if len(xs) == len(ys):
+                for x, y in zip(xs, ys):
+                    subs = match_term(x, y, subs)
+                if subs is not None:
+                    yield subs
+            case (Eq(x1, y1), Eq(x2, y2)):
+                straight = match_term(y1, y2, match_term(x1, x2, subs))
+                if straight is not None:
+                    yield straight
+                crossed = match_term(y1, x2, match_term(x1, y2, subs))
+                if crossed is not None:
+                    yield crossed
+
+def subsumes(c, d) -> bool:
+    """Whether clause c subsumes clause d (some instance of c is contained in d)."""
+    if len(c) > len(d):
+        return False
+    def go(i, subs) =
+        i == len(c) or any(go(i + 1, s) for lit in d for s in match_lit(c[i], lit, subs))
+    return go(0, {})
+
+
+# Inference rules:
+
+def resolvents(c, d):
+    """All binary resolvents of clauses c and d (with d renamed apart)."""
+    d = rename_apart(d)
+    for i, lit1 in enumerate(c):
+        for j, lit2 in enumerate(d):
+            if is_positive(lit1) != is_positive(lit2):
+                for subs in unify_atoms(atom_of(lit1), atom_of(lit2), {}):
+                    yield tuple(apply_subs(lit, subs) for lit in c[:i] + c[i + 1:] + d[:j] + d[j + 1:])
+
+def factors(c):
+    """All factors of clause c (merging two unifiable literals)."""
+    for i, lit1 in enumerate(c):
+        for j in range(i + 1, len(c)):
+            lit2 = c[j]
+            if is_positive(lit1) == is_positive(lit2):
+                for subs in unify_atoms(atom_of(lit1), atom_of(lit2), {}):
+                    yield tuple(apply_subs(lit, subs) for lit in c[:j] + c[j + 1:])
+
+def equality_resolvents(c):
+    """Remove a literal s ≠ t from c when s and t are unifiable."""
+    for i, lit in enumerate(c):
+        match lit:
+            case Not(Eq(a, b)):
+                subs = unify_terms(a, b, {})
+                if subs is not None:
+                    yield tuple(apply_subs(other, subs) for other in c[:i] + c[i + 1:])
+
+def subterm_positions(term):
+    """Yield (subterm, rebuild) for every non-variable subterm of term, where
+    rebuild(new) replaces that occurrence of the subterm with new."""
+    match term:
+        case Var(_):
+            pass
+        case Func(name, *args):
+            yield term, ident
+            for i, arg in enumerate(args):
+                for sub, rebuild in subterm_positions(arg):
+                    yield sub, _rebuild_arg(name, args, i, rebuild)
+        case _:
+            yield term, ident
+
+def _rebuild_arg(name, args, i, rebuild) =
+    new => Func(name, *args[:i], rebuild(new), *args[i + 1:])
+
+def lit_positions(lit):
+    """Yield (subterm, rebuild, side, other) for every non-variable subterm
+    of a literal, where side is the top-level term containing the subterm and
+    other is the opposite side of the equation (or None if not an equation)."""
+    atom = atom_of(lit)
+    terms = atom_terms(atom)
+    for i, term in enumerate(terms):
+        other = terms[1 - i] if isinstance(atom, Eq) else None
+        for sub, rebuild in subterm_positions(term):
+            yield sub, _rebuild_lit(lit, terms, i, rebuild), term, other
+
+def _rebuild_lit(lit, terms, i, rebuild):
+    def go(new):
+        new_terms = terms[:i] + (rebuild(new),) + terms[i + 1:]
+        match atom_of(lit):
+            case Pred(name, *_):
+                atom = Pred(name, *new_terms)
+            case Eq(_, _):
+                atom = Eq(*new_terms)
+        return with_sign(is_positive(lit), atom)
+    return go
+
+
+# Term ordering:
+
+def _head(term) =
+    """The precedence of a term's head symbol (arity, then name)."""
+    (len(term.args), term.name) if isinstance(term, Func) else (0, term.name)
+
+def _args(term) = term.args if isinstance(term, Func) else ()
+
+def kbo_greater(s, t) -> bool:
+    """Whether s is greater than t in the Knuth-Bendix ordering (with every
+    symbol having weight 1 and symbols ordered by arity then name). This is a
+    simplification ordering that is stable under substitution."""
+    if s == t:
+        return False
+    match (s, t):
+        case (_, Var(_)):
+            return t in term_vars(s)
+        case (Var(_), _):
+            return False
+    s_vars = Counter(term_vars(s))
+    if any(s_vars[v] < n for v, n in Counter(term_vars(t)).items()):
+        return False
+    s_size, t_size = term_size(s), term_size(t)
+    if s_size != t_size:
+        return s_size > t_size
+    if _head(s) != _head(t):
+        return _head(s) > _head(t)
+    return next((kbo_greater(a, b) for a, b in zip(_args(s), _args(t)) if a != b), False)
+
+
+# Paramodulation (restricted as in the superposition calculus):
+
+def paramodulants(c, d):
+    """All paramodulants from clause c into clause d (with d renamed apart):
+    use an equation l = r in c to replace an instance of l in d with r. Only
+    rewrites from the larger side of an equation into the larger side of an
+    equation (in the Knuth-Bendix ordering), as in the superposition calculus."""
+    d = rename_apart(d)
+    for i, eq_lit in enumerate(c):
+        match eq_lit:
+            case Eq(a, b):
+                rest_c = c[:i] + c[i + 1:]
+                for left, right in ((a, b), (b, a)):
+                    if kbo_greater(right, left):
+                        continue
+                    for j, lit in enumerate(d):
+                        rest_d = d[:j] + d[j + 1:]
+                        for sub, rebuild, side, other in lit_positions(lit):
+                            subs = unify_terms(left, sub, {})
+                            if subs is None:
+                                continue
+                            new_left, new_right = resolve_term(left, subs), resolve_term(right, subs)
+                            if new_left == new_right or kbo_greater(new_right, new_left):
+                                continue
+                            if other is not None and kbo_greater(resolve_term(other, subs), resolve_term(side, subs)):
+                                continue
+                            yield tuple(apply_subs(x, subs) for x in rest_c + rest_d + (rebuild(right),))
+
+def equality_factors(c):
+    """Equality factoring: from C ∨ s = t ∨ s' = t' where s and s' unify,
+    derive C ∨ t ≠ t' ∨ s' = t'."""
+    for i, lit1 in enumerate(c):
+        for j, lit2 in enumerate(c):
+            match (lit1, lit2):
+                case (Eq(a, b), Eq(u, v)) if i != j:
+                    rest = c[:i] + c[i + 1:]
+                    for s, t in ((a, b), (b, a)):
+                        for s2, t2 in ((u, v), (v, u)):
+                            subs = unify_terms(s, s2, {})
+                            if subs is not None:
+                                yield tuple(apply_subs(x, subs) for x in rest + (Not(Eq(t, t2)),))
+
+
+# Demodulation:
+
+def rewrite_term(term, rules, at_top=True):
+    """Rewrite term to normal form using rules, a list of (id, l, r) oriented
+    equations (with l greater than r). Returns (new term, ids of rules used).
+    If at_top is False, the term itself is not rewritten (only its subterms)."""
+    used = set()
+    while True:
+        match term:
+            case Func(name, *args):
+                rewritten = [rewrite_term(arg, rules) for arg in args]
+                term = Func(name, *(t for t, _ in rewritten))
+                used |= rewritten |> map$(.[1]) |> reduce$((|), ?, set())
+        if not at_top:
+            return term, used
+        for rule_id, left, right in rules:
+            subs = match_term(left, term, {})
+            if subs is not None:
+                term = subst_term(right, subs)
+                used.add(rule_id)
+                break
+        else:
+            return term, used
+
+def demodulate(lits, rules):
+    """Rewrite every literal of a clause with rules. Returns (new literals,
+    ids of rules used). Positive unit equations are only rewritten below the
+    top of each side, which keeps demodulation from deleting needed equations."""
+    if not rules:
+        return lits, set()
+    at_top = not (len(lits) == 1 and isinstance(lits[0], Eq))
+    used = set()
+    new_lits = []
+    for lit in lits:
+        def rewrite(term):
+            new_term, rule_ids = rewrite_term(term, rules, at_top)
+            used.update(rule_ids)
+            return new_term
+        new_lits.append(map_lit_terms(rewrite, lit))
+    return tuple(new_lits), used
+
+
+# Clausification:
+
+max_distribution = 32
+
+def clausify(expr, new_definition) -> list:
+    """Convert a quantifier-free formula in negation normal form (with
+    ?variables) into a list of clauses. To avoid exponential blowup, large
+    subformulas are replaced by new definition predicates; new_definition
+    takes the ?variables of a subformula and returns the defining atom."""
+    match expr:
+        case Top():
+            return []
+        case Bot():
+            return [()]
+        case And(*elems):
+            return [clause for x in elems for clause in clausify(x, new_definition)]
+        case Or(*elems):
+            parts = [clausify(x, new_definition) for x in elems]
+            defs = []
+            while (parts |> map$(len) |> reduce$((*), ?, 1)) > max_distribution:
+                i = max(range(len(parts)), key=(=> len(parts[_])))
+                vs = parts[i] |> flatten |> clause_vars |> sorted
+                atom = new_definition(vs)
+                defs.extend((Not(atom),) + clause for clause in parts[i])
+                parts[i] = [(atom,)]
+            clauses = [()]
+            for part in parts:
+                clauses = [c + d for c in clauses for d in part]
+            return clauses + defs
+    return [(expr,)]
+
+
+# Finite model search:
+
+data FunLit(name: str, args: tuple, result: Var):
+    """A flattened function application: name(*args) ≠ result."""
+
+def flatten_clause(lits):
+    """Flatten a clause so that every term is a ?variable, by replacing each
+    function application f(x, ...) with a new variable y and adding the
+    condition f(x, ...) ≠ y. Returns (flat literals, function literals)."""
+    funs = []
+    def flat(term):
+        match term:
+            case Var(_):
+                return term
+            case Func(name, *args):
+                args = tuple(map(flat, args))
+            case _:
+                name, args = term.name, ()
+        result = Var(f"_{len(funs)}")
+        funs.append(FunLit(name, args, result))
+        return result
+    return tuple(map_lit_terms(flat, lit) for lit in lits), tuple(funs)
+
+def _flat_vars(flat_clause) =
+    lits, funs = flat_clause
+    clause_vars(lits) + [v for fun in funs for v in fun.args + (fun.result,)] |> dict.fromkeys |> list
+
+def ground_size(flat_clauses, functions, n) =
+    """The number of ground clauses needed to search for a model of size n."""
+    sum(n ** len(_flat_vars(c)) for c in flat_clauses) + sum(n ** (k + 2) for _, k in functions)
+
+def model_of_size(flat_clauses, functions, n):
+    """Search for a model of the given flattened clauses with exactly n
+    elements by encoding the problem in SAT. Returns a Countermodel or None."""
+    atoms = {}
+    def index(key):
+        if key not in atoms:
+            atoms[key] = len(atoms) + 1
+        return atoms[key]
+
+    sat_clauses = []
+    for flat_clause in flat_clauses:
+        lits, funs = flat_clause
+        vs = _flat_vars(flat_clause)
+        for values in product(range(n), repeat=len(vs)):
+            env = dict(zip(vs, values))
+            ground = []
+            for lit in lits:
+                positive = is_positive(lit)
+                match atom_of(lit):
+                    case Eq(a, b):
+                        if (env[a] == env[b]) == positive:
+                            break  # the clause is true
+                        continue  # the literal is false
+                    case Pred(name, *args):
+                        key = ("P", name, tuple(env[a] for a in args))
+                    case Prop(name):
+                        key = ("P", name, ())
+                ground.append(index(key) if positive else -index(key))
+            else:
+                ground.extend(funs |> map$(fun => -index(("F", fun.name, fun.args |> map$(env.__getitem__) |> tuple, env[fun.result]))))
+                sat_clauses.append(ground)
+
+    # every function has exactly one value for each argument tuple
+    for name, k in functions:
+        for args in product(range(n), repeat=k):
+            values = [index(("F", name, args, d)) for d in range(n)]
+            sat_clauses.append(values)
+            sat_clauses.extend([-x, -y] for i, x in enumerate(values) for y in values[i + 1:])
+    # break symmetry: the ith constant can only be one of the first i elements
+    consts = sorted(name for name, k in functions if k == 0)
+    for i, name in enumerate(consts):
+        sat_clauses.extend([-index(("F", name, (), d))] for d in range(i + 1, n))
+
+    assignment = solve_sat(sat_clauses)
+    if assignment is None:
+        return None
+    true_keys = [key for key, i in atoms.items() if assignment.get(i, False)]
+    return Countermodel(
+        n,
+        {(name, args): value for kind, name, args, *rest in true_keys if kind == "F" for value in rest},
+        sorted((name, args) for kind, name, args, *_ in true_keys if kind == "P" and not name.startswith(definition_prefix)),
+    )
+
+def find_model(clauses, max_size, max_clauses=max_ground_clauses):
+    """Search for a finite model of clauses with at most max_size elements.
+    Returns (model, searched) where model is a Countermodel or None and
+    searched is the largest size that was completely ruled out."""
+    flat_clauses = list(map(flatten_clause, clauses))
+    functions = {(fun.name, len(fun.args)) for _, funs in flat_clauses for fun in funs}
+    searched = 0
+    for n in range(1, max_size + 1):
+        if ground_size(flat_clauses, functions, n) > max_clauses:
+            break
+        model = model_of_size(flat_clauses, functions, n)
+        if model is not None:
+            return model, searched
+        searched = n
+    return None, searched
+
+
+# Proofs:
+
+data ProofStep(num: int, formula, rule: str, parents: tuple):
+    """One step in a resolution refutation."""
+    def __str__(self) =
+        f"{self.num}. {self.formula}  [{self.rule}" + (" " + ", ".join(map(str, self.parents)) if self.parents else "") + "]"
+
+
+class Countermodel:
+    """A finite model in which all the premises are true but the conclusion
+    is false. Its domain is {0, 1, ..., size - 1}; functions maps (name,
+    args) pairs to elements (constants have no args) and true_atoms lists the
+    (name, args) pairs of the atoms that are true."""
+
+    def __init__(self, size, functions, true_atoms, hidden=frozenset()):
+        self.size = size
+        self.functions = functions
+        self.true_atoms = true_atoms
+        self.hidden = hidden  # Skolem functions that aren't worth printing
+
+    @property
+    def domain(self) = list(range(self.size))
+
+    def __str__(self):
+        show_app = (name, args) => name + ("(" + ", ".join(map(str, args)) + ")" if args else "")
+        lines = ["domain: {" + ", ".join(map(str, self.domain)) + "}"]
+        for want_args in (False, True):
+            values = [f"{show_app(name, args)} = {value}" for (name, args), value in sorted(self.functions.items()) if bool(args) == want_args and name not in self.hidden]
+            if values:
+                lines.append(", ".join(values))
+        lines.append("true: " + (", ".join(show_app(name, args) for name, args in self.true_atoms) or "(nothing)"))
+        lines.append("(everything else is false)")
+        return "\n".join(lines)
+
+    def __repr__(self) = f"<Countermodel of size {self.size}>"
+
+    def evaluate_term(self, term, env={}) -> int:
+        """The element that a term refers to (env maps bound variables to elements)."""
+        match term:
+            case Func(name, *args):
+                return self.functions.get((name, tuple(self.evaluate_term(arg, env) for arg in args)), 0)
+            case _ if term in env:
+                return env[term]
+        return self.functions.get((term.name, ()), 0)
+
+    def evaluate(self, formula, env={}) -> bool:
+        """Determine whether a formula is true in this model (free ?variables
+        are treated as universally quantified)."""
+        formula = universal_closure(formula) if not env else formula
+        true_atoms = set(self.true_atoms)
+        go = self.evaluate$(env=env)
+        match formula:
+            case Top():
+                return True
+            case Bot():
+                return False
+            case Prop(name):
+                return (name, ()) in true_atoms
+            case Pred(name, *args):
+                return (name, tuple(self.evaluate_term(arg, env) for arg in args)) in true_atoms
+            case Eq(a, b):
+                return self.evaluate_term(a, env) == self.evaluate_term(b, env)
+            case Not(elem):
+                return not go(elem)
+            case And(*elems):
+                return all(map(go, elems))
+            case Or(*elems):
+                return any(map(go, elems))
+            case Imp(cond, concl):
+                return not go(cond) or go(concl)
+            case Iff(a, b):
+                return go(a) == go(b)
+            case ForAll(var, elem):
+                return all(self.evaluate(elem, {**env, var: d, Var(var.name): d}) for d in self.domain)
+            case Exists(var, elem):
+                return any(self.evaluate(elem, {**env, var: d, Var(var.name): d}) for d in self.domain)
+        raise TypeError(f"not a formula: {formula!r}")
+
+
+class Proof:
+    """The result of trying to prove a conclusion from some premises.
+
+    A Proof is truthy if the conclusion was proved. Its status is "proved",
+    "disproved" (the conclusion definitely does not follow), or "unknown" (the
+    search ran out of time or space). Proved results usually come with a
+    resolution refutation in steps, which can be displayed with str(proof),
+    proof.tree(), or proof.to_dot(); disproved results may come with a
+    countermodel."""
+
+    def __init__(self, premises, conclusion, status, steps=(), countermodel=None, reason=""):
+        self.premises = premises
+        self.conclusion = conclusion
+        self.status = status
+        self.steps = list(steps)
+        self.countermodel = countermodel
+        self.reason = reason
+
+    @property
+    def proved(self) = self.status == "proved"
+
+    def __bool__(self) = self.proved
+
+    def __repr__(self) = f"<Proof {self.status}: {', '.join(map(show, self.premises))} ⊢ {show(self.conclusion)}>"
+
+    def __str__(self):
+        lines = [f"{self.status.capitalize()}: {self.conclusion}"]
+        if self.premises:
+            lines.append("from premises:")
+            lines.extend(f"  {i}. {p}" for i, p in enumerate(self.premises, 1))
+        if self.reason:
+            lines.append(self.reason)
+        if self.steps:
+            lines.append("by resolution refutation:")
+            lines.extend("  " + str(step) for step in self.steps)
+        if self.countermodel is not None:
+            lines.append("countermodel:")
+            lines.extend("  " + line for line in str(self.countermodel).splitlines())
+        return "\n".join(lines)
+
+    def tree(self) -> str:
+        """Render the refutation as a tree, with the derived contradiction
+        (⊥) at the root and the clauses it came from below it."""
+        if not self.steps:
+            return str(self)
+        by_num = {step.num: step for step in self.steps}
+        lines = []
+        def go(num, prefix, child_prefix):
+            step = by_num[num]
+            lines.append(f"{prefix}{step.formula}  [{step.rule}]")
+            for k, parent in enumerate(step.parents):
+                last = k == len(step.parents) - 1
+                go(parent, child_prefix + ("└── " if last else "├── "), child_prefix + ("    " if last else "│   "))
+        go(self.steps[-1].num, "", "")
+        return "\n".join(lines)
+
+    def to_dot(self) -> str:
+        """Render the refutation as a Graphviz DOT graph."""
+        lines = ["digraph proof {", "  node [shape=box];"]
+        for step in self.steps:
+            label = f"{step.num}. {step.formula}\\n[{step.rule}]".replace('"', '\\"')
+            lines.append(f'  n{step.num} [label="{label}"];')
+            lines.extend(f"  n{parent} -> n{step.num};" for parent in step.parents)
+        lines.append("}")
+        return "\n".join(lines)
+
+
+# Saturation:
+
+def saturate(initial, timeout, max_clauses):
+    """Run the given-clause algorithm on initial, a list of (clause, label)
+    pairs, using resolution, factoring, superposition, equality resolution,
+    equality factoring, subsumption, and demodulation. Returns (status, info,
+    empty_id) where status is "unsat", "sat", or "unknown" and info maps
+    clause ids to (clause, rule, parents)."""
+    deadline = time.monotonic() + timeout
+    info = {}
+    seen = set()
+    passive_heap = []
+    passive_queue = deque()
+    in_passive = set()
+    processed = []
+    rules = []  # oriented unit equations used for demodulation
+
+    def add(lits, rule, parents):
+        """Add a clause to the passive set; return its id if it is empty."""
+        lits, used = demodulate(lits, rules)
+        if used:
+            rule, parents = rule + " + demodulation", parents + tuple(sorted(used))
+        lits = normalize_clause(lits)
+        if is_tautology(lits) or lits in seen:
+            return None
+        if lits and any(subsumes(info[p][0], lits) for p in processed):
+            return None
+        seen.add(lits)
+        cid = len(info) + 1
+        info[cid] = (lits, rule, parents)
+        if not lits:
+            return cid
+        heapq.heappush(passive_heap, (clause_weight(lits), cid))
+        passive_queue.append(cid)
+        in_passive.add(cid)
+        return None
+
+    for lits, label in initial:
+        empty = add(lits, label, ())
+        if empty is not None:
+            return "unsat", info, empty
+
+    iteration = 0
+    while in_passive:
+        iteration += 1
+        if time.monotonic() > deadline or len(info) > max_clauses:
+            return "unknown", info, None
+        # pick the lightest clause, except every fifth time pick the oldest
+        if iteration % 5 == 0:
+            while passive_queue[0] not in in_passive:
+                passive_queue.popleft()
+            given = passive_queue.popleft()
+        else:
+            while passive_heap[0][1] not in in_passive:
+                heapq.heappop(passive_heap)
+            given = heapq.heappop(passive_heap)[1]
+        in_passive.discard(given)
+        given_lits = info[given][0]
+
+        # simplify the given clause with the latest rules
+        new_lits, used = demodulate(given_lits, rules)
+        if used:
+            empty = add(new_lits, "demodulation", (given,) + tuple(sorted(used)))
+            if empty is not None:
+                return "unsat", info, empty
+            continue
+        if any(subsumes(info[p][0], given_lits) for p in processed):
+            continue
+        processed = [p for p in processed if not subsumes(given_lits, info[p][0])]
+        processed.append(given)
+
+        inferences = [(lits, "factoring", (given,)) for lits in factors(given_lits)]
+        inferences += [(lits, "equality factoring", (given,)) for lits in equality_factors(given_lits)]
+        inferences += [(lits, "equality resolution", (given,)) for lits in equality_resolvents(given_lits)]
+        for other in processed:
+            other_lits = info[other][0]
+            inferences += [(lits, "resolution", (given, other)) for lits in resolvents(given_lits, other_lits)]
+            inferences += [(lits, "superposition", (given, other)) for lits in paramodulants(given_lits, other_lits)]
+            if other != given:
+                inferences += [(lits, "superposition", (other, given)) for lits in paramodulants(other_lits, given_lits)]
+
+        # a new oriented unit equation becomes a rewrite rule that also
+        #  simplifies the clauses we've already processed
+        match given_lits:
+            case (Eq(a, b),):
+                for left, right in ((a, b), (b, a)):
+                    if kbo_greater(left, right):
+                        rules.append((given, left, right))
+                        for p in processed[:]:
+                            if p != given:
+                                rewritten, used = demodulate(info[p][0], [(given, left, right)])
+                                if used:
+                                    processed.remove(p)
+                                    inferences.append((rewritten, "demodulation", (p, given)))
+
+        for lits, rule, parents in inferences:
+            empty = add(lits, rule, parents)
+            if empty is not None:
+                return "unsat", info, empty
+
+    return "sat", info, None
+
+def extract_steps(info, empty_id) -> list:
+    """Collect the steps leading to the empty clause, renumbered from 1."""
+    used = set()
+    stack = [empty_id]
+    while stack:
+        cid = stack.pop()
+        if cid not in used:
+            used.add(cid)
+            stack.extend(info[cid][2])
+    renumber = {cid: n for n, cid in enumerate(sorted(used), 1)}
+    def make_step(cid) =
+        lits, rule, parents = info[cid]
+        ProofStep(renumber[cid], clause_formula(lits), rule, parents |> map$(renumber.__getitem__) |> tuple)
+    return sorted(used) |> map$(make_step) |> list
+
+
+# Proving:
+
+def as_premises(givens) -> tuple:
+    """Convert a formula or iterable of formulas into a tuple of formulas."""
+    if wff(givens) or isinstance(givens, bool):
+        givens = (givens,)
+    return tuple(top if g is True else bot if g is False else g for g in givens)
+
+def prove(givens, conclusion, nonempty_universe=True, timeout=default_timeout, max_clauses=default_max_clauses, want_proof=True):
+    """Try to prove conclusion from givens (a formula or an iterable of
+    formulas), returning a Proof object.
+
+    Assumes something exists unless nonempty_universe=False. Free constants
+    are assumed to refer to something, so mentioning one implies that
+    something exists. Free ?variables are implicitly universally quantified.
+
+    Function-free problems are always decided; for others, the search gives
+    up with status "unknown" after timeout seconds or max_clauses clauses."""
+    premises = as_premises(givens)
+    conclusion = as_premises(conclusion)[0]
+    for formula in premises + (conclusion,):
+        if not wff(formula):
+            raise TypeError(f"expected a formula but got {formula!r}")
+    closed_premises = tuple(map(universal_closure, premises))
+    closed_conclusion = universal_closure(conclusion)
+
+    # in a possibly empty universe, first check the empty universe itself
+    everything = And(*closed_premises, closed_conclusion)
+    if not nonempty_universe and admits_empty_universe(everything):
+        empty_check = Imp(And(*map(empty_value, closed_premises)), empty_value(closed_conclusion))
+        if not prop_valid(empty_check):
+            return Proof(premises, conclusion, "disproved", reason="(the premises are true but the conclusion is false in the empty universe)")
+
+    # Skolemize and clausify the premises and the negated conclusion
+    used = all_names(everything)
+    num_defs = [0]
+    def new_definition(vs):
+        num_defs[0] += 1
+        name = definition_prefix + str(num_defs[0])
+        while name in used:
+            num_defs[0] += 1
+            name = definition_prefix + str(num_defs[0])
+        used.add(name)
+        return Pred(name, *vs)
+
+    original_names = set(used)
+    labeled = [(p, f"premise {i}") for i, p in enumerate(closed_premises, 1)] + [(Not(closed_conclusion), "negated conclusion")]
+    initial = []
+    for formula, label in labeled:
+        skolemized = skolemize_formula(formula, used)
+        initial.extend((clause, label) for clause in clausify(skolemized, new_definition))
+    clauses = [c for c, _ in initial]
+
+    # look for a small countermodel; for function-free problems, a model
+    #  exists only if there is one no bigger than the number of constants
+    consts = {t for c in clauses for lit in c for t in atom_terms(atom_of(lit)) if isinstance(t, Const)}
+    function_free = all(
+        not isinstance(t, Func)
+        for c in clauses for lit in c for t in atom_terms(atom_of(lit))
+    )
+    max_size = max(len(consts), 1) if function_free else max_model_size
+    model, searched = find_model(clauses, max_size)
+    if model is not None:
+        model.hidden = {name for (name, args) in model.functions if args and name not in original_names}
+        return Proof(premises, conclusion, "disproved", countermodel=model)
+    decided = function_free and searched == max_size
+    if decided and not want_proof:
+        return Proof(premises, conclusion, "proved")
+
+    status, info, empty_id = saturate(initial, timeout, max_clauses)
+    if status == "unsat":
+        return Proof(premises, conclusion, "proved", steps=extract_steps(info, empty_id))
+    if decided:
+        return Proof(premises, conclusion, "proved", reason="(there are no models no bigger than the number of constants; the search for a resolution proof ran out of resources)")
+    if status == "sat":
+        return Proof(premises, conclusion, "disproved", reason="(the premises and the negated conclusion are consistent: the proof search saturated without a contradiction)")
+    return Proof(premises, conclusion, "unknown", reason=f"(gave up after {len(info)} clauses with no countermodel of size {searched} or less; the conclusion may or may not follow)")
+
+def proves(givens, conclusion, nonempty_universe=True, timeout=default_timeout, max_clauses=default_max_clauses) -> bool:
+    """Determine whether givens (a formula or an iterable of formulas) prove
+    conclusion. Assumes something exists unless nonempty_universe=False.
+
+    If the search runs out of resources without deciding the question, a
+    warning is issued and False is returned (use prove() to distinguish this
+    case)."""
+    result = prove(givens, conclusion, nonempty_universe=nonempty_universe, timeout=timeout, max_clauses=max_clauses, want_proof=False)
+    if result.status == "unknown":
+        warnings.warn(f"could not decide whether {result!r} holds within the resource limits; assuming it does not", RuntimeWarning, stacklevel=2)
+    return result.proved
+
+def strict_proves(givens, conclusion, **kwargs) -> bool =
+    """Same as proves, but doesn't assume that something exists."""
+    proves(givens, conclusion, nonempty_universe=False, **kwargs)
+
+def strict_prove(givens, conclusion, **kwargs) =
+    """Same as prove, but doesn't assume that something exists."""
+    prove(givens, conclusion, nonempty_universe=False, **kwargs)
