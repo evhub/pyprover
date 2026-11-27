@@ -7,7 +7,7 @@ name = "pyprover"
 dynamic = ["version"]
 description = "A theorem prover for first-order logic with equality, written in Coconut."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE.txt"]
 authors = [{name = "Evan Hubinger"}]

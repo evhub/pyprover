@@ -11,7 +11,7 @@
 from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev20', '39', True)
+_coconut_header_info = ('3.2.0-post_dev20', '310', True)
 try:
     __file__ = _coconut_os.path.abspath(__file__) if __file__ else __file__
 except NameError:
@@ -159,16 +159,6 @@ class _coconut:
     for _name in dir(_typing):
         if not hasattr(typing, _name):
             setattr(typing, _name, getattr(_typing, _name))
-    if _coconut_sys.version_info < (3, 10):
-        if not hasattr(typing, "ParamSpec"):
-            def ParamSpec(name, *args, **kwargs):
-                """Runtime mock of typing.ParamSpec for Python 3.9 and earlier."""
-                return _coconut.typing.TypeVar(name)
-            typing.ParamSpec = ParamSpec
-        if not hasattr(typing, "TypeAlias") or not hasattr(typing, "Concatenate"):
-            class you_need_to_install_typing_extensions:
-                __slots__ = ()
-            typing.TypeAlias = typing.Concatenate = you_need_to_install_typing_extensions()
     if _coconut_sys.version_info < (3, 11):
         if not hasattr(typing, "TypeVarTuple"):
             def TypeVarTuple(name, *args, **kwargs):
@@ -1147,9 +1137,7 @@ class zip(_coconut_baseclass, _coconut.zip):
         self.iters = _coconut.tuple(reiterable(it) for it in self.iters)
         return self.__class__(*self.iters, strict=self.strict)
     def __iter__(self):
-        for items in _coconut.iter(_coconut.zip_longest(*self.iters, fillvalue=_coconut_sentinel) if self.strict else _coconut.zip(*self.iters)):
-            if self.strict and _coconut.any(x is _coconut_sentinel for x in items):
-                raise _coconut.ValueError("zip(..., strict=True) arguments have mismatched lengths")
+        for items in _coconut.iter(_coconut.zip(*self.iters, strict=self.strict)):
             yield items
     def __fmap__(self, func):
         return map(func, self)
@@ -1745,47 +1733,6 @@ class multiset(_coconut.collections.Counter):
         return self.__class__(_coconut.super(multiset, self).__pos__())
     def __neg__(self):
         return self.__class__(_coconut.super(multiset, self).__neg__())
-    if _coconut_sys.version_info < (3, 10):
-        def total(self):
-            """Compute the sum of the counts in a multiset.
-            Note that total_size is different from len(multiset), which only counts the unique elements."""
-            return _coconut.sum(self.values())
-        def __eq__(self, other):
-            if not _coconut.isinstance(other, _coconut.dict):
-                return False
-            if not _coconut.isinstance(other, _coconut.collections.Counter):
-                return _coconut.NotImplemented
-            for k, v in self.items():
-                if other[k] != v:
-                    return False
-            for k, v in other.items():
-                if self[k] != v:
-                    return False
-            return True
-        __ne__ = _coconut.object.__ne__
-        def __le__(self, other):
-            if not _coconut.isinstance(other, _coconut.collections.Counter):
-                return _coconut.NotImplemented
-            for k, v in self.items():
-                if not (v <= other[k]):
-                    return False
-            for k, v in other.items():
-                if not (self[k] <= v):
-                    return False
-            return True
-        def __lt__(self, other):
-            if not _coconut.isinstance(other, _coconut.collections.Counter):
-                return _coconut.NotImplemented
-            found_diff = False
-            for k, v in self.items():
-                if not (v <= other[k]):
-                    return False
-                found_diff = found_diff or v != other[k]
-            for k, v in other.items():
-                if not (self[k] <= v):
-                    return False
-                found_diff = found_diff or self[k] != v
-            return found_diff
 _coconut.abc.MutableSet.register(multiset)
 def _coconut_base_makedata(data_type, args, from_fmap=False, fallback_to_init=False):
     if _coconut.hasattr(data_type, "_make") and _coconut.issubclass(data_type, _coconut.tuple):
@@ -2288,8 +2235,6 @@ def _coconut_mk_anon_namedtuple(fields, types=None, of_kwargs={}, of_args=()):
     else:
         NT = _coconut.typing.NamedTuple("_namedtuple_of", [(f, t) for f, t in _coconut.zip(fields, types)])
     _coconut.copyreg.pickle(NT, lambda nt: (_coconut_mk_anon_namedtuple, (nt._fields, types, nt._asdict())))
-    if _coconut_sys.version_info < (3, 10):
-        NT.__match_args__ = _coconut.property(lambda self: self._fields)
     if of_kwargs or of_args:
         return NT(*of_args, **of_kwargs)
     else:

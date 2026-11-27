@@ -2,7 +2,7 @@
 
 PyProver is an automated theorem prover for first-order logic with equality. You can write formulas with Python operators or in standard mathematical notation. It will prove things (and show you the proof), find countermodels for things that aren't true, and convert formulas into the usual normal forms.
 
-PyProver is written in [Coconut](http://coconut-lang.org/), a functional programming language that compiles to Python. It has no dependencies and runs on any Python 3.9+.
+PyProver is written in [Coconut](http://coconut-lang.org/), a functional programming language that compiles to Python. It has no dependencies and runs on any Python 3.10+.
 
 ```
 pip install pyprover

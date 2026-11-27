@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# __coconut_hash__ = 0x8a590d0a
+# __coconut_hash__ = 0x1202c03c
 
 # Compiled with Coconut version 3.2.0-post_dev20
 # This file was compiled from logic.coco by the Coconut compiler; edit that file rather than this one.
@@ -13,7 +13,7 @@
 from __future__ import generator_stop, annotations
 import sys as _coconut_sys
 import os as _coconut_os
-_coconut_header_info = ('3.2.0-post_dev20', '39', True)
+_coconut_header_info = ('3.2.0-post_dev20', '310', True)
 _coconut_cached__coconut__ = _coconut_sys.modules.get('__coconut__')
 _coconut_file_dir = _coconut_os.path.dirname(_coconut_os.path.abspath(__file__))
 _coconut_pop_path = False

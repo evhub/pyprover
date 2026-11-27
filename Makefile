@@ -1,6 +1,6 @@
-# Coconut compilation flags: target Python 3.9+, be strict about style, and
+# Coconut compilation flags: target Python 3.10+, be strict about style, and
 #  skip tail call optimization (which isn't needed and slows things down).
-COCONUT_FLAGS = --target 3.9 --strict --no-tco --jobs sys
+COCONUT_FLAGS = --target 3.10 --strict --no-tco --jobs sys
 
 .PHONY: setup
 setup:
