@@ -1,11 +1,7 @@
 name: PyProver Test Suite
 on:
   push:
-    branches: ['**']
-    tags: ['v*']
   pull_request:
-  release:
-    types: [published]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -27,20 +23,47 @@ jobs:
           git diff --exit-code -- pyprover
       - run: make test-installed
 
-  publish:
+  # When the version in pyprover/constants.coco has no matching tag yet, a
+  #  push to master publishes it to PyPI and creates the tag and GitHub release.
+  release:
     needs: test
-    # publish to PyPI when a version tag is pushed (or a GitHub release is published)
-    if: github.event_name == 'release' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - run: python -m pip install --upgrade build
-      - run: python -m build
+      - name: Check for a new version
+        id: version
+        run: |
+          version=$(python -c "import re; print(re.search(r'^version = \"(.+)\"', open('pyprover/constants.coco').read(), re.M).group(1))")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.version.outputs.new == 'true'
+        run: |
+          python -m pip install --upgrade build
+          python -m build
       - name: Publish to PyPI
+        if: steps.version.outputs.new == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
+      - name: Create the GitHub release
+        if: steps.version.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "PyProver ${{ steps.version.outputs.version }}" \
+            --notes-file CHANGELOG.md
