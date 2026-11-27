@@ -1,0 +1,710 @@
+"""The PyProver test suite (run with pytest)."""
+
+# Imports:
+
+import warnings
+
+import pytest
+
+from pyprover import (
+    FA,
+    TE,
+    top,
+    bot,
+    And,
+    Or,
+    Imp,
+    Iff,
+    Eq,
+    Prop,
+    Const,
+    Var,
+    Func,
+    proves,
+    strict_proves,
+    prove,
+    strict_prove,
+    proves_and_proved_by,
+    simplify,
+    strict_simplify,
+    simplest_form,
+    substitute,
+    nnf,
+    cnf,
+    dnf,
+    prenex,
+    skolemize,
+    valid,
+    satisfiable,
+    countermodel,
+    solve,
+    unify,
+    expr,
+    wff,
+    ParseError,
+    props,
+    terms,
+    use_ascii,
+    use_unicode,
+)
+from pyprover.__main__ import main
+from pyprover.atoms import (
+    lowercase,
+    uppercase,
+)
+
+
+# Atoms:
+
+A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z = props(uppercase)
+a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = terms(lowercase)
+
+
+# Tests:
+
+def test_propositional_logic():
+    """Runs propositional logic tests."""
+    a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z = props(lowercase)
+
+    # constructive theorems
+    assert e&f `proves` e
+    assert e&f `proves` f
+    assert (e>>f, f>>g, e) `proves` g
+    assert (e>>(f>>g), e>>f, e) `proves` g
+    assert (e>>f, f>>g) `proves` e>>g
+    assert e>>(f>>g) `proves` f>>(e>>g)
+    assert e>>(f>>g) `proves` (e>>f)>>(e>>g)
+    assert e `proves` f>>e
+    assert top `proves` e>>(f>>e)
+    assert e>>(f&g) `proves` (e>>f)&(e>>g)
+    assert e>>(f>>g) `proves` (e&f)>>g
+    assert (e&f)>>g `proves` e>>(f>>g)
+    assert (e>>f)>>g `proves` (e&f)>>g
+    assert e&(f>>g) `proves` (e>>f)>>g
+    assert e `proves` e|f
+    assert f `proves` e|f
+    assert e|f `proves` f|e
+    assert f>>g `proves` (e|f)>>(e|g)
+    assert e `proves` e|e
+    assert e `proves` ~~e
+    assert ~e `proves` e>>f
+    assert e>>f `proves` ~f>>~e
+    assert e|f `proves` ~(~e&~f)
+    assert e&f `proves` ~(~e|~f)
+    assert ~(e|f) `proves` ~e&~f
+    assert ~e&~f `proves` ~(e|f)
+    assert ~e|~f `proves` ~(e&f)
+    assert top `proves` ~(e&~e)
+    assert e&~e `proves` f
+    assert ~f `proves` f>>g
+    assert (f>>g, ~f>>g) `proves` g
+    assert g `proves` f>>g
+    assert (f, ~(f&g)) `proves` ~g
+    assert (p>>r, p>>~r) `proves` ~p
+    assert top `proves` (p>>~p)>>~p
+    assert bot `proves` a
+    assert bot `proves` top
+    assert a `proves` top
+
+    # classical theorems
+    assert ~~e `proves` e
+    assert top `proves` e|~e
+    assert top `proves` ((e>>f)>>e)>>e
+    assert ~f>>~e `proves` e>>f
+    assert ~(~e&~f) `proves` e|f
+    assert ~(~e|~f) `proves` e&f
+    assert ~(e&f) `proves` ~e|~f
+    assert top `proves` (e>>f)|(f>>e)
+    assert top `proves` (~~a|a)>>a
+    assert p>>r `proves` (f>>r)|(p>>g)
+    assert ~(f>>g) `proves` f&~g
+    assert top `proves` (~f>>bot)>>f
+    assert f>>g `proves` ~f|g
+    assert top `proves` r&s|(~r|~s)
+    assert f>>g `proves` g|~f
+    assert (a&b)>>~c `proves` ~a|~b|~c
+    assert f>>(g>>h) `proves` ~f|~g|h
+
+    # other theorems
+    assert t&(t>>d)|~t&~(t>>d) `proves` d
+    assert (f>>g, c>>d) `proves` (f|c)>>(g|d)
+    assert (f>>g)>>h `proves` f>>(g>>h)
+    assert top `proves` p>>(s>>p)
+    assert ~f|(f>>g) `proves` ~f|g
+    assert (~f, g>>f) `proves` ~g
+    assert (p>>s, r>>t, ~s|~t) `proves` ~p|~r
+    assert top `proves` ~~(f|~f)
+    assert top `proves` ~~(~~f>>f)
+    assert (p|r, ~p) `proves` r
+    assert (f|g, ~f) `proves` g
+    assert (t|~a, ~a|~t) `proves` ~a
+    assert top `proves` ~~((~f>>bot)>>f)
+    assert (s&h|~s&~h)&~(s&h)|(s&~h|~s&h)&(s&h) `proves` ~s&~h
+    assert ~a|~b|~c `proves` (a&b)>>~c
+    assert ~p `proves` p>>bot
+    assert (a|b, ~a|c) `proves` b|c
+    assert top `proves` (f&g)>>g
+    assert (p>>s, r>>t, p|r) `proves` s|t
+    assert top `proves` ~p>>(p>>s)
+    assert f>>g `proves` ((f&g)>>f)|(f>>(f&g))
+    assert (f|~f)>>g `proves` ~~g
+    assert p>>r `proves` p>>(p&r)
+    assert (s&h|~s&~h)&(h|s)|(s&~h|~s&h)&~(h|s) `proves` s&h
+    assert ~(f>>g) `proves` g>>f
+    assert (f>>g)&(f>>h) `proves` f>>(g&h)
+    assert (s&h|~s&~h)&(~s&~h)|(s&~h|~s&h)&~(~s&~h) `proves` ~(s&h)
+    assert top `proves` (p>>(s>>e))>>((p>>s)>>(p>>e))
+    assert top `proves` p>>p
+    assert ~f `proves` ~(f&g)
+    assert f>>~f `proves` ~f
+    assert f>>g `proves` ~g>>~f
+    assert (f&g)>>f
+    assert (f>>(t&a|~t&~a), t&~f|~t&f, g>>(t&~a|~t&a), t&g|~t&~g) `proves` ~a
+    assert t&(~t&~a)|~t&~(~t&~a) `proves` a
+    assert ~f|~g|h `proves` f>>(g>>h)
+
+    # invalid theorems
+    assert not e>>(f>>g) `proves` (e>>f)>>g
+    assert not (e&f)>>g `proves` (e>>f)>>g
+    assert not (e>>f)>>g `proves` e&(f>>g)
+    assert not e `proves` e&f
+    assert not e|f `proves` e&f
+    assert not e|top `proves` e
+    assert not e `proves` e&bot
+    assert not top `proves` bot
+
+    # other tests
+    assert And() == top
+    assert Or() == bot
+    assert () `proves` top
+    assert (a^b, a) `proves` ~b
+    assert f>>(g>>h) `proves_and_proved_by` (f&g)>>h
+    assert bot `proves_and_proved_by` a&~a
+    assert top `proves_and_proved_by` a|~a
+    assert top & bot |> simplify == bot
+    assert simplify(a&a, b&b) == (a, b)
+    assert a^b |> simplest_form == (b|a)&(~a|~b)
+    assert (s&h|~s&~h)&~(s&h)|(s&~h|~s&h)&(s&h) |> simplest_form == ~s&~h
+    assert a^b `substitute` {a:True, b:False} |> simplify == top
+    assert a^b `substitute` {a:top, b:top} |> simplify == bot
+    assert e << f == f >> e
+
+
+def test_predicate_logic():
+    """Runs predicate logic tests."""
+
+    # basic tests
+    assert FA(x, F) |> simplify == F
+    assert TE(x, F) |> simplify == F
+    assert FA(x, F(x)) & G |> simplify == FA(y, F(y) & G)
+    assert FA(x, F(x)) | G |> simplify == FA(y, F(y) | G)
+    assert TE(x, F(x)) & G |> simplify == TE(y, F(y) & G)
+    assert TE(x, F(x)) | G |> simplify == TE(y, F(y) | G)
+    assert FA(x, F(f(x))) == FA(y, F(f(y)))
+    assert TE(x, F(f(x))) == TE(y, F(f(y)))
+
+    # constructive theorems
+    assert TE(x, bot) `proves` bot
+    assert top `proves` FA(x, top)
+    assert FA(x, R(x) >> S(x)) `proves` FA(y, R(y)) >> FA(z, S(z))
+    assert FA(x, R(x) & S(x)) `proves` FA(y, R(y)) & FA(z, S(z))
+    assert (FA(x, R(x) >> S(x)), TE(y, R(y))) `proves` TE(z, S(z))
+    assert TE(x, R(x) & S(x)) `proves` TE(y, R(y)) & TE(z, S(z))
+    assert TE(x, R(x)) | TE(y, S(y)) `proves` TE(z, R(z) | S(z))
+    assert TE(x, R(x) | S(x)) `proves` TE(y, R(y)) | TE(z, S(z))
+    assert FA(x, R(x)) `proves` ~TE(y, ~R(y))
+    assert TE(x, ~R(x)) `proves` ~FA(y, R(y))
+    assert FA(x, ~R(x)) `proves` ~TE(y, R(y))
+    assert ~TE(x, R(x)) `proves` FA(y, ~R(y))
+    assert R(j) `proves` TE(x, R(x))
+
+    # classical theorems
+    assert ~TE(x, ~R(x)) `proves` FA(y, R(y))
+    assert ~FA(x, ~R(x)) `proves` TE(y, R(y))
+    assert ~FA(x, R(x)) `proves` TE(y, ~R(y))
+    assert FA(x, ~~D(x)) `proves` FA(x, D(x))
+    assert ~TE(x, R(x)) `proves` FA(y, ~R(y))
+    assert top `proves` TE(x, D(x)) | FA(x, ~D(x))
+    assert top `proves` TE(x, ~D(x)) | FA(x, D(x))
+    assert top `proves` TE(x, D(x) >> FA(y, D(y)))
+    assert TE(x, ~~D(x)) `proves` TE(x, D(x))
+    assert FA(x, C(x) | D(x)) `proves` FA(x, C(x)) | TE(x, D(x))
+
+    # other theorems
+    assert FA(x, H(j) >> T(x)) `proves` H(j) >> FA(x, T(x))
+    assert TE(x, R(x) >> B(x)) `proves` FA(x, R(x)) >> TE(x, B(x))
+    assert ~FA(x, bot) `proves` TE(x, top)
+    assert FA(x, TE(y, F(y) | G(x))) `proves` FA(x, G(x) | TE(x, F(x)))
+    assert (FA(x, FA(y, FA(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~TE(x, S(x, x))) `proves` FA(x, FA(y, S(x, y) >> ~S(y, x)))
+    assert FA(x, G(x)) | FA(x, B(x)) `proves` FA(x, G(x) | B(x))
+    assert TE(z, FA(k, P(z, k))) `proves` FA(y, TE(x, P(x, y)))
+    assert TE(x, C(x) & B(x)) `proves` TE(x, B(x) & C(x))
+    assert TE(x, C(x, i) & B(x, j)) `proves` TE(x, C(x, i) >> B(x, j))
+    assert FA(x, C(x) & B(x)) `proves` FA(x, B(x) & C(x))
+    assert FA(x, C(x) & B(x)) `proves` FA(x, C(x)) & FA(x, B(x))
+    assert FA(x, bot) `proves` ~TE(x, top)
+    assert (~TE(x, G(x)) | FA(x, F(x)), C(j) >> FA(x, D(x))) `proves` FA(y, FA(z, ~G(z) | F(y) & C(j) >> D(y)))
+    assert FA(x, G(x)) | TE(x, F(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+    assert (P | TE(x, W)) >> FA(z, R) `proves` FA(z, FA(x, (P | W) >> R))
+    assert (TE(x, ~F(x)), FA(x, F(x))) `proves` bot
+    assert (FA(x, ~F(x)), FA(x, F(x))) `proves` FA(x, bot)
+    assert TE(x, F(x)) | TE(x, G(x)) `proves` TE(x, TE(y, F(x) | G(y)))
+    assert TE(x, FA(y, P(x, y))) `proves` FA(y, TE(x, P(x, y)))
+    assert TE(x, FA(y, bot)) `proves` bot
+    assert top `proves` FA(x, TE(y, top))
+    assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+    assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
+    assert TE(x, ~R(x)) `proves` TE(y, R(y) >> (R(j) & R(k)))
+    assert P(c) `proves` TE(x, P(x))
+    assert P(c) `proves` TE(x, top)
+    assert P(c) & ~P(c) `proves` TE(x, top)
+    assert P(c) | ~P(c) `proves` TE(x, top)
+
+    # invalid theorems
+    assert not FA(x, R(x)) >> FA(y, S(y)) `proves` FA(z, R(z) >> S(z))
+    assert not TE(x, R(x)) & TE(y, S(y)) `proves` TE(z, R(z) & S(z))
+    assert not TE(x, R(x)) `proves` FA(y, R(y))
+
+    # non-empty universe theorems
+    assert top `proves` TE(x, top)
+    assert top `proves` TE(x, D(x) >> FA(y, D(y)))
+    assert (R(j), FA(x, R(x) >> S(x))) `proves` S(j)
+    assert FA(x, R(x)) >> FA(y, S(y)) `proves` TE(x, FA(y, ~R(x) | S(y)))
+    assert FA(x, R(x)) `proves` TE(y, R(y))
+    assert (T(i), FA(x, T(x) >> T(s(x)))) `proves` T(s(i))
+    assert top `proves` TE(x, R(x) >> (R(j) & R(k)))
+    assert (FA(x, ~F(x)), FA(x, F(x))) `proves` bot
+
+    # equality theorems
+    assert top `proves` Eq(a, a)
+    assert Eq(a, b) & Eq(b, c) `proves` Eq(a, c)
+    assert Eq(a, b) & Eq(b, c) `proves` Eq(c, a)
+    assert Eq(a, b) & F(a) `proves` F(b)
+    assert (Eq(a, b) | Eq(a, c), F(a)) `proves` F(b) | F(c)
+    assert FA(x, Eq(a, x)) `proves` Eq(a, b)
+    assert Eq(a, b) `proves` Eq(b, a)
+    assert Eq(a, b) `proves` Eq(f(a), f(b))
+
+def test_empty_universe():
+    """Runs predicate logic tests in a potentially empty universe."""
+
+    # basic tests
+    assert FA(x, F) |> strict_simplify != F
+    assert TE(x, F) |> strict_simplify != F
+    assert FA(x, F(x)) & G |> strict_simplify != FA(y, F(y) & G)
+    assert FA(x, F(x)) | G |> strict_simplify == FA(y, F(y) | G)
+    assert TE(x, F(x)) & G |> strict_simplify == TE(y, F(y) & G)
+    assert TE(x, F(x)) | G |> strict_simplify != TE(y, F(y) | G)
+
+    # constructive theorems
+    assert TE(x, bot) `strict_proves` bot
+    assert top `strict_proves` FA(x, top)
+    assert FA(x, R(x) >> S(x)) `strict_proves` FA(y, R(y)) >> FA(z, S(z))
+    assert FA(x, R(x) & S(x)) `strict_proves` FA(y, R(y)) & FA(z, S(z))
+    assert (FA(x, R(x) >> S(x)), TE(y, R(y))) `strict_proves` TE(z, S(z))
+    assert TE(x, R(x) & S(x)) `strict_proves` TE(y, R(y)) & TE(z, S(z))
+    assert TE(x, R(x)) | TE(y, S(y)) `strict_proves` TE(z, R(z) | S(z))
+    assert TE(x, R(x) | S(x)) `strict_proves` TE(y, R(y)) | TE(z, S(z))
+    assert FA(x, R(x)) `strict_proves` ~TE(y, ~R(y))
+    assert TE(x, ~R(x)) `strict_proves` ~FA(y, R(y))
+    assert FA(x, ~R(x)) `strict_proves` ~TE(y, R(y))
+    assert ~TE(x, R(x)) `strict_proves` FA(y, ~R(y))
+    assert R(j) `strict_proves` TE(x, R(x))
+
+    # classical theorems
+    assert ~TE(x, ~R(x)) `strict_proves` FA(y, R(y))
+    assert ~FA(x, ~R(x)) `strict_proves` TE(y, R(y))
+    assert ~FA(x, R(x)) `strict_proves` TE(y, ~R(y))
+    assert FA(x, ~~D(x)) `strict_proves` FA(x, D(x))
+    assert ~TE(x, R(x)) `strict_proves` FA(y, ~R(y))
+    assert top `strict_proves` TE(x, D(x)) | FA(x, ~D(x))
+    assert top `strict_proves` TE(x, ~D(x)) | FA(x, D(x))
+    assert TE(x, top) `strict_proves` TE(x, D(x) >> FA(y, D(y)))
+    assert TE(x, ~~D(x)) `strict_proves` TE(x, D(x))
+    assert FA(x, C(x) | D(x)) `strict_proves` FA(x, C(x)) | TE(x, D(x))
+
+    # other theorems
+    assert FA(x, H(j) >> T(x)) `strict_proves` H(j) >> FA(x, T(x))
+    assert TE(x, R(x) >> B(x)) `strict_proves` FA(x, R(x)) >> TE(x, B(x))
+    assert ~FA(x, bot) `strict_proves` TE(x, top)
+    assert FA(x, TE(y, F(y) | G(x))) `strict_proves` FA(x, G(x) | TE(x, F(x)))
+    assert (FA(x, FA(y, FA(z, (S(x, y) & S(y, z)) >> S(x, z)))), ~TE(x, S(x, x))) `strict_proves` FA(x, FA(y, S(x, y) >> ~S(y, x)))
+    assert FA(x, G(x)) | FA(x, B(x)) `strict_proves` FA(x, G(x) | B(x))
+    assert TE(z, FA(k, P(z, k))) `strict_proves` FA(y, TE(x, P(x, y)))
+    assert TE(x, C(x) & B(x)) `strict_proves` TE(x, B(x) & C(x))
+    assert TE(x, C(x, i) & B(x, j)) `strict_proves` TE(x, C(x, i) >> B(x, j))
+    assert FA(x, C(x) & B(x)) `strict_proves` FA(x, B(x) & C(x))
+    assert FA(x, C(x) & B(x)) `strict_proves` FA(x, C(x)) & FA(x, B(x))
+    assert FA(x, bot) `strict_proves` ~TE(x, top)
+    assert (~TE(x, G(x)) | FA(x, F(x)), C(j) >> FA(x, D(x))) `strict_proves` FA(y, FA(z, ~G(z) | F(y) & C(j) >> D(y)))
+    assert FA(x, G(x)) | TE(x, F(x)) `strict_proves` FA(x, TE(y, F(y) | G(x)))
+    assert (P | TE(x, W)) >> FA(z, R) `strict_proves` FA(z, FA(x, (P | W) >> R))
+    assert TE(x, F(x)) | TE(x, G(x)) `proves` TE(x, TE(y, F(x) | G(y)))
+    assert TE(x, FA(y, P(x, y))) `proves` FA(y, TE(x, P(x, y)))
+    assert TE(x, FA(y, bot)) `proves` bot
+    assert top `proves` FA(x, TE(y, top))
+    assert FA(x, TE(y, F(y)) | G(x)) `proves` FA(x, TE(y, F(y) | G(x)))
+    assert TE(x, FA(y, F(y) & G(x))) `proves` TE(x, FA(y, F(y)) & G(x))
+    assert TE(x, ~R(x)) `strict_proves` TE(y, R(y) >> (R(j) & R(k)))
+    assert P(c) `strict_proves` TE(x, P(x))
+    assert P(c) `strict_proves` TE(x, top)
+    assert P(c) & ~P(c) `strict_proves` TE(x, top)
+    assert P(c) | ~P(c) `strict_proves` TE(x, top)
+
+    # invalid theorems
+    assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` FA(z, R(z) >> S(z))
+    assert not TE(x, R(x)) & TE(y, S(y)) `strict_proves` TE(z, R(z) & S(z))
+    assert not TE(x, R(x)) `strict_proves` FA(y, R(y))
+
+    # non-empty universe theorems
+    assert not top `strict_proves` TE(x, top)
+    assert not top `strict_proves` TE(x, D(x) >> FA(y, D(y)))
+    assert (R(j), FA(x, R(x) >> S(x))) `strict_proves` S(j)  # j exists
+    assert not FA(x, R(x)) >> FA(y, S(y)) `strict_proves` TE(x, FA(y, ~R(x) | S(y)))
+    assert not FA(x, R(x)) `strict_proves` TE(y, R(y))
+    assert (T(i), FA(x, T(x) >> T(s(x)))) `strict_proves` T(s(i))  # i exists
+    assert top `strict_proves` TE(x, R(x) >> (R(j) & R(k)))  # j and k exist
+    assert not top `strict_proves` TE(x, R(x) >> FA(y, R(y)))
+    assert not (FA(x, ~F(x)), FA(x, F(x))) `strict_proves` bot
+
+    # equality theorems
+    assert top `strict_proves` Eq(a, a)
+    assert Eq(a, b) & Eq(b, c) `strict_proves` Eq(a, c)
+    assert Eq(a, b) & Eq(b, c) `strict_proves` Eq(c, a)
+    assert Eq(a, b) & F(a) `strict_proves` F(b)
+    assert (Eq(a, b) | Eq(a, c), F(a)) `strict_proves` F(b) | F(c)
+    assert FA(x, Eq(a, x)) `strict_proves` Eq(a, b)
+    assert Eq(a, b) `strict_proves` Eq(b, a)
+    assert Eq(a, b) `strict_proves` Eq(f(a), f(b))
+
+def test_parser():
+    """Tests math notation parsing."""
+    assert expr(r"A") == A
+    assert expr(r"F(x)") == F(x)
+    assert expr(r"F(f(x))") == F(f(x))
+    assert expr(r"A x. F(x)") == FA(x, F(x))
+    assert expr(r"A x. E y. F(x) \/ G(y)") == FA(x, TE(y, F(x) | G(y)))
+    assert expr(r"F(i) /\ A x. G(x)") == F(i) & FA(x, G(x))
+    assert expr(r"F -> G -> H") == F >> (G >> H)
+    assert expr(r"~F(x)") == ~F(x)
+    assert expr(r"-G(x) /\ F(x)") == ~G(x) & F(x)
+    assert expr(r"A /\ (B \/ C)") == A & (B | C)
+    assert expr(r"a = b") == Eq(a, b)
+    assert expr(r"forall x: A, B(x)") == FA(x, A(x) >> B(x))
+    assert expr(r"exists x: A, B(x)") == TE(x, A(x) & B(x))
+    assert expr(r"Q(x, x', x'')") == Q(Const("x"), Const("x'"), Const("x''"))
+
+
+def test_sort():
+    """Tests Sorting on predicates."""
+    assert [expr("B"), expr("A")] |> sorted == [expr("A"), expr("B")]
+
+
+def test_regression():
+    """Test hard cases to avoid regressions."""
+    assert expr("FA x, ~P(x, x)") `proves` expr("~FA u, FA v, P(g(f(v)), g(u))")
+    e1 = expr("∀z,∃x, ¬((Q(z)∧Q(x)))")
+    e2 = expr("∃z,∀x, ¬((Q(x)∧Q(z)))")
+    assert not e1 `strict_proves` e2
+    assert e2 `strict_proves` e1
+    e3 = expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")
+    e4 = expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))")
+    assert e3 `strict_proves` e4
+    assert not e4 `strict_proves` e3
+    assert expr("Q(?x) & P(?y)").find_unification(expr("Q(a) & P(b)")) == {Var("x"): Const("a"), Var("y"): Const("b")}
+
+
+
+def test_soundness():
+    """Tests that invalid inferences (which old versions accepted) are rejected."""
+    assert not FA(x, P(x) | Q(x)) `proves` FA(x, P(x)) | FA(x, Q(x))
+    assert FA(x, P(x)) | FA(x, Q(x)) `proves` FA(x, P(x) | Q(x))
+    assert not TE(x, P(x)) & TE(x, Q(x)) `proves` TE(x, P(x) & Q(x))
+    assert not FA(x, TE(y, R(x, y))) `proves` TE(y, FA(x, R(x, y)))
+    assert TE(y, FA(x, R(x, y))) `proves` FA(x, TE(y, R(x, y)))
+    assert not Eq(a, b) `proves` P(a)
+    assert not (Eq(a, b), P(c)) `proves` P(a)
+    assert not top `proves` ~Eq(a, b)
+    assert not top `proves` Eq(a, b)
+    assert not ~Eq(a, b) `proves` Eq(a, b)
+    assert not FA(x, P(x) >> P(f(x))) `proves` P(a)
+    assert not (P(a), FA(x, P(x) >> P(f(x)))) `proves` P(b)
+
+
+def test_issue_6():
+    """Tests the examples from https://github.com/evhub/pyprover/issues/6."""
+    three = TE(x, TE(y, TE(z, P(x) & P(y) & P(z) & ~Eq(x, y) & ~Eq(y, z))))
+    assert not P(a) `strict_proves` three
+    assert not P(a) `proves` three
+    assert not (P(a), P(b)) `proves` three
+    assert (P(a), P(b), ~Eq(a, b)) `proves` three
+    distinct3 = TE(x, TE(y, TE(z, P(x) & P(y) & P(z) & ~Eq(x, y) & ~Eq(y, z) & ~Eq(x, z))))
+    assert not (P(a), P(b), ~Eq(a, b)) `proves` distinct3
+    assert (P(a), P(b), P(c), ~Eq(a, b), ~Eq(b, c), ~Eq(a, c)) `proves` distinct3
+    result = prove((P(a), P(b)), three)
+    assert result.status == "disproved"
+    assert result.countermodel is not None
+
+
+def test_equality():
+    """Tests reasoning about equality."""
+    assert FA(x, Eq(f(f(x)), x)) `proves` FA(x, TE(y, Eq(f(y), x)))
+    assert (FA(x, Eq(f(x), g(x))), P(f(a))) `proves` P(g(a))
+    assert (Eq(a, b), Eq(f(a), c)) `proves` Eq(f(b), c)
+    assert (Eq(a, b), FA(x, FA(y, P(x, y) >> Q(y)))) `proves` P(a, a) >> Q(b)
+    assert FA(x, FA(y, Eq(x, y))) `proves` FA(x, P(x)) | FA(x, ~P(x))
+    assert not FA(x, TE(y, ~Eq(x, y))) `proves` bot
+    # group theory: a left identity that is also a right identity
+    group = (
+        FA(x, Eq(m(e, x), x)),
+        FA(x, Eq(m(i(x), x), e)),
+        FA(x, FA(y, FA(z, Eq(m(m(x, y), z), m(x, m(y, z)))))),
+    )
+    assert group `proves` FA(x, Eq(m(x, e), x))
+
+
+def test_proofs():
+    """Tests proof objects."""
+    result = prove((FA(x, R(x) >> S(x)), R(j)), S(j))
+    assert result
+    assert result.status == "proved"
+    assert result.steps[-1].formula == bot
+    assert "premise 1" in str(result)
+    assert "negated conclusion" in result.tree()
+    assert result.to_dot().startswith("digraph")
+    assert str(result.steps[-1]).endswith("]")
+    assert prove(E >> F, F).status == "disproved"
+    assert not prove(E >> F, F)
+    assert strict_prove(top, TE(x, top)).status == "disproved"
+    assert "empty universe" in str(strict_prove(top, TE(x, top)))
+    # an undecidable search gives up with "unknown" and a warning
+    hard = (FA(x, P(x) >> P(f(x))), P(a))
+    assert prove(hard, P(b), timeout=0.2).status in ("unknown", "disproved")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert not proves(FA(x, TE(y, R(x, y))), Eq(a, b), timeout=0.1, max_clauses=50)
+    assert all(issubclass(w.category, RuntimeWarning) for w in caught)
+
+
+def test_countermodels():
+    """Tests countermodel generation."""
+    model = countermodel(TE(x, R(x)) & TE(y, S(y)), TE(z, R(z) & S(z)))
+    assert model is not None
+    assert len(model.domain) >= 2
+    assert "domain" in str(model)
+    assert countermodel(R(j), TE(x, R(x))) is None
+
+
+def test_tools():
+    """Tests miscellaneous tools."""
+    assert valid(TE(x, D(x) >> FA(y, D(y))))
+    assert not valid(A)
+    assert satisfiable(A & ~B)
+    assert not satisfiable(A & ~A)
+    assert solve(A & ~A) == bot
+    assert solve(A & (A >> B)) == A & B
+    assert Iff(A, B) `proves_and_proved_by` (A >> B) & (B >> A)
+    assert proves(Iff(A, B), Iff(B, A))
+    assert proves((Iff(A, B), A), B)
+    assert unify(F(Var("x"), b), F(a, Var("y"))) == {Var("x"): a, Var("y"): b}
+    assert unify(F(Var("x")), F(f(Var("x")))) is None
+    assert nnf(~(A >> B)) == A & ~B
+    assert nnf(~FA(x, F(x))) == TE(x, ~F(x))
+    assert prenex(FA(x, F(x)) | TE(y, G(y))) == FA(x, TE(y, F(x) | G(y)))
+    assert cnf(A | (B & C)) == (A | B) & (A | C)
+    assert dnf(A & (B | C)) == (A & B) | (A & C)
+    assert simplify(FA(x, F(x)) & FA(y, G(y))) == FA(x, F(x) & G(x))
+    assert simplify(TE(x, F(x)) | TE(y, G(y))) == TE(x, F(x) | G(x))
+    assert skolemize(FA(x, TE(y, F(x, y)))) == F(Var("x"), Func("sk1", Var("x")))
+    assert substitute(FA(x, F(x, y)), {y: x}) == FA(z, F(z, x))
+    assert A ^ B `proves_and_proved_by` (A | B) & ~(A & B)
+
+
+def test_formulas():
+    """Tests formula construction, comparison, and printing."""
+    assert A & B & C == And(A, B, C) == C & B & A
+    assert A | B | C == Or(A, B, C)
+    assert Imp(A, B, C) == A >> (B >> C)
+    assert FA(x, y, F(x, y)) == FA(x, FA(y, F(x, y)))
+    assert FA(x, F(x)) == FA(y, F(y))
+    assert FA(x, FA(y, F(x, y))) != FA(x, FA(y, F(y, x)))
+    assert hash(FA(x, F(x))) == hash(FA(y, F(y)))
+    assert Eq(a, b) == Eq(b, a)
+    assert len({A & B, B & A, FA(x, F(x)), FA(y, F(y))}) == 2
+    assert bool(top) and not bool(bot)
+    assert str(FA(x, F(x) >> G(x))) == "∀x, F(x) → G(x)"
+    assert str((A | B) & ~C) == "(A ∨ B) ∧ ¬C"
+    assert str(~Eq(a, b)) == "a ≠ b"
+    assert str(F(Var("x"))) == "F(?x)"
+    assert repr((A | B) & ~C) == "(A | B) & ~C"
+    assert repr(FA(x, F(x) >> Eq(x, a))) == "FA(x, F(x) >> Eq(x, a))"
+    assert repr(Prop("Foo")(Const("bar"))) == "Prop('Foo')(Const('bar'))"
+    use_ascii()
+    try:
+        assert str(FA(x, F(x) >> ~G(x))) == "FA x, F(x) -> ~G(x)"
+    finally:
+        use_unicode()
+    with pytest.raises(TypeError):
+        A & 1
+    with pytest.raises(TypeError):
+        F("x", 1)
+
+
+ROUND_TRIP = [
+    "A ∧ B ∨ C",
+    "A ∧ (B ∨ C)",
+    "A → B → C",
+    "(A → B) → C",
+    "A ↔ B",
+    "¬¬A",
+    "∀x, ∃y, F(x, y) ∧ G(f(x), y)",
+    "(∀x, F(x)) ∧ G",
+    "A ∨ (∀x, F(x))",
+    "a = b ∧ f(a) ≠ b",
+    "P(?x) → Q(?x)",
+    "⊤ ∧ ⊥",
+]
+
+@pytest.mark.parametrize("text", ROUND_TRIP)
+def test_round_trip(text):
+    """Tests that printing and parsing are inverses."""
+    formula = expr(text)
+    assert str(formula) == text
+    assert expr(str(formula)) == formula
+    use_ascii()
+    try:
+        assert expr(str(formula)) == formula
+    finally:
+        use_unicode()
+
+
+def test_parse_errors():
+    """Tests parse error reporting."""
+    for bad in ["A ∧", "(A", "A B", "F(x", "f(x)", "∀X, F(X)", "A ∧ $"]:
+        with pytest.raises(ParseError):
+            expr(bad)
+    with pytest.raises(ParseError, match="position 4"):
+        expr("A ∧ ∧ B")
+
+
+def test_parser_extras():
+    """Tests parser features beyond the basics."""
+    assert expr("A <-> B") == Iff(A, B)
+    assert expr("A x y. F(x, y)") == FA(x, FA(y, F(x, y)))
+    assert expr("forall x. exists y. F(x, y)") == FA(x, TE(y, F(x, y)))
+    assert expr("not A and B or C implies D") == ((~A & B) | C) >> D
+    assert expr("a != b") == ~Eq(a, b)
+    assert expr("E") == E
+    assert expr("A") == A
+    assert expr("E x. A(x)") == TE(x, A(x))
+    assert expr("F(i) /\\ A x. G(x)") == F(i) & FA(x, G(x))
+    assert expr("A x. F(x) -> G(x)") == FA(x, F(x) >> G(x))
+    assert expr("A ∨ ∀x, F(x)") == A | FA(x, F(x))
+
+
+def test_cli(capsys):
+    """Tests the command-line interface."""
+    assert main(["prove", "A x. F(x) -> G(x)", "F(a)", "G(a)"]) == 0
+    assert "Proved" in capsys.readouterr().out
+    assert main(["prove", "--tree", "A -> B", "B -> C", "A -> C"]) == 0
+    assert "⊥" in capsys.readouterr().out
+    assert main(["prove", "-q", "A -> B", "B"]) == 1
+    assert capsys.readouterr().out.strip() == "disproved"
+    assert main(["--ascii", "simplify", "(A -> B) /\\ A"]) == 0
+    assert capsys.readouterr().out.strip() == "A & B"
+    assert main(["cnf", "A | (B & C)"]) == 0
+    assert capsys.readouterr().out.strip() == "(A ∨ B) ∧ (A ∨ C)"
+    assert main(["prove", "A ∧"]) == 3
+
+
+def test_countermodels_are_genuine():
+    """Tests that every countermodel really satisfies the premises and falsifies the conclusion."""
+    problems = [
+        (FA(x, P(x) | Q(x)), FA(x, P(x)) | FA(x, Q(x))),
+        (TE(x, P(x)) & TE(x, Q(x)), TE(x, P(x) & Q(x))),
+        (FA(x, TE(y, R(x, y))), TE(y, FA(x, R(x, y)))),
+        ((P(a), FA(x, P(x) >> P(f(x)))), P(b)),
+        ((P(a), P(b)), TE(x, TE(y, P(x) & P(y) & ~Eq(x, y)))),
+        (FA(x, Eq(f(f(x)), x)), FA(x, Eq(f(x), x))),
+        (expr("∀y,∃x, ((R(x,z)∧R(x))->R(y))"), expr("∃y,∃z,∀x, (Q(x,z)->Q(y,x))")),
+        (FA(x, ~R(x, x)), FA(x, y, R(x, y) >> ~R(y, x))),
+    ]
+    for premise, conclusion in problems:
+        result = prove(premise, conclusion)
+        assert result.status == "disproved", (premise, conclusion)
+        model = result.countermodel
+        assert model is not None
+        assert model.evaluate(premise if wff(premise) else And(*premise))
+        assert not model.evaluate(conclusion)
+    # an irreflexive, transitive, serial relation only has infinite models
+    infinite = FA(x, ~R(x, x)) & FA(x, y, z, (R(x, y) & R(y, z)) >> R(x, z)) & FA(x, TE(y, R(x, y)))
+    assert prove(infinite, bot, timeout=0.5).status == "unknown"
+
+
+def test_random_propositional():
+    """Tests the prover against truth tables on random propositional formulas."""
+    import random
+    from itertools import product
+    from pyprover.normal import satisfying_assignment
+    rng = random.Random(0)
+    atoms = [A, B, C, D]
+    def random_formula(depth):
+        if depth == 0 or rng.random() < 0.3:
+            return rng.choice(atoms + [top, bot])
+        match rng.randrange(5):
+            case 0:
+                return ~random_formula(depth - 1)
+            case 1:
+                return random_formula(depth - 1) & random_formula(depth - 1)
+            case 2:
+                return random_formula(depth - 1) | random_formula(depth - 1)
+            case 3:
+                return random_formula(depth - 1) >> random_formula(depth - 1)
+        return Iff(random_formula(depth - 1), random_formula(depth - 1))
+    def truth(formula, values) =
+        substitute(formula, dict(zip(atoms, values))) |> simplify == top
+    for _ in range(150):
+        premise, conclusion = random_formula(3), random_formula(3)
+        expected = all(
+            not truth(premise, values) or truth(conclusion, values)
+            for values in product((True, False), repeat=len(atoms))
+        )
+        assert proves(premise, conclusion) == expected, (premise, conclusion)
+        assert valid(Iff(simplify(premise), premise))
+        assert valid(Iff(cnf(premise), premise))
+        assert (satisfying_assignment(premise) is not None) == satisfiable(premise)
+
+
+# Problems from Pelletier, "Seventy-five problems for testing automatic
+#  theorem provers" (1986), as (premises, conclusion) pairs.
+PELLETIER = {
+ 1: ([], "(P -> Q) <-> (~Q -> ~P)"),
+ 9: ([], "((P | Q) & (~P | Q) & (P | ~Q)) -> ~(~P | ~Q)"),
+ 12: ([], "((P <-> Q) <-> R) <-> (P <-> (Q <-> R))"),
+ 17: ([], "((P & (Q -> R)) -> S) <-> ((~P | Q | S) & (~P | ~R | S))"),
+ 18: ([], "E y. A x. F(y) -> F(x)"),
+ 19: ([], "E x. A y. A z. (P(y) -> Q(z)) -> (P(x) -> Q(x))"),
+ 20: ([], "(A x. A y. E z. A w. (P(x) & Q(y) -> R(z) & S(w))) -> ((E x. E y. P(x) & Q(y)) -> E z. R(z))"),
+ 21: (["E x. P -> F(x)", "E x. F(x) -> P"], "E x. P <-> F(x)"),
+ 26: (["(E x. P(x)) <-> (E x. Q(x))", "A x. A y. P(x) & Q(y) -> (R(x) <-> S(y))"], "(A x. P(x) -> R(x)) <-> (A x. Q(x) -> S(x))"),
+ 29: (["(E x. F(x)) & (E x. G(x))"], "((A x. F(x) -> H(x)) & (A x. G(x) -> J(x))) <-> (A x. A y. F(x) & G(y) -> H(x) & J(y))"),
+ 34: ([], "((E x. A y. P(x) <-> P(y)) <-> ((E x. Q(x)) <-> (A y. Q(y)))) <-> ((E x. A y. Q(x) <-> Q(y)) <-> ((E x. P(x)) <-> (A y. P(y))))"),
+ 35: ([], "E x. E y. P(x, y) -> (A x. A y. P(x, y))"),
+ 39: ([], "~(E x. A y. F(y, x) <-> ~F(y, y))"),
+ 43: (["A x. A y. Q(x, y) <-> (A z. F(z, x) <-> F(z, y))"], "A x. A y. Q(x, y) <-> Q(y, x)"),
+ 46: (["A x. F(x) & (A y. F(y) & H(y, x) -> G(y)) -> G(x)", "(E x. F(x) & ~G(x)) -> (E x. F(x) & ~G(x) & (A y. F(y) & ~G(y) -> J(x, y)))", "A x. A y. F(x) & F(y) & H(x, y) -> ~J(y, x)"], "A x. F(x) -> G(x)"),
+ 48: (["a = b | c = d", "a = c | b = d"], "a = d | b = c"),
+ 49: (["E x. E y. A z. z = x | z = y", "P(a) & P(b)", "a != b"], "A x. P(x)"),
+ 51: (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w"], "E z. A x. (E w. A y. F(x, y) <-> y = w) <-> x = z"),
+ 52: (["E z. E w. A x. A y. F(x, y) <-> x = z & y = w"], "E w. A y. (E z. A x. F(x, y) <-> x = z) <-> y = w"),
+ 55: (["E x. L(x) & K(x, agatha)", "L(agatha) & L(butler) & L(charles)", "A x. L(x) -> x = agatha | x = butler | x = charles", "A x. A y. K(x, y) -> H(x, y)", "A x. A y. K(x, y) -> ~R(x, y)", "A x. H(agatha, x) -> ~H(charles, x)", "A x. x != butler -> H(agatha, x)", "A x. ~R(x, agatha) -> H(butler, x)", "A x. H(agatha, x) -> H(butler, x)", "A x. E y. ~H(x, y)", "agatha != butler"], "K(agatha, agatha)"),
+ 61: (["A x. A y. A z. f(x, f(y, z)) = f(f(x, y), z)"], "A x. A y. A z. A w. f(x, f(y, f(z, w))) = f(f(f(x, y), z), w)"),
+}
+
+@pytest.mark.parametrize("number", list(PELLETIER))
+def test_pelletier(number):
+    """Tests that the prover proves classic benchmark problems."""
+    premises, conclusion = PELLETIER[number]
+    result = prove(premises |> map$(expr) |> list, expr(conclusion), timeout=60)
+    assert result.status == "proved"
+    assert result.steps[-1].formula == bot

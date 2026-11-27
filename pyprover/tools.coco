@@ -1,0 +1,91 @@
+"""Convenience functions built on top of the prover and normal forms."""
+
+# Imports:
+
+from pyprover.constants import (
+    default_timeout,
+    default_max_clauses,
+)
+from pyprover.logic import (
+    bot,
+    Prop,
+    Const,
+    Var,
+    Not,
+    And,
+    Imp,
+    Iff,
+)
+from pyprover.normal import (
+    cnf,
+    simplest_form,
+)
+from pyprover.prover import (
+    as_premises,
+    prove,
+    proves,
+)
+
+
+# Constructors:
+
+def props(names: str) -> list =
+    """Construct propositions (which can be called to make predicates) from
+    a space-separated string of names."""
+    names.split() |> map$(Prop) |> list
+
+def terms(names: str) -> list =
+    """Construct constants (which can be called to make functions) from a
+    space-separated string of names."""
+    names.split() |> map$(Const) |> list
+
+def variables(names: str) -> list =
+    """Construct schematic ?variables from a space-separated string of names."""
+    names.split() |> map$(Var) |> list
+
+def iff(a, b) =
+    """Construct the biconditional a ↔ b."""
+    Iff(a, b)
+
+
+# Proving:
+
+def no_proof_of(givens, conclusion) =
+    """Construct a formula that is satisfiable exactly when givens don't prove conclusion."""
+    Not(Imp(And(*as_premises(givens)), conclusion))
+
+def proves_and_proved_by(a, b, **kwargs) -> bool =
+    """Determine whether a and b are logically equivalent."""
+    proves(a, b, **kwargs) and proves(b, a, **kwargs)
+
+equivalent = proves_and_proved_by
+
+def strict_proves_and_proved_by(a, b, **kwargs) -> bool =
+    """Same as proves_and_proved_by, but doesn't assume that something exists."""
+    proves_and_proved_by(a, b, nonempty_universe=False, **kwargs)
+
+def valid(expr, **kwargs) -> bool =
+    """Determine whether expr is true in every interpretation."""
+    proves((), expr, **kwargs)
+
+def satisfiable(expr, **kwargs) -> bool =
+    """Determine whether expr is true in some interpretation."""
+    not proves(expr, bot, **kwargs)
+
+def countermodel(givens, conclusion, nonempty_universe=True, timeout=default_timeout, max_clauses=default_max_clauses) =
+    """Find a finite model in which givens are true but conclusion is false,
+    or None if none could be found (which is always the case if the givens
+    prove the conclusion)."""
+    prove(givens, conclusion, nonempty_universe=nonempty_universe, timeout=timeout, max_clauses=max_clauses).countermodel
+
+def solve(expr, **kwargs) =
+    """Return ⊥ if expr is unsatisfiable, else its conjunctive normal form."""
+    cnf(expr, nonempty_universe=kwargs.get("nonempty_universe", True)) if satisfiable(expr, **kwargs) else bot
+
+def strict_solve(expr, **kwargs) = solve(expr, nonempty_universe=False, **kwargs)
+
+def simplest_solution(expr, **kwargs) =
+    """Return ⊥ if expr is unsatisfiable, else its simplest form."""
+    simplest_form(expr, nonempty_universe=kwargs.get("nonempty_universe", True)) if satisfiable(expr, **kwargs) else bot
+
+def strict_simplest_solution(expr, **kwargs) = simplest_solution(expr, nonempty_universe=False, **kwargs)

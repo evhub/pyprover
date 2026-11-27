@@ -108,3 +108,6 @@ ENV/
 
 # Pytest
 .pytest_cache/
+
+# Coconut
+__coconut_cache__/

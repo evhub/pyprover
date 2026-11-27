@@ -1,0 +1,105 @@
+"""The pyprover command-line interface."""
+
+# Imports:
+
+import sys
+import argparse
+
+from pyprover.constants import (
+    version,
+    default_timeout,
+    symbols,
+    use_ascii,
+)
+from pyprover.parser import (
+    ParseError,
+    expr,
+)
+from pyprover.prover import prove
+from pyprover.normal import (
+    nnf,
+    prenex,
+    cnf,
+    dnf,
+    simplify,
+    simplest_form,
+    skolemize,
+)
+
+
+# Command line:
+
+transformations = {
+    "simplify": (simplify, "simplify a formula (to prenex form with a DNF matrix)"),
+    "simplest": (simplest_form, "find the smaller of a formula's CNF and DNF"),
+    "nnf": (nnf, "convert a formula to negation normal form"),
+    "prenex": (prenex, "convert a formula to prenex normal form"),
+    "cnf": (cnf, "convert a formula to prenex conjunctive normal form"),
+    "dnf": (dnf, "convert a formula to prenex disjunctive normal form"),
+    "skolemize": (skolemize, "convert a formula to Skolem normal form"),
+}
+
+examples = r"""examples:
+  pyprover prove 'A x. F(x) -> G(x)' 'F(a)' 'G(a)'
+  pyprover prove --tree '~(P \/ Q)' '~P /\ ~Q'
+  pyprover simplify '(A -> B) /\ A'"""
+
+def make_parser() =
+    parser = argparse.ArgumentParser(
+        prog="pyprover",
+        description="A theorem prover for first-order logic with equality.",
+        epilog=examples,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--version", action="version", version="%(prog)s " + version)
+    parser.add_argument("--ascii", action="store_true", help="print formulas using only ASCII characters")
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    prove_parser = commands.add_parser("prove", help="prove a conclusion from zero or more premises")
+    prove_parser.add_argument("formulas", nargs="+", metavar="formula", help="the premises followed by the conclusion")
+    prove_parser.add_argument("--strict", action="store_true", help="don't assume that something exists")
+    prove_parser.add_argument("--timeout", type=float, default=default_timeout, help=f"give up after this many seconds (default: {default_timeout})")
+    style = prove_parser.add_mutually_exclusive_group()
+    style.add_argument("--tree", action="store_true", help="print the proof as a tree")
+    style.add_argument("--dot", action="store_true", help="print the proof as a Graphviz DOT graph")
+    style.add_argument("--quiet", "-q", action="store_true", help="only print the result")
+
+    for name, (_, help_text) in transformations.items():
+        sub = commands.add_parser(name, help=help_text)
+        sub.add_argument("formula")
+        sub.add_argument("--strict", action="store_true", help="don't assume that something exists")
+    parser
+
+def main(args=None) -> int:
+    """Run the pyprover command-line interface."""
+    opts = make_parser().parse_args(args)
+    saved_symbols = symbols.copy()
+    if opts.ascii:
+        use_ascii()
+    try:
+        match opts.command:
+            case "prove":
+                *premises, conclusion = map(expr, opts.formulas)
+                result = prove(premises, conclusion, nonempty_universe=not opts.strict, timeout=opts.timeout)
+                if opts.quiet:
+                    print(result.status)
+                elif opts.dot:
+                    print(result.to_dot())
+                elif opts.tree and result.steps:
+                    print(result.tree())
+                else:
+                    print(result)
+                return {"proved": 0, "disproved": 1}.get(result.status, 2)
+            case name:
+                kwargs = {} if name in ("nnf", "skolemize") else {"nonempty_universe": not opts.strict}
+                transform, _ = transformations[name]
+                print(transform(expr(opts.formula), **kwargs))
+                return 0
+    except ParseError as err:
+        print("pyprover: error: could not parse formula: " + str(err), file=sys.stderr)
+        return 3
+    finally:
+        symbols.update(saved_symbols)
+
+if __name__ == "__main__":
+    sys.exit(main())

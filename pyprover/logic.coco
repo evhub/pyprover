@@ -1,0 +1,735 @@
+"""The formula and term data types that make up PyProver's logic."""
+
+# Imports:
+
+import re
+from importlib import import_module
+
+from pyprover.constants import symbols
+
+
+# Base classes:
+
+class Expr:
+    """Base class for all formulas.
+
+    Formulas can be combined with the Python operators ``&`` (and),
+    ``|`` (or), ``>>`` (implies), ``<<`` (is implied by), ``~`` (not),
+    and ``^`` (exclusive or)."""
+    __slots__ = ()
+
+    def __and__(self, other) =
+        And(*conjuncts(self), *conjuncts(as_formula(other)))
+
+    def __rand__(self, other) =
+        as_formula(other) & self
+
+    def __or__(self, other) =
+        Or(*disjuncts(self), *disjuncts(as_formula(other)))
+
+    def __ror__(self, other) =
+        as_formula(other) | self
+
+    def __rshift__(self, other) =
+        Imp(self, as_formula(other))
+
+    def __rrshift__(self, other) =
+        Imp(as_formula(other), self)
+
+    def __lshift__(self, other) =
+        Imp(as_formula(other), self)
+
+    def __rlshift__(self, other) =
+        Imp(self, as_formula(other))
+
+    def __invert__(self) =
+        Not(self)
+
+    def __xor__(self, other) =
+        other = as_formula(other)
+        Or(And(self, Not(other)), And(Not(self), other))
+
+    def __bool__(self) = True
+
+    def __str__(self) = show(self)
+
+    def __repr__(self) = pyrepr(self)
+
+    def __lt__(self, other) = str(self) < str(other)
+    def __le__(self, other) = str(self) <= str(other)
+    def __gt__(self, other) = str(self) > str(other)
+    def __ge__(self, other) = str(self) >= str(other)
+
+    def substitute(self, subs) =
+        """Substitute terms for terms and formulas (or booleans) for propositions."""
+        substitute(self, subs)
+
+    def find_unification(self, other) =
+        """Find the most general substitution for the ?variables in self and other
+        that makes them equal, or None if there is none."""
+        unify(self, other)
+
+    def simplify(self, **kwargs) =
+        """Find an equivalent, standardized version of this formula."""
+        import_module("pyprover.normal").simplify(self, **kwargs)
+
+
+class Term:
+    """Base class for all terms (constants, variables, and functions applied to terms)."""
+    __slots__ = ()
+
+    def __str__(self) = show_term(self)
+
+    def __repr__(self) = term_repr(self)
+
+    def __lt__(self, other) = str(self) < str(other)
+    def __le__(self, other) = str(self) <= str(other)
+    def __gt__(self, other) = str(self) > str(other)
+    def __ge__(self, other) = str(self) >= str(other)
+
+    def __call__(self, *args) = Func(self.name, *args)
+
+    def substitute(self, subs) =
+        """Substitute terms into this term."""
+        subst_term(self, subs)
+
+    def find_unification(self, other) =
+        """Find the most general unifier of self and other, or None."""
+        unify(self, other)
+
+
+# Formulas:
+
+data Top() from Expr:
+    """Truth (⊤)."""
+
+data Bot() from Expr:
+    """Falsity (⊥)."""
+    def __bool__(self) = False
+
+top = true = Top()
+bot = false = Bot()
+
+
+data Prop(name: str) from Expr:
+    """A proposition. Calling a proposition on terms produces a predicate."""
+    def __new__(cls, name):
+        if isinstance(name, (Prop, Pred)):
+            name = name.name
+        if not isinstance(name, str):
+            raise TypeError(f"proposition names must be strings, not {name!r}")
+        return makedata(cls, name)
+
+    def __call__(self, *args) = Pred(self.name, *args)
+
+Proposition = Prop
+
+
+data Pred(name: str, *args: Term) from Expr:
+    """A predicate applied to one or more terms."""
+    def __new__(cls, name, *args):
+        if isinstance(name, (Prop, Pred)):
+            name = name.name
+        if not isinstance(name, str):
+            raise TypeError(f"predicate names must be strings, not {name!r}")
+        if not args:
+            return Prop(name)
+        return makedata(cls, name, *map(as_term, args))
+
+    def proposition(self) = Prop(self.name)
+
+    def __call__(self, *args) = Pred(self.name, *(self.args + args))
+
+Predicate = Pred
+
+
+data Eq(a: Term, b: Term) from Expr:
+    """Equality between two terms. Equality is symmetric: Eq(a, b) == Eq(b, a)."""
+    def __new__(cls, a, b) = makedata(cls, as_term(a), as_term(b))
+
+    def __eq__(self, other) =
+        isinstance(other, Eq) and (
+            (self.a, self.b) == (other.a, other.b)
+            or (self.a, self.b) == (other.b, other.a)
+        )
+
+    def __ne__(self, other) = not self == other
+
+    def __hash__(self) = hash(("Eq", frozenset((self.a, self.b))))
+
+    def swap(self) =
+        """Swap the two sides of the equality."""
+        Eq(self.b, self.a)
+
+Equals = Eq
+
+
+data Not(elem: Expr) from Expr:
+    """Negation."""
+    def __new__(cls, elem) = makedata(cls, as_formula(elem))
+
+    @property
+    def neg(self) = self.elem
+
+
+data And(*elems: Expr) from Expr:
+    """Conjunction. And() is ⊤ and And(x) is x. Order and repetition of
+    conjuncts are ignored when comparing formulas."""
+    def __new__(cls, *elems):
+        elems = tuple(map(as_formula, elems))
+        if not elems:
+            return top
+        if len(elems) == 1:
+            return elems[0]
+        return makedata(cls, *elems)
+
+    def __eq__(self, other) =
+        isinstance(other, And) and frozenset(self.elems) == frozenset(other.elems)
+
+    def __ne__(self, other) = not self == other
+
+    def __hash__(self) = hash(("And", frozenset(self.elems)))
+
+    @property
+    def ands(self) = self.elems
+
+
+data Or(*elems: Expr) from Expr:
+    """Disjunction. Or() is ⊥ and Or(x) is x. Order and repetition of
+    disjuncts are ignored when comparing formulas."""
+    def __new__(cls, *elems):
+        elems = tuple(map(as_formula, elems))
+        if not elems:
+            return bot
+        if len(elems) == 1:
+            return elems[0]
+        return makedata(cls, *elems)
+
+    def __eq__(self, other) =
+        isinstance(other, Or) and frozenset(self.elems) == frozenset(other.elems)
+
+    def __ne__(self, other) = not self == other
+
+    def __hash__(self) = hash(("Or", frozenset(self.elems)))
+
+    @property
+    def ors(self) = self.elems
+
+
+data Imp(cond: Expr, concl: Expr) from Expr:
+    """Implication. Imp(a, b, c) is shorthand for Imp(a, Imp(b, c))."""
+    def __new__(cls, *elems):
+        match elems:
+            case ():
+                raise TypeError("Imp requires at least one argument")
+            case (x,):
+                return as_formula(x)
+            case (x, *rest):
+                return makedata(cls, as_formula(x), Imp(*rest))
+
+    @property
+    def conds(self) = (self.cond,)
+
+Implies = Imp
+
+
+data Iff(a: Expr, b: Expr) from Expr:
+    """Biconditional (if and only if)."""
+    def __new__(cls, a, b) = makedata(cls, as_formula(a), as_formula(b))
+
+
+class Quantifier(Expr):
+    """Base class for ForAll and Exists. Quantified formulas are compared up
+    to renaming of their bound variables."""
+    __slots__ = ()
+
+    def change_var(self, var) =
+        """Create an equivalent formula with a different bound variable."""
+        var = as_bound_var(var)
+        type(self)(var, substitute(self.elem, {self.var: var}))
+
+    def change_elem(self, elem) =
+        """Create a quantifier over the same variable with a different body."""
+        type(self)(self.var, elem)
+
+def _make_quantifier(cls, args):
+    match args:
+        case () | (_,):
+            raise TypeError(f"{cls.__name__} requires a variable and a formula")
+        case (var, elem):
+            var, elem = as_bound_var(var), as_formula(elem)
+            if isinstance(args[0], Var):
+                elem = substitute(elem, {args[0]: var})
+            return makedata(cls, var, elem)
+        case (var, *rest):
+            return _make_quantifier(cls, (var, _make_quantifier(cls, rest)))
+
+def _alpha_eq(q1, q2):
+    """Equality of quantified formulas up to renaming of bound variables."""
+    if type(q1) is not type(q2):
+        return False
+    marker = Bound(next(_fresh_ids))
+    return substitute(q1.elem, {q1.var: marker}) == substitute(q2.elem, {q2.var: marker})
+
+def _alpha_hash(q) =
+    hash((type(q).__name__, substitute(q.elem, {q.var: Bound(-1)})))
+
+_fresh_ids = iter(count())
+
+
+data ForAll(var: Const, elem: Expr) from Quantifier:
+    """Universal quantification. ForAll(x, y, F) is shorthand for ForAll(x, ForAll(y, F))."""
+    def __new__(cls, *args) = _make_quantifier(cls, args)
+    def __eq__(self, other) = _alpha_eq(self, other)
+    def __ne__(self, other) = not self == other
+    def __hash__(self) = _alpha_hash(self)
+
+FA = ForAll
+
+
+data Exists(var: Const, elem: Expr) from Quantifier:
+    """Existential quantification. Exists(x, y, F) is shorthand for Exists(x, Exists(y, F))."""
+    def __new__(cls, *args) = _make_quantifier(cls, args)
+    def __eq__(self, other) = _alpha_eq(self, other)
+    def __ne__(self, other) = not self == other
+    def __hash__(self) = _alpha_hash(self)
+
+TE = EX = Exists
+
+
+# Terms:
+
+data Const(name: str) from Term:
+    """A constant, or (when bound by a quantifier) a bound variable."""
+    def __new__(cls, name):
+        if isinstance(name, Term):
+            name = name.name
+        if not isinstance(name, str):
+            raise TypeError(f"term names must be strings, not {name!r}")
+        return makedata(cls, name)
+
+    def variable(self) = Var(self.name)
+    def constant(self) = self
+
+Constant = Const
+
+
+data Var(name: str) from Term:
+    """A schematic variable (printed as ?x) that can be unified with any term.
+    Free schematic variables in a premise or conclusion are implicitly
+    universally quantified."""
+    def __new__(cls, name):
+        if isinstance(name, Term):
+            name = name.name
+        if not isinstance(name, str):
+            raise TypeError(f"term names must be strings, not {name!r}")
+        return makedata(cls, name)
+
+    def variable(self) = self
+    def constant(self) = Const(self.name)
+
+Variable = Var
+
+
+data Func(name: str, *args: Term) from Term:
+    """A function applied to one or more terms."""
+    def __new__(cls, name, *args):
+        if isinstance(name, Term):
+            name = name.name
+        if not isinstance(name, str):
+            raise TypeError(f"function names must be strings, not {name!r}")
+        if not args:
+            return Const(name)
+        return makedata(cls, name, *map(as_term, args))
+
+    def __call__(self, *args) = Func(self.name, *(self.args + args))
+
+Function = Func
+
+
+data Bound(idx: int) from Term:
+    """Internal placeholder for a bound variable, used to compare formulas up
+    to renaming of bound variables."""
+    name = property(self => f"#{self.idx}")
+
+
+# Make Expr and Term methods take precedence over the tuple methods that
+#  data types inherit (data types are tuples, which come first in the MRO).
+for _cls in (Top, Bot, Prop, Pred, Eq, Not, And, Or, Imp, Iff, ForAll, Exists):
+    for _method in ("__repr__", "__lt__", "__le__", "__gt__", "__ge__"):
+        setattr(_cls, _method, getattr(Expr, _method))
+for _cls in (Const, Var, Func, Bound):
+    for _method in ("__repr__", "__lt__", "__le__", "__gt__", "__ge__"):
+        setattr(_cls, _method, getattr(Term, _method))
+
+
+# Coercions:
+
+def wff(expr) =
+    """Determine whether expr is a well-formed formula."""
+    isinstance(expr, Expr)
+
+def isvar(term) =
+    """Determine whether term is a constant or variable (rather than a function application)."""
+    isinstance(term, (Const, Var))
+
+def as_formula(x):
+    """Convert x to a formula, allowing booleans."""
+    match x:
+        case Expr():
+            return x
+        case True:
+            return top
+        case False:
+            return bot
+    raise TypeError(f"expected a formula but got {x!r}")
+
+def as_term(x):
+    """Convert x to a term, allowing strings as constant names."""
+    match x:
+        case Term():
+            return x
+        case str():
+            return Const(x)
+    raise TypeError(f"expected a term but got {x!r}")
+
+def as_bound_var(x):
+    """Convert x to a variable that can be bound by a quantifier."""
+    match x:
+        case Const(_) | Var(_):
+            return Const(x.name)
+        case str():
+            return Const(x)
+    raise TypeError(f"can only quantify over variables, not {x!r}")
+
+def conjuncts(expr) =
+    """The conjuncts of expr (just (expr,) if it is not a conjunction)."""
+    expr.elems if isinstance(expr, And) else (expr,)
+
+def disjuncts(expr) =
+    """The disjuncts of expr (just (expr,) if it is not a disjunction)."""
+    expr.elems if isinstance(expr, Or) else (expr,)
+
+
+# Printing:
+
+def paren(s, cond) = "(" + s + ")" if cond else s
+
+case def show_term:
+    """Render a term in standard mathematical notation."""
+    case(Var(name)) = "?" + name
+    case(Func(name, *args)) = name + "(" + ", ".join(map(show_term, args)) + ")"
+    case(term) = term.name
+
+def show(expr, prec=0) -> str:
+    """Render a formula in standard mathematical notation (that expr can parse).
+
+    prec is the precedence of the surrounding context: 0 for quantifiers,
+    1 for ↔, 2 for →, 3 for ∨, 4 for ∧, and 5 for ¬."""
+    sym = symbols
+    match expr:
+        case Top():
+            return sym["top"]
+        case Bot():
+            return sym["bot"]
+        case Prop(name):
+            return name
+        case Pred(name, *args):
+            return name + "(" + ", ".join(map(show_term, args)) + ")"
+        case Eq(a, b):
+            return show_term(a) + sym["eq"] + show_term(b)
+        case Not(Eq(a, b)):
+            return show_term(a) + sym["neq"] + show_term(b)
+        case Not(elem):
+            return sym["not"] + show(elem, 5)
+        case And(*elems):
+            return elems |> map$(show$(prec=5)) |> sym["and"].join |> paren$(cond=prec > 4)
+        case Or(*elems):
+            return elems |> map$(show$(prec=4)) |> sym["or"].join |> paren$(cond=prec > 3)
+        case Imp(cond, concl):
+            return show(cond, 3) + sym["imp"] + show(concl, 2) |> paren$(cond=prec > 2)
+        case Iff(a, b):
+            return show(a, 2) + sym["iff"] + show(b, 2) |> paren$(cond=prec > 1)
+        case ForAll(var, elem):
+            return sym["forall"] + var.name + ", " + show(elem) |> paren$(cond=prec > 0)
+        case Exists(var, elem):
+            return sym["exists"] + var.name + ", " + show(elem) |> paren$(cond=prec > 0)
+    raise TypeError(f"not a formula: {expr!r}")
+
+def term_repr(term) -> str:
+    """Render a term as Python code (assuming `from pyprover import *`)."""
+    match term:
+        case Const(name) if re.fullmatch(r"[a-z]", name):
+            return name
+        case Const(name):
+            return f"Const({name!r})"
+        case Var(name):
+            return f"Var({name!r})"
+        case Func(name, *args):
+            return term_repr(Const(name)) + "(" + ", ".join(map(term_repr, args)) + ")"
+        case Bound(idx):
+            return f"Bound({idx!r})"
+    raise TypeError(f"not a term: {term!r}")
+
+def _repr_operand(expr) =
+    pyrepr(expr) |> paren$(cond=isinstance(expr, (And, Or, Imp)))
+
+def pyrepr(expr) -> str:
+    """Render a formula as Python code (assuming `from pyprover import *`)."""
+    match expr:
+        case Top():
+            return "top"
+        case Bot():
+            return "bot"
+        case Prop(name) if re.fullmatch(r"[A-Z]", name):
+            return name
+        case Prop(name):
+            return f"Prop({name!r})"
+        case Pred(name, *args):
+            return pyrepr(Prop(name)) + "(" + ", ".join(map(term_repr, args)) + ")"
+        case Eq(a, b):
+            return f"Eq({term_repr(a)}, {term_repr(b)})"
+        case Not(elem):
+            return "~" + _repr_operand(elem)
+        case And(*elems):
+            return " & ".join(map(_repr_operand, elems))
+        case Or(*elems):
+            return " | ".join(map(_repr_operand, elems))
+        case Imp(cond, concl):
+            return _repr_operand(cond) + " >> " + _repr_operand(concl)
+        case Iff(a, b):
+            return f"Iff({pyrepr(a)}, {pyrepr(b)})"
+        case ForAll(var, elem):
+            return f"FA({term_repr(var)}, {pyrepr(elem)})"
+        case Exists(var, elem):
+            return f"TE({term_repr(var)}, {pyrepr(elem)})"
+    raise TypeError(f"not a formula: {expr!r}")
+
+
+# Traversal:
+
+case def term_leaves:
+    """The constants and variables appearing in a term."""
+    case(Func(_, *args)) = args |> map$(term_leaves) |> reduce$((|), ?, set())
+    case(Const(_) | Var(_) as term) = {term}
+    case(_) = set()
+
+def free_terms(expr, bound=frozenset()) -> set:
+    """The constants and variables that appear free in expr (i.e. that are not
+    bound by a quantifier)."""
+    match expr:
+        case Pred(_, *args):
+            return (args |> map$(term_leaves) |> reduce$((|), ?, set())) - bound
+        case Eq(a, b):
+            return (term_leaves(a) | term_leaves(b)) - bound
+        case Not(elem):
+            return free_terms(elem, bound)
+        case And(*elems) | Or(*elems):
+            return elems |> map$(free_terms$(bound=bound)) |> reduce$((|), ?, set())
+        case Imp(a, b) | Iff(a, b):
+            return free_terms(a, bound) | free_terms(b, bound)
+        case ForAll(var, elem) | Exists(var, elem):
+            return free_terms(elem, bound | {var})
+    return set()
+
+def free_consts(expr) -> set =
+    """The constants that appear free in expr."""
+    {t for t in free_terms(expr) if isinstance(t, Const)}
+
+def free_vars(expr) -> set =
+    """The ?variables that appear in expr."""
+    {t for t in free_terms(expr) if isinstance(t, Var)}
+
+def term_names(term) -> set:
+    """Every name used in term."""
+    match term:
+        case Func(name, *args):
+            return args |> map$(term_names) |> reduce$((|), ?, {name})
+        case Bound(_):
+            return set()
+    return {term.name}
+
+def all_names(expr) -> set:
+    """Every name (of propositions, predicates, functions, constants, and
+    variables, bound or free) used in expr."""
+    match expr:
+        case Prop(name):
+            return {name}
+        case Pred(name, *args):
+            return args |> map$(term_names) |> reduce$((|), ?, {name})
+        case Eq(a, b):
+            return term_names(a) | term_names(b)
+        case Not(elem):
+            return all_names(elem)
+        case And(*elems) | Or(*elems):
+            return elems |> map$(all_names) |> reduce$((|), ?, set())
+        case Imp(a, b) | Iff(a, b):
+            return all_names(a) | all_names(b)
+        case ForAll(var, elem) | Exists(var, elem):
+            return all_names(elem) | {var.name}
+    return set()
+
+def fresh_name(base, used) -> str:
+    """Find a variant of base not in used by adding primes."""
+    name = base
+    while name in used:
+        name += "'"
+    return name
+
+case def size:
+    """The number of symbols in a formula (used to compare the complexity of formulas)."""
+    case(Not(elem)) = size(elem) + 1
+    case(And(*elems) | Or(*elems)) = elems |> map$(size) |> sum |> (+)$(1)
+    case(Imp(a, b) | Iff(a, b)) = size(a) + size(b) + 1
+    case(ForAll(_, elem) | Exists(_, elem)) = size(elem) + 1
+    case(_) = 1
+
+# Substitution:
+
+def subst_term(term, subs):
+    """Substitute into a term."""
+    if term in subs:
+        return subs[term]
+    match term:
+        case Func(name, *args):
+            return Func(name, *(subst_term(arg, subs) for arg in args))
+    return term
+
+def _value_names(value) -> set:
+    match value:
+        case Term():
+            return term_names(value)
+        case Expr():
+            return {t.name for t in free_terms(value)}
+    return set()
+
+def _subst(expr, subs):
+    match expr:
+        case Prop(_):
+            return subs.get(expr, expr)
+        case Pred(name, *args):
+            match subs.get(Prop(name)):
+                case Prop(new_name):
+                    name = new_name
+            return Pred(name, *(subst_term(arg, subs) for arg in args))
+        case Eq(a, b):
+            return Eq(subst_term(a, subs), subst_term(b, subs))
+        case Not(elem):
+            return Not(_subst(elem, subs))
+        case And(*elems):
+            return And(*(_subst(x, subs) for x in elems))
+        case Or(*elems):
+            return Or(*(_subst(x, subs) for x in elems))
+        case Imp(a, b):
+            return Imp(_subst(a, subs), _subst(b, subs))
+        case Iff(a, b):
+            return Iff(_subst(a, subs), _subst(b, subs))
+        case ForAll(var, elem) | Exists(var, elem):
+            inner = {k: v for k, v in subs.items() if k != var}
+            if not inner:
+                return expr
+            captured = inner.values() |> map$(_value_names) |> reduce$((|), ?, set())
+            if var.name in captured:
+                new_var = Const(fresh_name(var.name, captured | all_names(elem)))
+                elem = _subst(elem, {var: new_var})
+                var = new_var
+            return makedata(type(expr), var, _subst(elem, inner))
+    return expr
+
+def substitute(expr, subs):
+    """Substitute into expr according to the dictionary subs, which can map
+    terms to terms and propositions to formulas or booleans. Substitution
+    never captures variables: bound variables are renamed when necessary."""
+    subs = {k: as_formula(v) if isinstance(k, Prop) else v for k, v in subs.items()}
+    if isinstance(expr, Term):
+        return subst_term(expr, subs)
+    return _subst(expr, subs) if subs else expr
+
+
+# Unification:
+
+def walk(term, subs):
+    """Follow variable bindings in subs."""
+    while isinstance(term, Var) and term in subs:
+        term = subs[term]
+    return term
+
+def occurs(var, term, subs) -> bool:
+    """Determine whether var occurs in term (under subs)."""
+    term = walk(term, subs)
+    match term:
+        case Var(_):
+            return term == var
+        case Func(_, *args):
+            return any(occurs(var, arg, subs) for arg in args)
+    return False
+
+def unify_terms(a, b, subs):
+    """Extend subs to a most general unifier of terms a and b, or return None."""
+    if subs is None:
+        return None
+    a, b = walk(a, subs), walk(b, subs)
+    if a == b:
+        return subs
+    match (a, b):
+        case (Var(_), _):
+            return None if occurs(a, b, subs) else {**subs, a: b}
+        case (_, Var(_)):
+            return None if occurs(b, a, subs) else {**subs, b: a}
+        case (Func(f, *xs), Func(==f, *ys)) if len(xs) == len(ys):
+            for x, y in zip(xs, ys):
+                subs = unify_terms(x, y, subs)
+                if subs is None:
+                    return None
+            return subs
+    return None
+
+def unify_term_lists(xs, ys, subs):
+    """Unify two sequences of terms pairwise."""
+    if len(xs) != len(ys):
+        return None
+    for x, y in zip(xs, ys):
+        subs = unify_terms(x, y, subs)
+        if subs is None:
+            return None
+    return subs
+
+def resolve_term(term, subs):
+    """Apply the (triangular) substitution subs to term completely."""
+    term = walk(term, subs)
+    match term:
+        case Func(name, *args):
+            return Func(name, *(resolve_term(arg, subs) for arg in args))
+    return term
+
+def _unify(a, b, subs):
+    if subs is None:
+        return None
+    match (a, b):
+        case (Term(), Term()):
+            return unify_terms(a, b, subs)
+        case (Pred(f, *xs), Pred(==f, *ys)):
+            return unify_term_lists(xs, ys, subs)
+        case (Eq(x1, y1), Eq(x2, y2)):
+            result = unify_term_lists((x1, y1), (x2, y2), subs)
+            return result if result is not None else unify_term_lists((x1, y1), (y2, x2), subs)
+        case (Not(x), Not(y)):
+            return _unify(x, y, subs)
+        case (And(*xs), And(*ys)) | (Or(*xs), Or(*ys)) if len(xs) == len(ys):
+            for x, y in zip(xs, ys):
+                subs = _unify(x, y, subs)
+            return subs
+        case (Imp(x1, y1), Imp(x2, y2)) | (Iff(x1, y1), Iff(x2, y2)):
+            return _unify(y1, y2, _unify(x1, x2, subs))
+        case (ForAll(v, x), ForAll(w, y)) | (Exists(v, x), Exists(w, y)):
+            marker = Bound(next(_fresh_ids))
+            return _unify(substitute(x, {v: marker}), substitute(y, {w: marker}), subs)
+    return subs if a == b else None
+
+def unify(a, b):
+    """Find the most general substitution for the ?variables in a and b that
+    makes them equal, or None if there is none."""
+    subs = _unify(a, b, {})
+    if subs is None:
+        return None
+    return {var: resolve_term(var, subs) for var in subs}
