@@ -308,4 +308,6 @@ make test       # build, install, and run the tests
 make watch      # recompile whenever a .coco file changes
 ```
 
+To release a new version, bump `version` in `pyprover/constants.coco`, update `CHANGELOG.md`, and merge to `master`. CI then publishes the new version to PyPI and creates the matching tag and GitHub release.
+
 Released under the Apache License 2.0.
